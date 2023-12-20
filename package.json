@@ -5,7 +5,10 @@
   "main": "index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
-  "private": false,
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
     "fastify": "^4.25.1"
   },
@@ -18,6 +21,6 @@
     "build": "tsc",
     "turbo-build": "turbo run build --no-daemon",
     "test": "turbo run test",
-    "start": "node ./dist/core/index.js"
+    "start": "node ./packages/core/dist/index.js"
   }
 }

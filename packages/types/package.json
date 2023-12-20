@@ -1,0 +1,18 @@
+{
+  "name": "@ayazmo/types",
+  "version": "0.0.1",
+  "description": "Core interfaces for Ayazmo",
+  "main": "dist/index.js",
+  "author": "Tsvetan Nikolov",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc --build",
+    "watch": "tsc --build --watch"
+  }
+}

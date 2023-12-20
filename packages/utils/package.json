@@ -1,0 +1,18 @@
+{
+  "name": "@ayazmo/utils",
+  "version": "0.0.1",
+  "description": "Ayazmo helper functions used in core and modules",
+  "main": "dist/index.js",
+  "author": "Tsvetan Nikolov",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc --build",
+    "watch": "tsc --build --watch"
+  }
+}

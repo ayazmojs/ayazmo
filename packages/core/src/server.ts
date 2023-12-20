@@ -1,18 +1,29 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import fastify from 'fastify';
+import { AyazmoInstance } from '@ayazmo/types';
+import pino from 'pino';
 import { loadAndRegisterPlugins } from './plugin-manager';
 
+const coreLogger = pino({
+  level: 'info',
+  transport: {
+    target: 'pino-pretty'
+  }
+});
+
 export class Server {
-  private fastify: FastifyInstance;
+  private fastify: AyazmoInstance;
 
   constructor() {
-    this.fastify = Fastify({ logger: true });
+    this.fastify = fastify({
+      logger: coreLogger
+    });
     this.initializeRoutes();
   }
 
   private initializeRoutes(): void {
     // Define your core routes here, e.g., health checks or basic info
     this.fastify.get('/health', async (request, reply) => {
-      return { status: 'ok' };
+      reply.code(200).send({ status: 'ok' });
     });
   }
 

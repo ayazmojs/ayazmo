@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es5",
+      "es6",
+      "es2019"
+    ],
+    "target": "es2017",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "declaration": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "noImplicitReturns": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "paths": {
+      "@ayazmo/utils/*": [
+        "../utils/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "./src/**/__tests__",
+    "./src/**/__mocks__",
+    "./src/**/__fixtures__",
+    "node_modules"
+  ]
+}
