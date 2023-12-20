@@ -1,0 +1,23 @@
+{
+  "name": "ayazmo",
+  "version": "0.0.1",
+  "description": "Plugin-driven API framework designed for building modular, scalable, and performance-optimized web services.",
+  "main": "index.js",
+  "author": "Tsvetan Nikolov",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "fastify": "^4.25.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "turbo-build": "turbo run build --no-daemon",
+    "test": "turbo run test",
+    "start": "node ./dist/core/index.js"
+  }
+}
