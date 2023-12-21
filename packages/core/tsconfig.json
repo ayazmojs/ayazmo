@@ -24,17 +24,21 @@
     "paths": {
       "@ayazmo/utils/*": [
         "../utils/src/*"
+      ],
+      "@ayazmo/types/*": [
+        "../types/src/*"
       ]
     }
   },
   "include": [
-    "src"
+    "src",
+    "node_modules/@fastify/awilix/lib/index.d.ts"
   ],
   "exclude": [
     "dist",
     "./src/**/__tests__",
     "./src/**/__mocks__",
     "./src/**/__fixtures__",
-    "node_modules"
-  ]
+    "node_modules/**/*",
+    "!node_modules/@fastify/awilix/lib/index.d.ts"  ]
 }

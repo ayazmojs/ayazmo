@@ -1,7 +1,9 @@
 import fastify from 'fastify';
 import { AyazmoInstance } from '@ayazmo/types';
 import pino from 'pino';
-import { loadAndRegisterPlugins } from './plugin-manager';
+import path from 'path';
+import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
+import { loadRoutesFromPlugin, loadServicesFromPlugin } from './plugin-manager';
 
 const coreLogger = pino({
   level: 'info',
@@ -10,6 +12,9 @@ const coreLogger = pino({
   }
 });
 
+const rootDir = process.cwd(); // Get the current working directory
+const pluginsDir = path.join(rootDir, 'dist/plugins'); // Adjust this path as needed
+
 export class Server {
   private fastify: AyazmoInstance;
 
@@ -17,6 +22,7 @@ export class Server {
     this.fastify = fastify({
       logger: coreLogger
     });
+    this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
     this.initializeRoutes();
   }
 
@@ -28,7 +34,8 @@ export class Server {
   }
 
   async start(port: number): Promise<void> {
-    await loadAndRegisterPlugins(this.fastify);
+    await loadServicesFromPlugin(pluginsDir, this.fastify, diContainer);
+    await loadRoutesFromPlugin(pluginsDir, this.fastify);
     this.fastify.listen({ port }, (err, address) => {
       if (err) {
         console.error(err);

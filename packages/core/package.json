@@ -9,8 +9,10 @@
     "dist"
   ],
   "dependencies": {
-    "@ayazmo/utils": "0.0.1",
     "@ayazmo/types": "0.0.1",
+    "@ayazmo/utils": "0.0.1",
+    "@fastify/awilix": "^4.0.0",
+    "awilix": "^9.0.0",
     "pino-pretty": "^10.3.0"
   },
   "scripts": {
