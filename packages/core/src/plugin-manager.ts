@@ -26,25 +26,30 @@ export async function loadServicesFromPlugin(pluginsDir: string, fastify: Ayazmo
       const serviceFiles = listFilesInDirectory(servicesDir);
 
       for (const file of serviceFiles) {
-        // load the service file
-        const serviceModule = await import(`${servicesDir}/${file}`);
 
-        // Check if the default export exists
-        if (!serviceModule.default || typeof serviceModule.default !== 'function') {
-          fastify.log.error(`The module ${file} does not have a valid default export.`);
-          continue;
+        try {
+          // load the service file
+          const serviceModule = await import(path.join(servicesDir, file));
+
+          // Check if the default export exists
+          if (!serviceModule.default || typeof serviceModule.default !== 'function') {
+            fastify.log.error(`The module ${file} does not have a valid default export.`);
+            continue;
+          }
+
+          const serviceName = file.replace(/\.(ts|js)$/, '');
+
+          // Register the service in the DI container
+          diContainer.register({
+            [serviceName]: asFunction(
+              (cradle) => new serviceModule.default(cradle, {})
+            ).singleton(),
+          })
+
+          fastify.log.info(`Registered service ${serviceName}`);
+        } catch (error) {
+          fastify.log.error(`Error while loading service ${file}: ${error}`);
         }
-
-        const serviceName = file.replace(/\.(ts|js)$/, '');
-
-        // Register the service in the DI container
-        diContainer.register({
-          [serviceName]: asFunction(
-            (cradle) => new serviceModule.default(cradle, {})
-          ).singleton(),
-        })
-        
-        fastify.log.info(`Registered service ${serviceName}`);
       }
 
     } else {
