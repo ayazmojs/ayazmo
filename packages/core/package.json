@@ -13,6 +13,8 @@
     "@ayazmo/utils": "0.0.1",
     "@fastify/awilix": "^4.0.0",
     "awilix": "^9.0.0",
+    "graphql": "^16.8.1",
+    "mercurius": "^13.3.2",
     "pino-pretty": "^10.3.0"
   },
   "scripts": {

@@ -3,7 +3,10 @@ import { AyazmoInstance } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
-import { loadRoutesFromPlugin, loadServicesFromPlugin } from './plugin-manager';
+import { loadServices, loadRoutes, loadGraphQL } from './loaders';
+import mercurius from 'mercurius';
+
+const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
 
 const coreLogger = pino({
   level: 'info',
@@ -24,6 +27,15 @@ export class Server {
     });
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
     this.initializeRoutes();
+    this.fastify.register(mercurius, {
+      schema: 'type Query { health: Boolean }',
+      resolvers: {
+        Query: {
+          health: async (_, { }) => true,
+        },
+      },
+    });
+    this.setupGracefulShutdown();
   }
 
   private initializeRoutes(): void {
@@ -33,15 +45,66 @@ export class Server {
     });
   }
 
-  async start(port: number): Promise<void> {
-    await loadServicesFromPlugin(pluginsDir, this.fastify, diContainer);
-    await loadRoutesFromPlugin(pluginsDir, this.fastify);
-    this.fastify.listen({ port }, (err, address) => {
-      if (err) {
-        console.error(err);
-        process.exit(1);
+  private async shutdownServer() {
+    const shutdownInitiated = Date.now();
+
+    try {
+      // Initiate graceful shutdown tasks here, e.g., closing database connections
+
+      // Create a promise that resolves when the server closes
+      const serverClosed = new Promise((resolve) => {
+        this.fastify.close(() => resolve(true));
+      });
+
+      // Create a timeout promise
+      const timeout = new Promise((resolve) => {
+        const timeLeft = SHUTDOWN_TIMEOUT - (Date.now() - shutdownInitiated);
+        setTimeout(() => resolve(false), timeLeft);
+      });
+
+      // Wait for either the server to close or the timeout, whichever comes first
+      const shutdownCompleted = await Promise.race([serverClosed, timeout]);
+
+      if (shutdownCompleted) {
+        this.fastify.log.info('Server has been shut down gracefully');
+      } else {
+        this.fastify.log.warn('Server shutdown timed out; forcing shutdown');
+        process.exit(1); // Exit with a failure code
       }
-      console.log(`Server listening on ${address}`);
-    });
+    } catch (err) {
+      // Handle errors that occurred during shutdown
+      this.fastify.log.error('Error during server shutdown', err);
+      process.exit(1);
+    }
+  }
+
+
+  private setupGracefulShutdown() {
+    // Listen for termination signals
+    process.on('SIGINT', () => this.shutdownServer());
+    process.on('SIGTERM', () => this.shutdownServer());
+  }
+
+  public async loadPlugins(): Promise<void> {
+    // load custom services
+    await loadServices(pluginsDir, this.fastify, diContainer);
+
+    // load custom routes
+    await loadRoutes(pluginsDir, this.fastify);
+
+    // load custom graphql
+    await loadGraphQL(pluginsDir, this.fastify);
+  }
+
+  async start(port: number): Promise<void> {
+    // load plugins
+    await this.loadPlugins();
+
+    try {
+      await this.fastify.listen({ port });
+    } catch (err) {
+      this.fastify.log.error(err);
+      process.exit(1);
+    }
   }
 }
