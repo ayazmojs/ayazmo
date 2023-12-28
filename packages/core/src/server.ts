@@ -3,7 +3,7 @@ import { AyazmoInstance } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
-import { loadServices, loadRoutes, loadGraphQL } from './loaders';
+import { loadServices, loadRoutes, loadGraphQL, loadConfig } from './loaders';
 import mercurius from 'mercurius';
 
 const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
@@ -17,6 +17,7 @@ const coreLogger = pino({
 
 const rootDir = process.cwd(); // Get the current working directory
 const pluginsDir = path.join(rootDir, 'dist/plugins'); // Adjust this path as needed
+const configDir = path.join(rootDir, 'ayazmo.config.js'); // Adjust this path as needed
 
 export class Server {
   private fastify: AyazmoInstance;
@@ -86,6 +87,9 @@ export class Server {
   }
 
   public async loadPlugins(): Promise<void> {
+    // load config
+    await loadConfig(configDir, this.fastify, diContainer);
+
     // load custom services
     await loadServices(pluginsDir, this.fastify, diContainer);
 
