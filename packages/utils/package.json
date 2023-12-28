@@ -9,10 +9,14 @@
     "dist"
   ],
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "rimraf": "^5.0.5",
+    "vitest": "^1.1.0"
   },
   "scripts": {
     "build": "rimraf dist && tsc --build",
-    "watch": "tsc --build --watch"
+    "watch": "tsc --build --watch",
+    "test": "vitest",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
   }
 }
