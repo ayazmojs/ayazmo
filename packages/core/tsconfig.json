@@ -36,7 +36,7 @@
   ],
   "exclude": [
     "dist",
-    "./src/**/__tests__",
+    "./__tests__",
     "./src/**/__mocks__",
     "./src/**/__fixtures__",
     "node_modules/**/*",
