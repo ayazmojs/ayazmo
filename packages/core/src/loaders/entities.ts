@@ -56,6 +56,12 @@ export async function loadEntities(pluginsDir: string, fastify: AyazmoInstance, 
 
   try {
     const db = await MikroORM.init({
+      discovery: { disableDynamicFileAccess: true },
+      debug: false,
+      tsNode: false,
+      driverOptions: {
+        connection: { ssl: true }
+      },
       entities: entities ?? [],
       ...config.database
     });
