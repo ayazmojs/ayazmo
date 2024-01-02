@@ -3,7 +3,7 @@ import { AyazmoInstance } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
-import { loadServices, loadRoutes, loadGraphQL, loadConfig } from './loaders';
+import { loadServices, loadRoutes, loadGraphQL, loadConfig, loadEntities } from './loaders';
 import mercurius from 'mercurius';
 
 const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
@@ -89,6 +89,9 @@ export class Server {
   public async loadPlugins(): Promise<void> {
     // load config
     await loadConfig(configDir, this.fastify, diContainer);
+
+    // load entities
+    await loadEntities(pluginsDir, this.fastify, diContainer);
 
     // load custom services
     await loadServices(pluginsDir, this.fastify, diContainer);
