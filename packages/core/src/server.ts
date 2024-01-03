@@ -5,6 +5,7 @@ import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
 import { loadServices, loadRoutes, loadGraphQL, loadConfig, loadEntities } from './loaders';
 import mercurius from 'mercurius';
+import { loadPlugins } from './plugins/plugin-manager';
 
 const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
 
@@ -40,7 +41,7 @@ export class Server {
   }
 
   private initializeRoutes(): void {
-    // Define your core routes here, e.g., health checks or basic info
+    // Define your core routes here
     this.fastify.get('/health', async (request, reply) => {
       reply.code(200).send({ status: 'ok' });
     });
@@ -90,17 +91,20 @@ export class Server {
     // load config
     await loadConfig(configDir, this.fastify, diContainer);
 
+    // load plugins
+    await loadPlugins(this.fastify, diContainer);
+
     // load entities
-    await loadEntities(pluginsDir, this.fastify, diContainer);
+    // await loadEntities(pluginsDir, this.fastify, diContainer);
 
     // load custom services
-    await loadServices(pluginsDir, this.fastify, diContainer);
+    // await loadServices(pluginsDir, this.fastify, diContainer);
 
     // load custom routes
-    await loadRoutes(pluginsDir, this.fastify);
+    // await loadRoutes(pluginsDir, this.fastify);
 
     // load custom graphql
-    await loadGraphQL(pluginsDir, this.fastify);
+    // await loadGraphQL(pluginsDir, this.fastify);
   }
 
   async start(port: number): Promise<void> {
