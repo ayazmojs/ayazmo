@@ -11,7 +11,7 @@
   ],
   "dependencies": {
     "@ayazmo/types": "0.0.1",
-    "@ayazmo/utils": "0.0.1",
+    "@ayazmo/utils": "0.1.0",
     "@fastify/awilix": "^4.0.0",
     "@mikro-orm/core": "^5.9.6",
     "@mikro-orm/postgresql": "^5.9.6",

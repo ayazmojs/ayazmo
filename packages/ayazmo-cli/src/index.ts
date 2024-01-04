@@ -12,7 +12,7 @@ program
   .version("0.1.0");
 
 program
-  .command('create')
+  .command('app:create')
   .description('Create a new Ayazmo application')
   .action(createApplication);
 
