@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "lib": [
-      "es5",
-      "es6",
-      "es2019"
-    ],
-    "target": "es2017",
+			"DOM",
+			"DOM.Iterable",
+			"ES2022"
+		],
+    "resolveJsonModule": false,
+    "target": "ES2022",
     "outDir": "./dist",
     "esModuleInterop": true,
     "declaration": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force", 
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
@@ -21,6 +23,10 @@
     "allowJs": true,
     "skipLibCheck": true,
     "downlevelIteration": true,
+    "noUnusedLocals": true,
+    "noImplicitOverride": true,
+    "noUnusedParameters": false,
+    "baseUrl": "./src",
     "paths": {
       "@ayazmo/utils/*": [
         "../utils/src/*"

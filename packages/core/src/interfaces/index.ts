@@ -1,1 +1,1 @@
-export * from './base-service';
+export * from './app.js';

@@ -2,7 +2,7 @@
   "name": "@ayazmo/utils",
   "version": "0.0.1",
   "description": "Ayazmo helper functions used in core and modules",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
   "files": [

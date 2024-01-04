@@ -3,10 +3,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { loadRoutes } from '../loaders/routes';
-import { loadEntities } from '../loaders/entities';
-import { loadServices } from '../loaders/services';
-import { loadGraphQL } from '../loaders/graphql';
+import { loadRoutes } from '../loaders/routes.js';
+import { loadEntities } from '../loaders/entities.js';
+import { loadServices } from '../loaders/services.js';
+import { loadGraphQL } from '../loaders/graphql.js';
+import { AppConfig } from '../interfaces';
 
 const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
@@ -16,15 +17,6 @@ interface PluginPaths {
   graphql: string;
   entities: string;
   routes: string;
-}
-
-interface PluginConfig {
-  name: string;
-  settings: any;
-}
-
-interface AppConfig {
-  plugins: PluginConfig[];
 }
 
 // Helper function to construct paths
@@ -48,7 +40,7 @@ export const loadPlugins = async (app: any, container: any): Promise<void> => {
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {
-    app.log.info('No plugins enabled in ayazmo.config.js file.');
+    app.log.warn('No plugins enabled in ayazmo.config.js file.');
     return;
   }
 
@@ -84,7 +76,7 @@ export function listFilesInDirectory(directory: string): string[] {
   }
 
   // Get the directory contents
-  const contents = fs.readdirSync(directory);
+  const contents = fs.readdirSync(directory).filter(file => path.extname(file).toLowerCase() === '.js');
 
   // Check if the directory is empty
   if (contents.length === 0) {

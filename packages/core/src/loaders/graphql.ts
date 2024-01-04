@@ -1,6 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { AyazmoInstance } from '@ayazmo/types';
+import { isDefaultExport } from '@ayazmo/utils';
 
 export async function loadGraphQL(fastify: AyazmoInstance, GqlPath: string): Promise<void> {
   if (!fs.existsSync(GqlPath)) {
@@ -13,13 +14,22 @@ export async function loadGraphQL(fastify: AyazmoInstance, GqlPath: string): Pro
 
   try {
     if (fs.existsSync(schemaPath) && fs.existsSync(resolversPath)) {
-      const pluginSchema = require(schemaPath);
-      const pluginResolvers = require(resolversPath);
+      const pluginSchema = await import(schemaPath);
+      const pluginResolvers = await import(resolversPath);
 
+      if (!isDefaultExport(pluginSchema)) {
+        fastify.log.error(` - The module ${schemaPath} does not have a valid default export.`);
+        return;
+      }
+
+      if (!isDefaultExport(pluginResolvers)) {
+        fastify.log.error(` - The module ${pluginResolvers} does not have a valid default export.`);
+        return;
+      }
 
       fastify.register(async function (app) {
-        app.graphql.extendSchema(pluginSchema)
-        app.graphql.defineResolvers(pluginResolvers)
+        app.graphql.extendSchema(pluginSchema.default)
+        app.graphql.defineResolvers(pluginResolvers.default)
         // app.graphql.defineLoaders(loaders)
       })
     }

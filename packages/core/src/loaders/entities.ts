@@ -2,9 +2,11 @@ import { AyazmoInstance } from '@ayazmo/types';
 import { AwilixContainer, asValue } from 'awilix';
 import fs from 'node:fs';
 import path from 'node:path';
-import { listFilesInDirectory } from '../plugins/plugin-manager';
+import { listFilesInDirectory } from '../plugins/plugin-manager.js';
 import { MikroORM } from '@mikro-orm/postgresql';
 import { RequestContext } from '@mikro-orm/core';
+import { isDefaultExport } from '@ayazmo/utils';
+import { AppConfig } from '../interfaces';
 
 export async function loadEntities(fastify: AyazmoInstance, diContainer: AwilixContainer, entitiesPath: string): Promise<void> {
   if (!fs.existsSync(entitiesPath)) {
@@ -16,14 +18,14 @@ export async function loadEntities(fastify: AyazmoInstance, diContainer: AwilixC
 
   try {
 
-    const entitiesFiles = listFilesInDirectory(entitiesPath);
+    const entitiesFiles: string[] = listFilesInDirectory(entitiesPath);
 
     for (const file of entitiesFiles) {
-      // load the service file
+      // load the entities module
       const entityModule = await import(path.join(entitiesPath, file));
 
       // Check if the default export exists
-      if (!entityModule.default || typeof entityModule.default !== 'function') {
+      if (!isDefaultExport(entityModule)) {
         fastify.log.error(` - The module ${file} does not have a valid default export.`);
         continue;
       }
@@ -32,10 +34,10 @@ export async function loadEntities(fastify: AyazmoInstance, diContainer: AwilixC
     }
 
   } catch (error) {
-
+    fastify.log.error(` - Error while loading entities: ${error}`);
   }
 
-  const config = diContainer.resolve('config');
+  const config: AppConfig = diContainer.resolve('config');
 
   try {
     const db = await MikroORM.init({
@@ -52,7 +54,7 @@ export async function loadEntities(fastify: AyazmoInstance, diContainer: AwilixC
     // check connection
     const isConnected = await db.isConnected();
     if (!isConnected) {
-      fastify.log.error(' - Database connection failed');
+      fastify.log.error('- Database connection failed');
     }
 
     // register request context hook
@@ -70,7 +72,7 @@ export async function loadEntities(fastify: AyazmoInstance, diContainer: AwilixC
       db: asValue(db),
     })
   } catch (error) {
-    fastify.log.error(` - Error while loading entities: ${error}`);
+    fastify.log.error(`- Error while loading entities: ${error}`);
   }
 
 }

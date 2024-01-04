@@ -1,7 +1,7 @@
 import { AyazmoInstance } from '@ayazmo/types';
-import fs from 'fs';
+import fs from 'node:fs';
 import { RouteOptions } from 'fastify';
-import { isValidRoute } from '../utils/route-validator';
+import { isValidRoute } from '../utils/route-validator.js';
 
 export async function loadRoutes (fastify: AyazmoInstance, path: string): Promise<void> {
   if (!fs.existsSync(path)) {

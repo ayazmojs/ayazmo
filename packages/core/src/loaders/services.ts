@@ -1,8 +1,8 @@
 import { AyazmoInstance } from '@ayazmo/types';
 import { AwilixContainer, asFunction } from 'awilix';
-import fs from 'fs';
-import path from 'path';
-import { listFilesInDirectory } from '../plugins/plugin-manager';
+import fs from 'node:fs';
+import path from 'node:path';
+import { listFilesInDirectory } from '../plugins/plugin-manager.js';
 
 export async function loadServices(fastify: AyazmoInstance, diContainer: AwilixContainer, servicesPath: string): Promise<void> {
   if (!fs.existsSync(servicesPath)) {
