@@ -5,3 +5,4 @@ export { default as determinePackageManager } from './determine-package-manager.
 export { default as checkCommandExists } from './check-command-exists.js'
 export { default as runInstall } from './run-install.js';
 export { default as initializeGitRepo } from './init-git-repo.js';
+export { default as sleep } from './sleep.js';

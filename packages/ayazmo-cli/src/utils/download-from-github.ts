@@ -7,9 +7,9 @@ export async function cloneRepository(url: string, dest: string): Promise<void> 
     verbose: true
   });
 
-  emitter.on('info', info => {
-    console.log(info.message);
-  });
+  // emitter.on('info', info => {
+  //   console.log(info.message);
+  // });
 
   await emitter.clone(dest);
 }
