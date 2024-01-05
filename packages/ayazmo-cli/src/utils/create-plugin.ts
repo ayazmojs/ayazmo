@@ -12,7 +12,7 @@ export async function createPlugin() {
 
   if (!isAyazmoProject(process.cwd())) {
     spinner.error({ text: kleur.red('This command must be run in the root of an Ayazmo project.') });
-    return;
+    process.exit(1);
   }
 
   await sleep(5000);

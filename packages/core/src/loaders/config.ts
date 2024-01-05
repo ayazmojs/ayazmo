@@ -1,15 +1,17 @@
 // src/configLoader.ts
-// import { resolve } from 'path';
 import { AyazmoInstance } from '@ayazmo/types';
-import { merge } from '@ayazmo/utils';
+import { merge, importGlobalConfig } from '@ayazmo/utils';
 import { AwilixContainer, asValue } from 'awilix';
 
+interface UserConfig {
+  default?: any;
+}
+
 export const loadConfig = async (config: string, app: AyazmoInstance, diContainer: AwilixContainer) => {
-  // const configPath = resolve(config);
   let userConfig: UserConfig = {};
 
   try {
-    userConfig = await import(config);
+    userConfig = await importGlobalConfig(config);
     // TODO: Validate userConfig here
   } catch (error) {
     if (error.code !== 'MODULE_NOT_FOUND') {
@@ -22,11 +24,7 @@ export const loadConfig = async (config: string, app: AyazmoInstance, diContaine
     // Define your default configurations here
   };
 
-  interface UserConfig {
-    default?: any;
-  }
-
-  const mergedConfig = merge(defaultConfig, (userConfig as UserConfig).default);
+  const mergedConfig = merge(defaultConfig, (userConfig as UserConfig));
 
   diContainer.register({
     config: asValue(mergedConfig),

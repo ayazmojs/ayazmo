@@ -34,11 +34,6 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
   };
 };
 
-// Optional: Function to list all plugins
-export const listPlugins = (): string[] => {
-  return fs.readdirSync(pluginsRoot).filter((file) => fs.statSync(path.join(pluginsRoot, file)).isDirectory());
-};
-
 export const loadPlugins = async (app: any, container: any): Promise<void> => {
   const config: AppConfig = container.resolve('config');
   let entities: any[] = [];
@@ -77,7 +72,7 @@ export const loadPlugins = async (app: any, container: any): Promise<void> => {
   try {
     // Initialize the database connection
     const db = await MikroORM.init({
-      discovery: { disableDynamicFileAccess: true },
+      discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
       debug: false,
       tsNode: false,
       driverOptions: {
