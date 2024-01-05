@@ -5,11 +5,13 @@ import { program } from 'commander';
 import { createApplication } from './utils/create-application.js';
 import { createMigration } from './utils/create-migration.js';
 import { createPlugin } from './utils/create-plugin.js';
+import { getAyazmoVersion } from "./utils/ayazmo-cli-info.js";
+const version = getAyazmoVersion();
 
 program
   .name("ayazmo-cli")
   .description("CLI to manage Ayazmo projects")
-  .version("0.1.0");
+  .version(`Ayazmo CLI v${version}`);
 
 program
   .command('app:create')
@@ -25,5 +27,13 @@ program
   .command('plugin:create')
   .description('Create a new Ayazmo plugin')
   .action(createPlugin);
+
+program
+  .command('help')
+  .description('List all command options')
+  .action(() => {
+    program.outputHelp();
+  });
+
 
 program.parse(process.argv);
