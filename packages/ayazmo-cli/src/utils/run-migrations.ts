@@ -1,21 +1,19 @@
 import { initDatabase, importGlobalConfig } from '@ayazmo/utils';
 import { discoverPrivateMigrationPaths, discoverMigrationFiles, discoverPublicMigrationPaths } from '@ayazmo/core';
 import { Migrator } from '@mikro-orm/migrations';
+import { MigrationObject } from '@mikro-orm/core';
 import { createSpinner } from 'nanospinner';
-import path from 'node:path';
 import kleur from 'kleur';
 
 export async function runMigrations() {
   let orm: any;
-  const cwd = process.cwd();
   const spinner = createSpinner('Running migrations...').start();
-  const configPath: string = path.join(cwd, 'ayazmo.config.js');
 
   try {
-    const globalConfig = await importGlobalConfig(configPath);
+    const globalConfig = await importGlobalConfig();
     const privateMigrationPaths: string[] = discoverPrivateMigrationPaths(globalConfig.plugins);
     const publicMigrationPaths: string[] = discoverPublicMigrationPaths(globalConfig.plugins);
-    const privateMigrationClasses: any[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicMigrationPaths]);
+    const privateMigrationClasses: MigrationObject[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicMigrationPaths]);
 
     if (privateMigrationClasses.length === 0) {
       spinner.error({ text: kleur.red('No migrations found.'), mark: kleur.red("×") });
