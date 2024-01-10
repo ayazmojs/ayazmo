@@ -1,8 +1,8 @@
-import inquirer from 'inquirer';
 import path from 'node:path';
 import fs from 'node:fs';
 import { determinePackageManager, runInstall, initializeGitRepo } from '@ayazmo/utils';
 import { cloneRepository } from './download-from-github.js';
+import { askUserForPackageManager, askUserWhereToCreateApp, askUserToCreateGitRepo } from './prompts.js';
 
 export async function createApplication() {
   console.log('Creating a new Ayazmo application...');
@@ -17,37 +17,16 @@ export async function createApplication() {
   }
 
   if (hasYarn && hasNpm) {
-    const answer = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'manager',
-        message: 'Which package manager do you want to use?',
-        choices: ['yarn', 'npm'],
-      },
-    ]);
+    const answer = await askUserForPackageManager();
     manager = answer.manager;
   } else {
     manager = hasYarn ? 'yarn' : 'npm';
   }
 
-  const { directory } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'directory',
-      message: 'In which folder would you like to create the app? (default: current folder)',
-      default: '.',
-    },
-  ]);
+  const { directory } = await askUserWhereToCreateApp();
 
   // Initialize Git repository
-  const { gitInit } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'gitInit',
-      message: 'Do you want to initialize a new Git repository?',
-      default: true,
-    },
-  ]);
+  const { gitInit } = await askUserToCreateGitRepo();
 
   const appDirectory = path.resolve(process.cwd(), directory);
 

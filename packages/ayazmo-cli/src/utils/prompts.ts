@@ -104,3 +104,36 @@ export function askUserForPluginName() {
     }
   ]);
 }
+
+export function askUserForPackageManager() {
+  return inquirer.prompt([
+    {
+      type: 'list',
+      name: 'manager',
+      message: 'Which package manager do you prefer?',
+      choices: ['yarn', 'npm'],
+    },
+  ]);
+}
+
+export function askUserWhereToCreateApp() {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'directory',
+      message: 'In which folder would you like to create the app? (default: current folder)',
+      default: '.',
+    },
+  ]);
+}
+
+export function askUserToCreateGitRepo() {
+  return inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'gitInit',
+      message: 'Do you want to initialize a new Git repository?',
+      default: true,
+    },
+  ]);
+}
