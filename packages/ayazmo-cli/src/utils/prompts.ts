@@ -1,4 +1,6 @@
 import inquirer from "inquirer"
+import path from "node:path"
+import fs from "node:fs"
 
 export function askUserForTypeOfMigration() {
   return inquirer.prompt([
@@ -54,5 +56,51 @@ export function askUserWhichPlugin(availablePlugins: string[]) {
       message: 'Which plugin would you like to use?',
       choices: availablePlugins,
     },
+  ]);
+}
+
+export function askUserForPluginName() {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'What should be the name of your plugin?',
+      validate: (input) => {
+        // First validation check
+        function checkInputNotEmpty() {
+          return !!input || 'Please enter a valid plugin name.';
+        }
+
+        // Second validation check (example)
+        function checkForSpecialCharacters() {
+          // Custom logic to check for special characters
+          const specialCharPattern = /[!@#$%^&*()_+\=\[\]{};':"\\|,.<>\/?]+/;
+          return !specialCharPattern.test(input) || 'Plugin name should not contain special characters.';
+        }
+
+        const notEmptyResult = checkInputNotEmpty();
+        if (notEmptyResult !== true) {
+          return notEmptyResult; // Return the error message if validation fails
+        }
+
+        const noSpecialCharResult = checkForSpecialCharacters();
+        if (noSpecialCharResult !== true) {
+          return noSpecialCharResult; // Return the error message if validation fails
+        }
+
+        const pluginsDir = path.join(process.cwd(), 'src', 'plugins', input);
+        if (fs.existsSync(pluginsDir)) {
+          return `A plugin with the name "${input}" already exists in ${pluginsDir}.`
+        }
+
+        const nodeModulesPluginsDirectory = path.join(process.cwd(), 'node_modules', input);
+        if (fs.existsSync(nodeModulesPluginsDirectory)) {
+          return `A plugin with the name "${input}" is already installed in ${nodeModulesPluginsDirectory}.`
+        }
+
+        // If all checks pass, return true
+        return true;
+      }
+    }
   ]);
 }

@@ -2,11 +2,19 @@
 
 import "dotenv/config.js";
 import { program } from 'commander';
+import kleur from 'kleur';
 import { createApplication } from './utils/create-application.js';
 import { createMigration } from './utils/create-migration.js';
 import { createPlugin } from './utils/create-plugin.js';
 import { getAyazmoVersion } from "./utils/ayazmo-cli-info.js";
 import { runMigrations } from "./utils/run-migrations.js";
+import { isAyazmoProject } from "./utils/is-ayazmo-project.js";
+
+if (!isAyazmoProject(process.cwd())) {
+  console.error({ text: kleur.red('This command must be run in the root of an Ayazmo project.') });
+  process.exit(1);
+}
+
 const version = getAyazmoVersion();
 
 program

@@ -10,3 +10,4 @@ export { default as importGlobalConfig } from './import-global-config.js';
 export { default as listPlugins } from './list-plugins.js';
 export { default as initDatabase } from './init-database.js';
 export * from './interfaces/index.js';
+export * from './constants.js';

@@ -2,25 +2,24 @@ import path from 'node:path';
 import kleur from 'kleur';
 import { createSpinner } from 'nanospinner';
 import { Migrator } from '@mikro-orm/migrations';
-import { isAyazmoProject } from './is-ayazmo-project.js';
-import { importGlobalConfig, listPlugins, initDatabase } from '@ayazmo/utils'
+import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT } from '@ayazmo/utils'
+import type { IBaseOrmConfig, IPluginPrompt, ITypePrompt, INamePrompt } from '@ayazmo/types';
 import {
   askUserForTypeOfMigration,
   askUserForMigrationName,
   askUserWhichPlugin
-}
-  from './prompts.js';
+} from './prompts.js';
 
 export async function createMigration() {
   let orm: any;
   let migrationPath: string;
   let availablePlugins: string[];
-  let selectPluginPrompt: any;
-  let migrationTypePrompt: any = { type: 'entities' };
-  let migrationNamePrompt: any = { filename: '' };
+  let selectPluginPrompt: IPluginPrompt = { selectedPlugin: '' };
+  let migrationTypePrompt: ITypePrompt = { type: 'entities' };
+  let migrationNamePrompt: INamePrompt = { filename: '' };
   const spinner = createSpinner('Checking environment...').start();
   const cwd = process.cwd();
-  let ormConfig: any = {
+  let ormConfig: IBaseOrmConfig = {
     entities: [],
     entitiesTs: [],
     baseDir: cwd,
@@ -31,13 +30,7 @@ export async function createMigration() {
     },
   };
 
-  if (!isAyazmoProject(cwd)) {
-    spinner.error({ text: kleur.red('This command must be run in the root of an Ayazmo project.') });
-    process.exit(1);
-  }
-
-  const configPath: string = path.join(cwd, 'ayazmo.config.js');
-  const globalConfig = await importGlobalConfig(configPath);
+  const globalConfig = await importGlobalConfig();
 
   try {
     spinner.stop();
@@ -53,27 +46,38 @@ export async function createMigration() {
       migrationNamePrompt = await askUserForMigrationName();
     }
 
-    availablePlugins = listPlugins(path.join(cwd, 'src', 'plugins'));
+    availablePlugins = listPlugins(PLUGINS_ROOT);
 
     if (availablePlugins.length === 1) {
-      migrationPath = path.join(cwd, 'src', 'plugins', availablePlugins[0], 'src', 'migrations');
+
+      migrationPath = path.join(PLUGINS_ROOT, availablePlugins[0], 'src', 'migrations');
 
       if (migrationTypePrompt.type !== 'empty') {
         ormConfig.entities = [`./dist/plugins/${availablePlugins[0]}/src/entities/*.js`];
         ormConfig.entitiesTs = [`./src/plugins/${availablePlugins[0]}/src/entities/*.ts`];
       }
+
     } else if (availablePlugins.length > 1) {
+
       spinner.stop();
       selectPluginPrompt = await askUserWhichPlugin(availablePlugins);
-      migrationPath = path.join(cwd, 'src', 'plugins', selectPluginPrompt.selectedPlugin, 'src', 'migrations');
+      // check the plugin is enabled in the config
+      if (!globalConfig.plugins.some((plugin) => plugin.name === selectPluginPrompt.selectedPlugin)) {
+        spinner.error({ text: kleur.red(`Plugin ${selectPluginPrompt.selectedPlugin} is not enabled in ayazmo.config.js`) });
+        process.exit(1);
+      }
+      migrationPath = path.join(PLUGINS_ROOT, selectPluginPrompt.selectedPlugin, 'src', 'migrations');
 
       if (migrationTypePrompt.type !== 'empty') {
         ormConfig.entities = [`./dist/plugins/${selectPluginPrompt.selectedPlugin}/src/entities/*.js`];
         ormConfig.entitiesTs = [`./src/plugins/${selectPluginPrompt.selectedPlugin}/src/entities/*.ts`];
       }
+
     } else {
+
       spinner.error({ text: kleur.red('No plugins available in this project.'), mark: kleur.red("×") });
       process.exit(1);
+
     }
 
     ormConfig.migrations.path = migrationPath;

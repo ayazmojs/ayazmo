@@ -1,7 +1,6 @@
 import inquirer from 'inquirer';
 import path from 'node:path';
 import fs from 'node:fs';
-import { isAyazmoProject } from './is-ayazmo-project.js';
 import { determinePackageManager, runInstall, initializeGitRepo } from '@ayazmo/utils';
 import { cloneRepository } from './download-from-github.js';
 
@@ -9,11 +8,6 @@ export async function createApplication() {
   console.log('Creating a new Ayazmo application...');
 
   let manager: 'npm' | 'yarn';
-
-  if (isAyazmoProject(process.cwd())) {
-    console.error('Ayazmo project already exists in this directory.');
-    return;
-  }
 
   const { hasYarn, hasNpm } = await determinePackageManager();
 
