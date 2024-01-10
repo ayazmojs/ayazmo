@@ -6,6 +6,7 @@ import { createApplication } from './utils/create-application.js';
 import { createMigration } from './utils/create-migration.js';
 import { createPlugin } from './utils/create-plugin.js';
 import { getAyazmoVersion } from "./utils/ayazmo-cli-info.js";
+import { runMigrations } from "./utils/run-migrations.js";
 const version = getAyazmoVersion();
 
 program
@@ -22,6 +23,11 @@ program
   .command('migration:create')
   .description('Create a new migration file')
   .action(createMigration);
+
+  program
+  .command('migration:up')
+  .description('Run all migrations')
+  .action(runMigrations);
 
 program
   .command('plugin:create')

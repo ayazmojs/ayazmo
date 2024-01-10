@@ -2,26 +2,20 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { MikroORM } from '@mikro-orm/postgresql';
 import { asValue } from 'awilix';
-import { RequestContext } from '@mikro-orm/core';
+import { RequestContext, MigrationObject } from '@mikro-orm/core';
 import { EntityClass, EntityClassGroup, EntitySchema } from '@ayazmo/utils';
+import { globby } from 'globby';
 
 import { loadRoutes } from '../loaders/routes.js';
 import { loadEntities } from '../loaders/entities.js';
 import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
-import { AppConfig } from '../interfaces'
+import { AppConfig, initDatabase, merge } from '@ayazmo/utils'
+import { PluginPaths } from '@ayazmo/types'
 
 const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
-
-interface PluginPaths {
-  services: string;
-  graphql: string;
-  entities: string;
-  routes: string;
-}
 
 // Helper function to construct paths
 const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
@@ -31,8 +25,68 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
     graphql: path.join(basePath, 'graphql'),
     entities: path.join(basePath, 'entities'),
     routes: path.join(basePath, 'routes.js'),
+    migrations: path.join(basePath, 'migrations'),
   };
 };
+
+export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
+  const nodeModulesPath: string = path.join(process.cwd(), 'node_modules', 'dist');
+  // check if the plugin settings private is true and load the plugin paths from src
+  if (settings.private) {
+    return constructPaths(pluginName, pluginsRoot);
+  }
+
+  return constructPaths(pluginName, nodeModulesPath);
+}
+
+export const discoverMigrationPaths = (plugins: any[]): string[] => {
+  let migrationPaths: string[] = [];
+  for (const plugin of plugins) {
+    const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings);
+    if (!fs.existsSync(pluginPaths.migrations)) {
+      continue;
+    }
+
+    migrationPaths.push(pluginPaths.migrations);
+  }
+  // const migrationPaths: string[] = plugins.map((plugin: any) => {
+  //   const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings);
+  //   return pluginPaths.migrations;
+  // });
+
+  return migrationPaths;
+}
+
+export async function discoverMigrationFiles(migrationPaths: string[]): Promise<MigrationObject[]> {
+  let migrationFiles: string[] = [];
+  for (const migrationPath of migrationPaths) {
+    const paths = await globby(`${migrationPath}/*.js`);
+    migrationFiles = migrationFiles.concat(paths);
+  }
+
+  return Promise.all(
+    migrationFiles.map(async (filePath) => {
+      const migrationModule = await import(path.resolve(filePath));
+      const migrationName = path.basename(filePath);
+
+      let MigrationClass = migrationModule.default || migrationModule;
+      if (MigrationClass && typeof MigrationClass !== 'function') {
+        // Look for a named export that is a function (possible class)
+        MigrationClass = Object.values(migrationModule).find(value => typeof value === 'function');
+      }
+
+      return {
+        name: migrationName,
+        class: MigrationClass,
+      };
+    })
+  );
+}
+
+export const getPluginEntities = (pluginName: string, settings: any): string[] => {
+  const pluginPaths: PluginPaths = getPluginPaths(pluginName, settings);
+  return listFilesInDirectory(pluginPaths.entities);
+}
 
 export const loadPlugins = async (app: any, container: any): Promise<void> => {
   const config: AppConfig = container.resolve('config');
@@ -69,18 +123,19 @@ export const loadPlugins = async (app: any, container: any): Promise<void> => {
     await loadGraphQL(app, pluginPaths.graphql);
   }
 
+  const dbConfig = merge({
+    discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
+    debug: false,
+    tsNode: false,
+    driverOptions: {
+      connection: { ssl: true }
+    },
+    entities: entities as (string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>)[],
+  }, config.database)
+
   try {
     // Initialize the database connection
-    const db = await MikroORM.init({
-      discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
-      debug: false,
-      tsNode: false,
-      driverOptions: {
-        connection: { ssl: true }
-      },
-      entities: entities as (string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>)[],
-      ...config.database
-    });
+    const db = await initDatabase(dbConfig);
 
     // check connection
     const isConnected = await db.isConnected();

@@ -8,3 +8,5 @@ export { default as initializeGitRepo } from './init-git-repo.js';
 export { default as sleep } from './sleep.js';
 export { default as importGlobalConfig } from './import-global-config.js';
 export { default as listPlugins } from './list-plugins.js';
+export { default as initDatabase } from './init-database.js';
+export * from './interfaces/index.js';
