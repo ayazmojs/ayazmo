@@ -32,16 +32,17 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
 export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
   const nodeModulesPath: string = path.join(process.cwd(), 'node_modules', 'dist');
   // check if the plugin settings private is true and load the plugin paths from src
-  if (settings.private) {
+  if (settings?.private) {
     return constructPaths(pluginName, pluginsRoot);
   }
 
   return constructPaths(pluginName, nodeModulesPath);
 }
 
-export const discoverMigrationPaths = (plugins: any[]): string[] => {
+export const discoverPublicMigrationPaths = (plugins: any[]): string[] => {
   let migrationPaths: string[] = [];
-  for (const plugin of plugins) {
+  const publicPlugins = plugins.filter(plugin => plugin.settings?.private !== true);
+  for (const plugin of publicPlugins) {
     const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings);
     if (!fs.existsSync(pluginPaths.migrations)) {
       continue;
@@ -49,10 +50,27 @@ export const discoverMigrationPaths = (plugins: any[]): string[] => {
 
     migrationPaths.push(pluginPaths.migrations);
   }
-  // const migrationPaths: string[] = plugins.map((plugin: any) => {
-  //   const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings);
-  //   return pluginPaths.migrations;
-  // });
+
+  return migrationPaths;
+}
+
+/**
+ * Discover private migration paths
+ * 
+ * @param plugins plugin definitions from config
+ * @returns array of paths to private plugins
+ */
+export const discoverPrivateMigrationPaths = (plugins: any[]): string[] => {
+  let migrationPaths: string[] = [];
+  const privatePlugins = plugins.filter(plugin => plugin.settings?.private === true);
+  for (const plugin of privatePlugins) {
+    const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings);
+    if (!fs.existsSync(pluginPaths.migrations)) {
+      continue;
+    }
+
+    migrationPaths.push(pluginPaths.migrations);
+  }
 
   return migrationPaths;
 }

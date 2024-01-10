@@ -1,28 +1,23 @@
-import { initDatabase, importGlobalConfig, MikroORM } from '@ayazmo/utils';
-import { discoverMigrationPaths, discoverMigrationFiles } from '@ayazmo/core';
-// import { PluginPaths } from '@ayazmo/types'
+import { initDatabase, importGlobalConfig } from '@ayazmo/utils';
+import { discoverPrivateMigrationPaths, discoverMigrationFiles, discoverPublicMigrationPaths } from '@ayazmo/core';
+import { Migrator } from '@mikro-orm/migrations';
 import { createSpinner } from 'nanospinner';
 import path from 'node:path';
 import kleur from 'kleur';
-import { isAyazmoProject } from './is-ayazmo-project.js';
 
 export async function runMigrations() {
-  let orm: MikroORM;
+  let orm: any;
   const cwd = process.cwd();
   const spinner = createSpinner('Running migrations...').start();
   const configPath: string = path.join(cwd, 'ayazmo.config.js');
 
-  if (!isAyazmoProject(cwd)) {
-    spinner.error({ text: kleur.red('This command must be run in the root of an Ayazmo project.') });
-    process.exit(1);
-  }
-
   try {
     const globalConfig = await importGlobalConfig(configPath);
-    const migrationPaths: string[] = discoverMigrationPaths(globalConfig.plugins);
-    const migrationClasses: any[] = await discoverMigrationFiles(migrationPaths);
+    const privateMigrationPaths: string[] = discoverPrivateMigrationPaths(globalConfig.plugins);
+    const publicMigrationPaths: string[] = discoverPublicMigrationPaths(globalConfig.plugins);
+    const privateMigrationClasses: any[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicMigrationPaths]);
 
-    if (migrationClasses.length === 0) {
+    if (privateMigrationClasses.length === 0) {
       spinner.error({ text: kleur.red('No migrations found.'), mark: kleur.red("×") });
       process.exit(1);
     }
@@ -34,22 +29,21 @@ export async function runMigrations() {
         baseDir: process.cwd(),
         migrations: {
           snapshot: false,
-          migrationsList: migrationClasses,
+          migrationsList: privateMigrationClasses,
           disableForeignKeys: false,
         },
       },
       ...globalConfig.database
     });
-    // const availablePlugins: string[] = listPlugins(path.join(cwd, 'src', 'plugins'));
-    const migrator = orm.getMigrator();
-    const executed = await migrator.up();
-    console.log(executed)
-  } catch (error) {
-    spinner.error({ text: kleur.red('Error running migrations.'), mark: kleur.red("×") });
-    console.error(error);
-    process.exit(1);
-  }
 
-  spinner.success({ text: kleur.green('Migrations applied successfully!'), mark: kleur.green("√") })
-  process.exit(0);
+    const migrator: Migrator = orm.getMigrator();
+    await migrator.up();
+    spinner.success({ text: kleur.green('Migrations applied successfully!'), mark: kleur.green("√") })
+  } catch (error) {
+    spinner.error({ text: kleur.red(error), mark: kleur.red("×") });
+    process.exit(1);
+  } finally {
+    if (orm) await orm.close();
+    process.exit(0);
+  }
 }
