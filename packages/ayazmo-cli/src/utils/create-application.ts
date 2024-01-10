@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { determinePackageManager, runInstall, initializeGitRepo } from '@ayazmo/utils';
 import { cloneRepository } from './download-from-github.js';
 import { askUserForPackageManager, askUserWhereToCreateApp, askUserToCreateGitRepo } from './prompts.js';
+import { APP_TEMPATE_REPO } from '@ayazmo/utils';
 
 export async function createApplication() {
   console.log('Creating a new Ayazmo application...');
@@ -37,12 +38,9 @@ export async function createApplication() {
 
   console.log(`Creating a new Ayazmo application in ${appDirectory}...`);
 
-  // Specify the GitHub repository
-  const repo = 'ayazmojs/ayazmo-app-template';
-
   try {
     // Download and extract the template
-    await cloneRepository(repo, appDirectory);
+    await cloneRepository(APP_TEMPATE_REPO, appDirectory);
     console.log('Application files created.');
 
     await runInstall(manager, appDirectory);
