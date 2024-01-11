@@ -1,10 +1,15 @@
-import { AyazmoInstance } from '@ayazmo/types';
+import { AyazmoInstance, PluginConfig } from '@ayazmo/types';
 import { AwilixContainer, asFunction } from 'awilix';
 import fs from 'node:fs';
 import path from 'node:path';
 import { listFilesInDirectory } from '../plugins/plugin-manager.js';
 
-export async function loadServices(fastify: AyazmoInstance, diContainer: AwilixContainer, servicesPath: string): Promise<void> {
+export async function loadServices(
+  fastify: AyazmoInstance,
+  diContainer: AwilixContainer,
+  servicesPath: string,
+  pluginSettings: PluginConfig
+  ): Promise<void> {
   if (!fs.existsSync(servicesPath)) {
     fastify.log.info(` - services folder not found in plugin directory: ${servicesPath}`);
     return;
@@ -29,7 +34,7 @@ export async function loadServices(fastify: AyazmoInstance, diContainer: AwilixC
       // Register the service in the DI container
       diContainer.register({
         [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(cradle, {})
+          (cradle) => new serviceModule.default(cradle, pluginSettings)
         ).singleton(),
       })
 

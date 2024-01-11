@@ -1,4 +1,4 @@
-import { FastifyInstance, RouteOptions, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, RouteOptions } from 'fastify';
 import { AwilixContainer } from 'awilix';
 import http from 'http';
 
@@ -11,10 +11,8 @@ export type AyazmoInstance = FastifyInstance<
 
 export type AyazmoRouteOptions = RouteOptions;
 
-export interface AyazmoRequest extends FastifyRequest {
-  diScope: AwilixContainer;
-}
-
-export interface AyazmoReply extends FastifyReply {
-
+declare module 'fastify' {
+  export interface FastifyRequest {
+    diScope: AwilixContainer;
+  }
 }

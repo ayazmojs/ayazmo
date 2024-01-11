@@ -2,7 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { asValue } from 'awilix';
+import { asValue, AwilixContainer } from 'awilix';
 import { RequestContext, MigrationObject } from '@mikro-orm/core';
 import { EntityClass, EntityClassGroup, EntitySchema } from '@ayazmo/utils';
 import { globby } from 'globby';
@@ -106,7 +106,7 @@ export const getPluginEntities = (pluginName: string, settings: any): string[] =
   return listFilesInDirectory(pluginPaths.entities);
 }
 
-export const loadPlugins = async (app: any, container: any): Promise<void> => {
+export const loadPlugins = async (app: any, container: AwilixContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config');
   let entities: any[] = [];
 
@@ -136,7 +136,7 @@ export const loadPlugins = async (app: any, container: any): Promise<void> => {
 
     // Iterate over your loaders and call each one with the respective path and settings
     entities = await loadEntities(app, pluginPaths.entities);
-    await loadServices(app, container, pluginPaths.services);
+    await loadServices(app, container, pluginPaths.services, registeredPlugin.settings);
     await loadRoutes(app, pluginPaths.routes);
     await loadGraphQL(app, pluginPaths.graphql);
   }
@@ -173,7 +173,7 @@ export const loadPlugins = async (app: any, container: any): Promise<void> => {
 
     // register the db instance in the DI container
     container.register({
-      db: asValue(db),
+      'dbService': asValue(db),
     })
   } catch (error) {
     app.log.error(`- Error while loading entities: ${error}`);
