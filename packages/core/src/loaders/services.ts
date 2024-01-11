@@ -1,58 +1,46 @@
-import { AyazmoInstance } from '@ayazmo/types';
+import { AyazmoInstance, PluginConfig } from '@ayazmo/types';
 import { AwilixContainer, asFunction } from 'awilix';
-import fs from 'fs';
-import path from 'path';
-import { listFilesInDirectory } from '@ayazmo/utils';
+import fs from 'node:fs';
+import path from 'node:path';
+import { listFilesInDirectory } from '../plugins/plugin-manager.js';
 
-export async function loadServices (pluginsDir: string, fastify: AyazmoInstance, diContainer: AwilixContainer) {
-  if (!fs.existsSync(pluginsDir)) {
-    fastify.log.info('Plugins directory not found, skipping plugin loading.');
+export async function loadServices(
+  fastify: AyazmoInstance,
+  diContainer: AwilixContainer,
+  servicesPath: string,
+  pluginSettings: PluginConfig
+  ): Promise<void> {
+  if (!fs.existsSync(servicesPath)) {
+    fastify.log.info(` - services folder not found in plugin directory: ${servicesPath}`);
     return;
   }
 
-  const pluginDirs = fs.readdirSync(pluginsDir);
+  const serviceFiles = listFilesInDirectory(servicesPath);
 
-  // Check if the directory is empty
-  if (pluginDirs.length === 0) {
-    fastify.log.info('No plugins found, skipping plugin loading.');
-    return;
-  }
+  for (const file of serviceFiles) {
 
-  for (const dir of pluginDirs) {
-    const servicesDir = path.join(pluginsDir, dir, 'services');
+    try {
+      // load the service file
+      const serviceModule = await import(path.join(servicesPath, file));
 
-    if (fs.existsSync(servicesDir)) {
-      const serviceFiles = listFilesInDirectory(servicesDir);
-
-      for (const file of serviceFiles) {
-
-        try {
-          // load the service file
-          const serviceModule = await import(path.join(servicesDir, file));
-
-          // Check if the default export exists
-          if (!serviceModule.default || typeof serviceModule.default !== 'function') {
-            fastify.log.error(`The module ${file} does not have a valid default export.`);
-            continue;
-          }
-
-          const serviceName = file.replace(/\.(ts|js)$/, '');
-
-          // Register the service in the DI container
-          diContainer.register({
-            [serviceName]: asFunction(
-              (cradle) => new serviceModule.default(cradle, {})
-            ).singleton(),
-          })
-
-          fastify.log.info(`Registered service ${serviceName}`);
-        } catch (error) {
-          fastify.log.error(`Error while loading service ${file}: ${error}`);
-        }
+      // Check if the default export exists
+      if (!serviceModule.default || typeof serviceModule.default !== 'function') {
+        fastify.log.error(` - The module ${file} does not have a valid default export.`);
+        continue;
       }
 
-    } else {
-      fastify.log.info(`services folder not found in plugin directory: ${servicesDir}`);
+      const serviceName = file.replace(/\.(ts|js)$/, '');
+
+      // Register the service in the DI container
+      diContainer.register({
+        [serviceName]: asFunction(
+          (cradle) => new serviceModule.default(cradle, pluginSettings)
+        ).singleton(),
+      })
+
+      fastify.log.info(` - Registered service ${serviceName}`);
+    } catch (error) {
+      fastify.log.error(` - Error while loading service ${file}: ${error}`);
     }
   }
 }

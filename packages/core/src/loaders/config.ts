@@ -1,32 +1,31 @@
 // src/configLoader.ts
-import { resolve } from 'path';
 import { AyazmoInstance } from '@ayazmo/types';
-import { merge } from '@ayazmo/utils';
+import { merge, importGlobalConfig, AppConfig } from '@ayazmo/utils';
 import { AwilixContainer, asValue } from 'awilix';
 
-export const loadConfig = (config: string, app: AyazmoInstance, diContainer: AwilixContainer) => {
-  const configPath = resolve(config);
-  let userConfig = {};
+export const loadConfig = async (config: string, app: AyazmoInstance, diContainer: AwilixContainer): Promise<AppConfig> => {
+  const defaultConfig: any = {
+    // Define your default configurations here
+    database: {},
+    plugins: [],
+  };
 
   try {
-    userConfig = require(configPath);
+    const userConfig: AppConfig = await importGlobalConfig(config);
     // TODO: Validate userConfig here
+
+    const mergedConfig: AppConfig = merge(defaultConfig, userConfig);
+
+    diContainer.register({
+      config: asValue(mergedConfig),
+    });
+
+    return mergedConfig
   } catch (error) {
     if (error.code !== 'MODULE_NOT_FOUND') {
       throw error; // re-throw the error if it's not 'MODULE_NOT_FOUND'
     }
     app.log.warn('ayazmo.config.js not found, proceeding with default configurations.');
+    return defaultConfig;
   }
-
-  const defaultConfig = {
-    // Define your default configurations here
-  };
-
-  const mergedConfig = merge(defaultConfig, userConfig);
-
-  diContainer.register({
-    config: asValue(mergedConfig),
-  });
-
-  return mergedConfig
 };

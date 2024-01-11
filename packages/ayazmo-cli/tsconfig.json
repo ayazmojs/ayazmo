@@ -25,26 +25,14 @@
     "downlevelIteration": true,
     "noUnusedLocals": true,
     "noImplicitOverride": true,
-    "noUnusedParameters": false,
-    "baseUrl": "./src",
-    "paths": {
-      "@ayazmo/utils/*": [
-        "../utils/src/*"
-      ],
-      "@ayazmo/types/*": [
-        "../types/src/*"
-      ]
-    }
+    "noUnusedParameters": true,
   },
-  "include": [
-    "src",
-    "node_modules/@fastify/awilix/lib/index.d.ts"
-  ],
+  "include": ["src"],
   "exclude": [
     "dist",
-    "./__tests__",
+    "./src/**/__tests__",
     "./src/**/__mocks__",
     "./src/**/__fixtures__",
-    "node_modules/**/*",
-    "!node_modules/@fastify/awilix/lib/index.d.ts"  ]
+    "node_modules"
+  ]
 }

@@ -1,20 +1,22 @@
 {
   "name": "@ayazmo/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Ayazmo core functionality",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
+  "type": "module",
   "files": [
     "dist"
   ],
   "dependencies": {
-    "@ayazmo/types": "0.0.1",
-    "@ayazmo/utils": "0.0.1",
+    "@ayazmo/types": "0.1.0",
+    "@ayazmo/utils": "0.1.0",
     "@fastify/awilix": "^4.0.0",
-    "@mikro-orm/core": "^5.9.6",
-    "@mikro-orm/postgresql": "^5.9.6",
+    "@mikro-orm/core": "^6.0.1",
+    "@mikro-orm/postgresql": "^6.0.1",
     "awilix": "^9.0.0",
+    "globby": "^14.0.0",
     "graphql": "^16.8.1",
     "mercurius": "^13.3.2",
     "pino-pretty": "^10.3.0"
@@ -27,6 +29,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@types/node": "^20.10.8",
     "rimraf": "^5.0.5",
     "vitest": "^1.1.0"
   }

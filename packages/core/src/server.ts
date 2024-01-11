@@ -3,8 +3,9 @@ import { AyazmoInstance } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
-import { loadServices, loadRoutes, loadGraphQL, loadConfig, loadEntities } from './loaders';
+import { loadConfig } from './loaders/config.js';
 import mercurius from 'mercurius';
+import { loadPlugins } from './plugins/plugin-manager.js';
 
 const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
 
@@ -16,7 +17,6 @@ const coreLogger = pino({
 });
 
 const rootDir = process.cwd(); // Get the current working directory
-const pluginsDir = path.join(rootDir, 'dist/plugins'); // Adjust this path as needed
 const configDir = path.join(rootDir, 'ayazmo.config.js'); // Adjust this path as needed
 
 export class Server {
@@ -40,7 +40,7 @@ export class Server {
   }
 
   private initializeRoutes(): void {
-    // Define your core routes here, e.g., health checks or basic info
+    // Define your core routes here
     this.fastify.get('/health', async (request, reply) => {
       reply.code(200).send({ status: 'ok' });
     });
@@ -90,17 +90,8 @@ export class Server {
     // load config
     await loadConfig(configDir, this.fastify, diContainer);
 
-    // load entities
-    await loadEntities(pluginsDir, this.fastify, diContainer);
-
-    // load custom services
-    await loadServices(pluginsDir, this.fastify, diContainer);
-
-    // load custom routes
-    await loadRoutes(pluginsDir, this.fastify);
-
-    // load custom graphql
-    await loadGraphQL(pluginsDir, this.fastify);
+    // load plugins
+    await loadPlugins(this.fastify, diContainer);
   }
 
   async start(port: number): Promise<void> {

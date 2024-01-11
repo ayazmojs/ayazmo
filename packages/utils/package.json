@@ -1,15 +1,16 @@
 {
   "name": "@ayazmo/utils",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Ayazmo helper functions used in core and modules",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
+  "type": "module",
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@types/lodash": "^4.14.202",
+    "@types/lodash-es": "^4.17.12",
     "rimraf": "^5.0.5",
     "vitest": "^1.1.0"
   },
@@ -21,6 +22,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash-es": "^4.17.21"
   }
 }
