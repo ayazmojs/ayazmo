@@ -15,17 +15,24 @@ export async function loadRoutes(fastify: AyazmoInstance, path: string): Promise
     let routes = routesModule.default;
 
     if (typeof routesModule.default === 'function') {
-      routes = routesModule.default();
+      routes = routesModule.default(fastify);
     }
 
-    routes.forEach((route: RouteOptions) => {
-      if (isValidRoute(route)) {
-        fastify.route(route);
-        fastify.log.info(` - Registered route ${route.method} ${route.url}`)
-      } else {
-        fastify.log.error(` - Invalid route detected in ${path}`);
-      }
-    });
+    fastify.after(() => {
+      loadAllRoutes(routes);
+    })
+
+    function loadAllRoutes(routes: RouteOptions[]): void {
+      routes.forEach((route: RouteOptions) => {
+        if (isValidRoute(route)) {
+          fastify.route(route);
+          fastify.log.info(` - Registered route ${route.method} ${route.url}`)
+        } else {
+          fastify.log.error(` - Invalid route detected in ${path}`);
+        }
+      });
+    }
+
   } else {
     fastify.log.error(` - No default export (array of routes) found in ${path}`);
   }
