@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { RouteOptions } from 'fastify';
 import { isValidRoute } from '../utils/route-validator.js';
 
-export async function loadRoutes (fastify: AyazmoInstance, path: string): Promise<void> {
+export async function loadRoutes(fastify: AyazmoInstance, path: string): Promise<void> {
   if (!fs.existsSync(path)) {
     fastify.log.info(` - Routes file not found in plugin directory: ${path}`);
     return;
@@ -11,8 +11,14 @@ export async function loadRoutes (fastify: AyazmoInstance, path: string): Promis
 
   const routesModule = await import(path);
 
-  if (routesModule.default && Array.isArray(routesModule.default)) {
-    routesModule.default.forEach((route: RouteOptions) => {
+  if (routesModule.default) {
+    let routes = routesModule.default;
+
+    if (typeof routesModule.default === 'function') {
+      routes = routesModule.default();
+    }
+
+    routes.forEach((route: RouteOptions) => {
       if (isValidRoute(route)) {
         fastify.route(route);
         fastify.log.info(` - Registered route ${route.method} ${route.url}`)
