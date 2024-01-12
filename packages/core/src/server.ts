@@ -7,7 +7,7 @@ import { loadConfig } from './loaders/config.js';
 import mercurius from 'mercurius';
 import { loadPlugins } from './plugins/plugin-manager.js';
 
-const SHUTDOWN_TIMEOUT = 30 * 1000; // 30 seconds, for example
+const SHUTDOWN_TIMEOUT = 5 * 1000; // 5 seconds, for example
 
 const coreLogger = pino({
   level: 'info',
@@ -29,7 +29,7 @@ export class Server {
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
     this.initializeRoutes();
     this.fastify.register(mercurius, {
-      schema: 'type Query { health: Boolean }',
+      schema: 'type Query { health: Boolean } type Mutation { health: Boolean }',
       resolvers: {
         Query: {
           health: async (_, { }) => true,
