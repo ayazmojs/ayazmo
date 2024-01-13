@@ -138,6 +138,14 @@
     ajv-formats "^2.1.1"
     fast-uri "^2.0.0"
 
+"@fastify/auth@^4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@fastify/auth/-/auth-4.4.0.tgz#50fb54fe621791e7a2417f1cd880cba2dd879189"
+  integrity sha512-gGFicD/q1MSEPA+qiJAc+egZzzUH6LKJHDdLWQ5TfcgGxfszNMa+Dbx3ehKtGRpB2fOQF41/+yfFv8C12xoBHQ==
+  dependencies:
+    fastify-plugin "^4.0.0"
+    reusify "^1.0.4"
+
 "@fastify/awilix@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@fastify/awilix/-/awilix-4.0.0.tgz#eb1c9eb8c740e56eeaaff5b5bccb8f24c2df82bc"

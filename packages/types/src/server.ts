@@ -14,5 +14,6 @@ export type AyazmoRouteOptions = RouteOptions;
 declare module 'fastify' {
   export interface FastifyRequest {
     diScope: AwilixContainer;
+    jwtStrategy: any;
   }
 }
