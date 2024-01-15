@@ -14,7 +14,7 @@ export async function loadEntities(app: AyazmoInstance, entitiesPath: string): P
 
   try {
 
-    const entitiesFiles: string[] = listFilesInDirectory(entitiesPath);
+    const entitiesFiles: string[] = await listFilesInDirectory(entitiesPath);
 
     for (const file of entitiesFiles) {
       // load the entities module

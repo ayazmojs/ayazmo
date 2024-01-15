@@ -1,11 +1,7 @@
 import { AyazmoInstance } from '@ayazmo/types';
 import fs from 'node:fs';
 import { RouteOptions } from 'fastify';
-import { fastifyAuth } from '@fastify/auth'
 import { isValidRoute } from '../utils/route-validator.js';
-import { validateJwtStrategy } from '../auth/JwtStrategy.js';
-import { validateApitokenStrategy } from '../auth/ApiTokenStrategy.js';
-import { validatePasswordStrategy } from '../auth/PasswordStrategy.js';
 
 export async function loadRoutes(fastify: AyazmoInstance, path: string): Promise<void> {
   if (!fs.existsSync(path)) {
@@ -14,20 +10,13 @@ export async function loadRoutes(fastify: AyazmoInstance, path: string): Promise
   }
 
   fastify
-    .decorate('jwtStrategy', async (request, reply) => {
-      await validateJwtStrategy(request, reply);
-    })
-    .decorate('apiTokenStrategy', async (request, reply) => {
-      await validateApitokenStrategy(request, reply);
-    })
-    .decorate('passwordStrategy', async (request, reply) => {
-      await validatePasswordStrategy(request, reply);
-    })
-    .register(fastifyAuth)
     .after(async () => {
       const routesModule = await import(path);
 
-      if (routesModule.default) {
+      // Check if the default export exists
+      if (!routesModule.default) {
+        fastify.log.error(` - The module ${path} does not have a valid default export. Skipping...`);
+      } else {
         let routes = routesModule.default;
 
         if (typeof routesModule.default === 'function') {
@@ -42,9 +31,6 @@ export async function loadRoutes(fastify: AyazmoInstance, path: string): Promise
             fastify.log.error(` - Invalid route detected in ${path}`);
           }
         });
-
-      } else {
-        fastify.log.error(` - No default export (array of routes) found in ${path}`);
       }
     })
 }

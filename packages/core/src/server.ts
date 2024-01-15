@@ -6,6 +6,11 @@ import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
 import { loadConfig } from './loaders/config.js';
 import mercurius from 'mercurius';
 import { loadPlugins } from './plugins/plugin-manager.js';
+import { loadCoreServices } from './loaders/core/services.js';
+import { fastifyAuth } from '@fastify/auth'
+import { validateJwtStrategy } from './auth/JwtStrategy.js';
+import { validateApitokenStrategy } from './auth/ApiTokenStrategy.js';
+import { validatePasswordStrategy } from './auth/PasswordStrategy.js';
 
 const SHUTDOWN_TIMEOUT = 5 * 1000; // 5 seconds, for example
 
@@ -26,6 +31,17 @@ export class Server {
     this.fastify = fastify({
       logger: coreLogger
     });
+    this.fastify
+      .decorate('jwtStrategy', async (request, reply) => {
+        await validateJwtStrategy(request, reply);
+      })
+      .decorate('apiTokenStrategy', async (request, reply) => {
+        await validateApitokenStrategy(request, reply);
+      })
+      .decorate('passwordStrategy', async (request, reply) => {
+        await validatePasswordStrategy(request, reply);
+      })
+      .register(fastifyAuth)
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
     this.initializeRoutes();
     this.fastify.register(mercurius, {
@@ -89,6 +105,9 @@ export class Server {
   public async loadPlugins(): Promise<void> {
     // load config
     await loadConfig(configDir, this.fastify, diContainer);
+
+    // load ayazmo services
+    await loadCoreServices(this.fastify, diContainer)
 
     // load plugins
     await loadPlugins(this.fastify, diContainer);

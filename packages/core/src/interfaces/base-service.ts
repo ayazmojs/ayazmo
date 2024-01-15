@@ -1,13 +1,13 @@
 import { AwilixContainer } from 'awilix';
 import { PluginConfig } from '@ayazmo/types';
 import { EntityManager } from '@mikro-orm/core';
+import { AyazmoCoreService } from './ayazmo-core-service.js';
 
-export class BaseService {
-  container: AwilixContainer; // Add property declaration for 'container'
-  pluginConfig: PluginConfig; // Add property declaration for 'pluginOptions'
+export abstract class BaseService extends AyazmoCoreService {
   em: EntityManager;
 
   constructor(container: AwilixContainer, pluginConfig: PluginConfig) {
+    super(container, pluginConfig);
     if (new.target === BaseService) {
       throw new Error("BaseService is an abstract class and cannot be instantiated directly.");
     }
@@ -18,7 +18,6 @@ export class BaseService {
   }
 
   getEntity(entityName: string) {
-    console.log(this.container)
     return this.em.getRepository(entityName);
   }
 

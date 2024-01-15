@@ -11,6 +11,7 @@ import { loadRoutes } from '../loaders/routes.js';
 import { loadEntities } from '../loaders/entities.js';
 import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
+import { loadSubscribers } from '../loaders/subscribers.js';
 import { AppConfig, initDatabase, merge } from '@ayazmo/utils'
 import { PluginPaths } from '@ayazmo/types'
 
@@ -26,6 +27,7 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
     entities: path.join(basePath, 'entities'),
     routes: path.join(basePath, 'routes.js'),
     migrations: path.join(basePath, 'migrations'),
+    subscribers: path.join(basePath, 'subscribers'),
   };
 };
 
@@ -101,10 +103,10 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   );
 }
 
-export const getPluginEntities = (pluginName: string, settings: any): string[] => {
-  const pluginPaths: PluginPaths = getPluginPaths(pluginName, settings);
-  return listFilesInDirectory(pluginPaths.entities);
-}
+// export const getPluginEntities = (pluginName: string, settings: any): Promise<string[]> => {
+//   const pluginPaths: PluginPaths = getPluginPaths(pluginName, settings);
+//   return listFilesInDirectory(pluginPaths.entities);
+// }
 
 export const loadPlugins = async (app: any, container: AwilixContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config');
@@ -139,6 +141,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
     await loadServices(app, container, pluginPaths.services, registeredPlugin.settings);
     await loadRoutes(app, pluginPaths.routes);
     await loadGraphQL(app, pluginPaths.graphql);
+    await loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings);
   }
 
   const dbConfig = merge({
@@ -181,8 +184,8 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
 
 };
 
-export function listFilesInDirectory(directory: string): string[] {
-  // Check if the directory exists
+export async function listFilesInDirectory(directory: string): Promise<string[]> {
+  // // Check if the directory exists
   if (!fs.existsSync(directory)) {
     return [];
   }
@@ -199,6 +202,9 @@ export function listFilesInDirectory(directory: string): string[] {
   const files = contents.filter((file) =>
     fs.statSync(path.join(directory, file)).isFile()
   );
+
+  // const files = await globby(`${directory}/*.js`);
+  // console.log(files);
 
   return files;
 }
