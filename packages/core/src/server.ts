@@ -67,6 +67,7 @@ export class Server {
 
     try {
       // Initiate graceful shutdown tasks here, e.g., closing database connections
+      diContainer.dispose();
 
       // Create a promise that resolves when the server closes
       const serverClosed = new Promise((resolve) => {

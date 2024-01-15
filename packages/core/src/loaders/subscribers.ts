@@ -1,8 +1,6 @@
 import { AyazmoInstance, PluginConfig, Subscriber } from '@ayazmo/types';
 import { AwilixContainer } from 'awilix';
-import fs from 'node:fs';
-import path from 'node:path';
-import { listFilesInDirectory } from '../plugins/plugin-manager.js';
+import { globby } from 'globby';
 
 export async function loadSubscribers(
   fastify: AyazmoInstance,
@@ -10,32 +8,35 @@ export async function loadSubscribers(
   subscribersPath: string,
   pluginSettings: PluginConfig
   ): Promise<void> {
-  if (!fs.existsSync(subscribersPath)) {
-    fastify.log.info(` - subscribers folder not found in plugin directory: ${subscribersPath}`);
+  const subscribersFiles = await globby(`${subscribersPath}/*.js`);
+
+  if (subscribersFiles.length === 0) {
+    fastify.log.info(` - No subscribers discovered in ${subscribersPath}`);
     return;
   }
 
-  const subscribersFiles = await listFilesInDirectory(subscribersPath);
   const eventService = diContainer.resolve('eventService');
 
-  for (const file of subscribersFiles) {
-
+  const loadModulePromises = subscribersFiles.map(async (file) => {
     try {
       // load the module file
-      const module = await import(path.join(subscribersPath, file));
-
+      const module = await import(file);
+  
       // Check if the default export exists
       if (!module.default || typeof module.default !== 'function') {
         fastify.log.error(` - The module ${file} does not have a valid default export.`);
-        continue;
+        return;
       }
-
+  
       const { event, handler } = await module.default(diContainer, pluginSettings) as Subscriber;
       eventService.subscribe(event, handler);
-
+  
       fastify.log.info(` - Registered subscriber ${module.default.name} on ${event}`);
     } catch (error) {
       fastify.log.error(` - Error while loading module ${file}: ${error}`);
     }
-  }
+  });
+  
+  await Promise.all(loadModulePromises);
+
 }
