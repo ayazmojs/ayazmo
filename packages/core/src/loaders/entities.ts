@@ -1,33 +1,29 @@
 import { AyazmoInstance } from '@ayazmo/types';
-import fs from 'node:fs';
-import path from 'node:path';
-import { listFilesInDirectory } from '../plugins/plugin-manager.js';
+import { globby } from 'globby';
 import { isDefaultExport, AnyEntity } from '@ayazmo/utils';
 
 export async function loadEntities(app: AyazmoInstance, entitiesPath: string): Promise<AnyEntity[]> {
-  if (!fs.existsSync(entitiesPath)) {
-    app.log.info(` - Entities directory not found in plugin: ${entitiesPath}`);
-    return [];
-  }
-
-  let entities: any[] = [];
 
   try {
 
-    const entitiesFiles: string[] = listFilesInDirectory(entitiesPath);
+    const entitiesFiles: string[] = await globby(`${entitiesPath}/*js`);
 
-    for (const file of entitiesFiles) {
-      // load the entities module
-      const entityModule = await import(path.join(entitiesPath, file));
+    if (entitiesFiles.length === 0) {
+      app.log.info(` - No entities found in ${entitiesPath}`);
+      return [];
+    }
 
-      // Check if the default export exists
+    const entitiesPromises = entitiesFiles.map(async (file) => {
+      const entityModule = await import(file);
       if (!isDefaultExport(entityModule)) {
         app.log.error(` - The module ${file} does not have a valid default export.`);
-        continue;
+        return null;
       }
+      return entityModule.default;
+    });
 
-      entities.push(entityModule.default);
-    }
+    const entities = (await Promise.all(entitiesPromises)).filter(entity => entity !== null);
+
     app.log.info(` - Loaded ${entities.length} entities.`);
     return entities;
 

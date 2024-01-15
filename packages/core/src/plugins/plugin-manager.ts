@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
-import { RequestContext, MigrationObject } from '@mikro-orm/core';
+import { RequestContext, MigrationObject, AnyEntity } from '@mikro-orm/core';
 import { EntityClass, EntityClassGroup, EntitySchema } from '@ayazmo/utils';
 import { globby } from 'globby';
 
@@ -11,6 +11,7 @@ import { loadRoutes } from '../loaders/routes.js';
 import { loadEntities } from '../loaders/entities.js';
 import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
+import { loadSubscribers } from '../loaders/subscribers.js';
 import { AppConfig, initDatabase, merge } from '@ayazmo/utils'
 import { PluginPaths } from '@ayazmo/types'
 
@@ -26,6 +27,7 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
     entities: path.join(basePath, 'entities'),
     routes: path.join(basePath, 'routes.js'),
     migrations: path.join(basePath, 'migrations'),
+    subscribers: path.join(basePath, 'subscribers'),
   };
 };
 
@@ -76,11 +78,7 @@ export const discoverPrivateMigrationPaths = (plugins: any[]): string[] => {
 }
 
 export async function discoverMigrationFiles(migrationPaths: string[]): Promise<MigrationObject[]> {
-  let migrationFiles: string[] = [];
-  for (const migrationPath of migrationPaths) {
-    const paths = await globby(`${migrationPath}/*.js`);
-    migrationFiles = migrationFiles.concat(paths);
-  }
+  const migrationFiles = await globby(migrationPaths.map(path => `${path}/*.js`));
 
   return Promise.all(
     migrationFiles.map(async (filePath) => {
@@ -101,14 +99,9 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   );
 }
 
-export const getPluginEntities = (pluginName: string, settings: any): string[] => {
-  const pluginPaths: PluginPaths = getPluginPaths(pluginName, settings);
-  return listFilesInDirectory(pluginPaths.entities);
-}
-
 export const loadPlugins = async (app: any, container: AwilixContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config');
-  let entities: any[] = [];
+  let entities: AnyEntity[] = [];
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {
@@ -117,7 +110,8 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
   }
 
   // register all plugins
-  for (const registeredPlugin of config.plugins) {
+  // Create an array to hold all promises
+  let pluginPromises = config.plugins.map(registeredPlugin => {
     const customPluginPath: string = path.join(pluginsRoot, registeredPlugin.name);
     const nodeModulePluginPath: string = path.join(nodeModulesPath, registeredPlugin.name);
 
@@ -129,17 +123,31 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
       pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath);
     } else {
       app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`);
-      continue;
+      return Promise.resolve([]); // Resolve with empty array if plugin not found
     }
 
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
 
-    // Iterate over your loaders and call each one with the respective path and settings
-    entities = await loadEntities(app, pluginPaths.entities);
-    await loadServices(app, container, pluginPaths.services, registeredPlugin.settings);
-    await loadRoutes(app, pluginPaths.routes);
-    await loadGraphQL(app, pluginPaths.graphql);
-  }
+    if (pluginPaths) {
+      return Promise.all([
+        loadEntities(app, pluginPaths.entities),
+        loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
+        loadRoutes(app, pluginPaths.routes),
+        loadGraphQL(app, pluginPaths.graphql),
+        loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings)
+      ]).then(results => {
+        return results[0] as AnyEntity[];
+      });
+    } else {
+      return Promise.resolve([]); // Resolve with empty array if pluginPaths is null
+    }
+  });
+
+  // Use Promise.all to wait for all plugins to load
+  let results = await Promise.all(pluginPromises);
+
+  // Filter out null results and flatten the array
+  entities.push(...results.flat());
 
   const dbConfig = merge({
     discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
@@ -181,8 +189,8 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
 
 };
 
-export function listFilesInDirectory(directory: string): string[] {
-  // Check if the directory exists
+export async function listFilesInDirectory(directory: string): Promise<string[]> {
+  // // Check if the directory exists
   if (!fs.existsSync(directory)) {
     return [];
   }
