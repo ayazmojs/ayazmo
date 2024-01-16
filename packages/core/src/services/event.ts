@@ -1,6 +1,6 @@
 import BaseEventEmitter from "../interfaces/BaseEventEmitter.js";
 import { InMemoryEventEmitter } from "../emitter/InMemoryEventEmitter.js";
-import { AyazmoCoreService } from '../interfaces/ayazmo-core-service.js';
+import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js';
 
 class EventService extends AyazmoCoreService {
   private eventEmitter: BaseEventEmitter & {

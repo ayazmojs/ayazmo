@@ -154,7 +154,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
     debug: false,
     tsNode: false,
     driverOptions: {
-      connection: { ssl: true }
+      connection: { ssl: process.env.NODE_ENV !== 'development' }
     },
     entities: entities as (string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>)[],
   }, config.database)

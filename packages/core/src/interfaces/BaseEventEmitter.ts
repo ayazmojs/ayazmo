@@ -1,26 +1,22 @@
-import { EventEmitter } from 'node:events';
 import { IEventEmitter } from '@ayazmo/types';
 
 export default abstract class BaseEventEmitter implements IEventEmitter {
-  private emitter: EventEmitter;
 
-  constructor() {
-    this.emitter = new EventEmitter();
-  }
+  constructor() {}
 
   async publish(event: string, data: any): Promise<void> {
-    this.emitter.emit(event, data);
+    throw new Error('Method not implemented.');
   }
 
   subscribe(event: string, handler: (...args: any[]) => void): void {
-    this.emitter.on(event, handler);
+    throw new Error('Method not implemented.');
   }
 
   unsubscribe(event: string, handler: (...args: any[]) => void): void {
-    this.emitter.off(event, handler);
+    throw new Error('Method not implemented.');
   }
 
-  getEmitter(): EventEmitter {
-    return this.emitter;
+  getEmitter(): any {
+    throw new Error('Method not implemented.');
   }
 }

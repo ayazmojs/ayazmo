@@ -1,7 +1,7 @@
 import { AwilixContainer } from 'awilix';
 import { PluginConfig } from '@ayazmo/types';
 import { EntityManager } from '@mikro-orm/core';
-import { AyazmoCoreService } from './ayazmo-core-service.js';
+import { AyazmoCoreService } from './AyazmoCoreService.js';
 
 export abstract class BaseService extends AyazmoCoreService {
   em: EntityManager;
