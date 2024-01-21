@@ -35,7 +35,7 @@ export async function runMigrations() {
     const pendingMigrations = await migrator.getPendingMigrations();
 
     if (!pendingMigrations || pendingMigrations.length === 0) {
-      throw new Error('There are no pending migrations. Please create a migration first.');
+      throw new Error('There are no pending migrations. Please create a migration first or build the existing ones.');
     }
 
     await migrator.up();
