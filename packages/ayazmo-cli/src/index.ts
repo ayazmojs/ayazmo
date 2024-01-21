@@ -7,7 +7,7 @@ import { createMigration } from './utils/create-migration.js';
 import { createPlugin } from './utils/create-plugin.js';
 import { getAyazmoVersion } from "./utils/ayazmo-cli-info.js";
 import { runMigrations } from "./utils/run-migrations.js";
-import { isAyazmoProject } from "./utils/is-ayazmo-project.js";
+import { validateAyazmoProject } from "./utils/validate-ayazmo-project.js";
 
 const version = getAyazmoVersion();
 
@@ -25,24 +25,24 @@ program
   .command('migration:create')
   .description('Create a new migration file')
   .action(() => {
-    isAyazmoProject(process.cwd());
-    createMigration
+    validateAyazmoProject();
+    createMigration()
   });
 
   program
   .command('migration:up')
   .description('Run all migrations')
   .action(() => {
-    isAyazmoProject(process.cwd());
-    runMigrations
+    validateAyazmoProject();
+    runMigrations()
   });
 
 program
   .command('plugin:create')
   .description('Create a new Ayazmo plugin')
   .action(() => {
-    isAyazmoProject(process.cwd());
-    createPlugin
+    validateAyazmoProject();
+    createPlugin()
   });
 
 program

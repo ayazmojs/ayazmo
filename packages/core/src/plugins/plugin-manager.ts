@@ -16,6 +16,7 @@ import { AppConfig, initDatabase, merge } from '@ayazmo/utils'
 import { PluginPaths } from '@ayazmo/types'
 
 const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
+// const migrationsRoot: string = path.join(process.cwd(), 'dist', 'ayazmo');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
 
 // Helper function to construct paths

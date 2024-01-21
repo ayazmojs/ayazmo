@@ -14,13 +14,14 @@
     "@ayazmo/utils": "0.1.0",
     "@fastify/auth": "^4.4.0",
     "@fastify/awilix": "^4.0.0",
-    "@mikro-orm/core": "^6.0.1",
-    "@mikro-orm/postgresql": "^6.0.1",
+    "@mikro-orm/core": "^6.0.4",
+    "@mikro-orm/postgresql": "^6.0.4",
     "awilix": "^9.0.0",
     "globby": "^14.0.0",
     "graphql": "^16.8.1",
     "mercurius": "^13.3.2",
-    "pino-pretty": "^10.3.0"
+    "pino-pretty": "^10.3.0",
+    "uuid": "^9.0.1"
   },
   "scripts": {
     "build": "rimraf dist && tsc --build",

@@ -1,39 +1,38 @@
 import path from 'node:path';
-import kleur from 'kleur';
-import { createSpinner } from 'nanospinner';
-import { Migrator } from '@mikro-orm/migrations';
-import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT } from '@ayazmo/utils'
-import type { IBaseOrmConfig, IPluginPrompt, ITypePrompt, INamePrompt } from '@ayazmo/types';
+import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT, Migrator } from '@ayazmo/utils'
+import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt } from '@ayazmo/types';
 import {
   askUserForTypeOfMigration,
   askUserForMigrationName,
   askUserWhichPlugin
 } from './prompts.js';
+import CliLogger from './cli-logger.js';
 
 export async function createMigration() {
   let orm: any;
   let migrationPath: string;
   let availablePlugins: string[];
+  let globalConfig: any;
   let selectPluginPrompt: IPluginPrompt = { selectedPlugin: '' };
   let migrationTypePrompt: ITypePrompt = { type: 'entities' };
   let migrationNamePrompt: INamePrompt = { filename: '' };
-  const spinner = createSpinner('Checking environment...').start();
   const cwd = process.cwd();
   let ormConfig: IBaseOrmConfig = {
-    entities: [],
-    entitiesTs: [],
+    entities: [`./dist/plugins/**/src/entities/*.js`],
+    entitiesTs: [`./src/plugins/**/src/entities`],
     baseDir: cwd,
     migrations: {
       snapshot: false,
       path: '',
-      emit: 'ts',
+      emit: 'ts'
     },
   };
 
-  const globalConfig = await importGlobalConfig();
-
   try {
-    spinner.stop();
+
+    await CliLogger.task('Checking environment...', async () => {
+      globalConfig = await importGlobalConfig();
+    });
     migrationTypePrompt = await askUserForTypeOfMigration();
 
     if (migrationTypePrompt.type === 'empty') {
@@ -49,35 +48,16 @@ export async function createMigration() {
     availablePlugins = listPlugins(PLUGINS_ROOT);
 
     if (availablePlugins.length === 1) {
-
       migrationPath = path.join(PLUGINS_ROOT, availablePlugins[0], 'src', 'migrations');
-
-      if (migrationTypePrompt.type !== 'empty') {
-        ormConfig.entities = [`./dist/plugins/${availablePlugins[0]}/src/entities/*.js`];
-        ormConfig.entitiesTs = [`./src/plugins/${availablePlugins[0]}/src/entities/*.ts`];
-      }
-
     } else if (availablePlugins.length > 1) {
-
-      spinner.stop();
       selectPluginPrompt = await askUserWhichPlugin(availablePlugins);
       // check the plugin is enabled in the config
       if (!globalConfig.plugins.some((plugin) => plugin.name === selectPluginPrompt.selectedPlugin)) {
-        spinner.error({ text: kleur.red(`Plugin ${selectPluginPrompt.selectedPlugin} is not enabled in ayazmo.config.js`) });
-        process.exit(1);
+        throw new Error(`Plugin ${selectPluginPrompt.selectedPlugin} is not enabled in ayazmo.config.js`);
       }
       migrationPath = path.join(PLUGINS_ROOT, selectPluginPrompt.selectedPlugin, 'src', 'migrations');
-
-      if (migrationTypePrompt.type !== 'empty') {
-        ormConfig.entities = [`./dist/plugins/${selectPluginPrompt.selectedPlugin}/src/entities/*.js`];
-        ormConfig.entitiesTs = [`./src/plugins/${selectPluginPrompt.selectedPlugin}/src/entities/*.ts`];
-      }
-
     } else {
-
-      spinner.error({ text: kleur.red('No plugins available in this project.'), mark: kleur.red("×") });
-      process.exit(1);
-
+      throw new Error('No plugins available in this project.');
     }
 
     ormConfig.migrations.path = migrationPath;
@@ -88,25 +68,21 @@ export async function createMigration() {
     });
 
     if (!(await orm.isConnected())) {
-      spinner.error({ text: kleur.red('Failed to connect to the database. Please ensure your ayazmo.config.js file has the correct DB credentials.'), mark: kleur.red("×") });
-      process.exit(1);
+      throw new Error('Failed to connect to the database. Please ensure your ayazmo.config.js file has the correct DB credentials.');
     }
 
     const migrator: Migrator = orm.getMigrator();
     const pendingMigrations = await migrator.getPendingMigrations();
 
     if (pendingMigrations && pendingMigrations.length > 0) {
-      console.log(pendingMigrations)
-      spinner.warn({ text: kleur.yellow('There are pending migrations. Please run them before creating a new one.'), mark: kleur.red("×") });
-      orm.close(true);
-      process.exit(1);
+      throw new Error('There are pending migrations. Please run them before creating a new one.');
     }
 
-    const { fileName } = await migrator.createMigration(migrationPath, migrationTypePrompt.type === 'empty', false, migrationNamePrompt.filename);
-    spinner.success({ text: kleur.green(`Successfully created migration: ${fileName}`), mark: kleur.green("√") });
+    const { fileName } = await migrator.createMigration(ormConfig.migrations.path, migrationTypePrompt.type === 'empty', false, migrationNamePrompt.filename);
+    CliLogger.success(`Successfully created migration: ${fileName}`);
+
   } catch (error) {
-    spinner.error({ text: kleur.red(error), mark: kleur.red("×") });
-    process.exit(1);
+    CliLogger.error(error);
   } finally {
     if (orm) {
       await orm.close(true);

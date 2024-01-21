@@ -2,8 +2,8 @@ import inquirer from "inquirer"
 import path from "node:path"
 import fs from "node:fs"
 
-export function askUserForTypeOfMigration() {
-  return inquirer.prompt([
+export async function askUserForTypeOfMigration() {
+  return await inquirer.prompt([
     {
       type: 'list',
       name: 'type',
@@ -22,8 +22,8 @@ export function askUserForTypeOfMigration() {
   ]);
 }
 
-export function askUserForMigrationName() {
-  return inquirer.prompt([
+export async function askUserForMigrationName() {
+  return await inquirer.prompt([
     {
       type: 'input',
       name: 'filename',
@@ -48,8 +48,8 @@ export function askUserForMigrationName() {
   ]);
 }
 
-export function askUserWhichPlugin(availablePlugins: string[]) {
-  return inquirer.prompt([
+export async function askUserWhichPlugin(availablePlugins: string[]) {
+  return await inquirer.prompt([
     {
       type: 'list',
       name: 'selectedPlugin',
@@ -59,8 +59,8 @@ export function askUserWhichPlugin(availablePlugins: string[]) {
   ]);
 }
 
-export function askUserForPluginName() {
-  return inquirer.prompt([
+export async function askUserForPluginName() {
+  return await inquirer.prompt([
     {
       type: 'input',
       name: 'name',
@@ -105,8 +105,8 @@ export function askUserForPluginName() {
   ]);
 }
 
-export function askUserForPackageManager() {
-  return inquirer.prompt([
+export async function askUserForPackageManager() {
+  return await inquirer.prompt([
     {
       type: 'list',
       name: 'manager',
@@ -116,8 +116,8 @@ export function askUserForPackageManager() {
   ]);
 }
 
-export function askUserWhereToCreateApp() {
-  return inquirer.prompt([
+export async function askUserWhereToCreateApp() {
+  return await inquirer.prompt([
     {
       type: 'input',
       name: 'directory',
@@ -127,8 +127,8 @@ export function askUserWhereToCreateApp() {
   ]);
 }
 
-export function askUserToCreateGitRepo() {
-  return inquirer.prompt([
+export async function askUserToCreateGitRepo() {
+  return await inquirer.prompt([
     {
       type: 'confirm',
       name: 'gitInit',

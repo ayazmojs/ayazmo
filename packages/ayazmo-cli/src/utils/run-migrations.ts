@@ -1,23 +1,20 @@
-import { initDatabase, importGlobalConfig } from '@ayazmo/utils';
+import { initDatabase, importGlobalConfig, Migrator, MigrationObject } from '@ayazmo/utils';
 import { discoverPrivateMigrationPaths, discoverMigrationFiles, discoverPublicMigrationPaths } from '@ayazmo/core';
-import { Migrator } from '@mikro-orm/migrations';
-import { MigrationObject } from '@mikro-orm/core';
-import { createSpinner } from 'nanospinner';
-import kleur from 'kleur';
+import CliLogger from './cli-logger.js';
 
 export async function runMigrations() {
   let orm: any;
-  const spinner = createSpinner('Running migrations...').start();
+  CliLogger.info('Checking environment...');
 
   try {
+
     const globalConfig = await importGlobalConfig();
     const privateMigrationPaths: string[] = discoverPrivateMigrationPaths(globalConfig.plugins);
     const publicMigrationPaths: string[] = discoverPublicMigrationPaths(globalConfig.plugins);
     const privateMigrationClasses: MigrationObject[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicMigrationPaths]);
 
     if (privateMigrationClasses.length === 0) {
-      spinner.error({ text: kleur.red('No migrations found.'), mark: kleur.red("×") });
-      process.exit(1);
+      throw new Error('No migrations found. Did you build your application?');
     }
 
     orm = await initDatabase({
@@ -35,13 +32,23 @@ export async function runMigrations() {
     });
 
     const migrator: Migrator = orm.getMigrator();
+    const pendingMigrations = await migrator.getPendingMigrations();
+
+    if (!pendingMigrations || pendingMigrations.length === 0) {
+      throw new Error('There are no pending migrations. Please create a migration first.');
+    }
+
     await migrator.up();
-    spinner.success({ text: kleur.green('Migrations applied successfully!'), mark: kleur.green("√") })
+    CliLogger.success('Migrations applied successfully!');
+
   } catch (error) {
-    spinner.error({ text: kleur.red(error), mark: kleur.red("×") });
-    process.exit(1);
+
+    CliLogger.error(error);
+
   } finally {
+
     if (orm) await orm.close();
     process.exit(0);
+
   }
 }

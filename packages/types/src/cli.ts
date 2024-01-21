@@ -6,6 +6,9 @@ export interface IBaseOrmConfig {
     snapshot: boolean;
     path: string;
     emit: string;
+    safe?: boolean;
+    dropTables?: boolean;
+    snapshotPath?: string;
   };
   discovery?: {
     warnWhenNoEntities: boolean;

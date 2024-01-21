@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import CliLogger from './cli-logger';
 
 // Define the function to get the version from package.json synchronously
 export function getAyazmoVersion() {
@@ -13,7 +14,8 @@ export function getAyazmoVersion() {
     return packageJson.version;
   } catch (error) {
     // Handle possible errors
-    console.error('Unable to read the version from package.json:', error);
+    CliLogger.error('Unable to read the version from package.json:');
+    CliLogger.error(error);
     throw error;
   }
 }
