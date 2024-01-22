@@ -18,5 +18,7 @@ interface PluginConfig {
 
 export interface AppConfig {
   plugins: PluginConfig[];
-  database: MikroORMOptions;
+  database: MikroORMOptions & {
+    type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite' | 'mongodb';
+  };
 }

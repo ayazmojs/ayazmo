@@ -15,4 +15,9 @@ export abstract class BaseEntity {
   @Property({ type: JsonType, nullable: true })
   meta: any;
 
+  constructor() {
+    this.id = uuidv4();
+    this.meta = {};
+  }
+
 }

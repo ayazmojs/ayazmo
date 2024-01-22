@@ -3,7 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
-import { RequestContext, MigrationObject, AnyEntity } from '@mikro-orm/core';
+import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core';
+import { PostgreSqlDriver } from "@mikro-orm/postgresql";
 import { EntityClass, EntityClassGroup, EntitySchema } from '@ayazmo/utils';
 import { globby } from 'globby';
 
@@ -12,11 +13,10 @@ import { loadEntities } from '../loaders/entities.js';
 import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
 import { loadSubscribers } from '../loaders/subscribers.js';
-import { AppConfig, initDatabase, merge } from '@ayazmo/utils'
+import { AppConfig, merge } from '@ayazmo/utils'
 import { PluginPaths } from '@ayazmo/types'
 
 const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
-// const migrationsRoot: string = path.join(process.cwd(), 'dist', 'ayazmo');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
 
 // Helper function to construct paths
@@ -110,9 +110,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
     return;
   }
 
-  // register all plugins
-  // Create an array to hold all promises
-  let pluginPromises = config.plugins.map(registeredPlugin => {
+  for (const registeredPlugin of config.plugins) {
     const customPluginPath: string = path.join(pluginsRoot, registeredPlugin.name);
     const nodeModulePluginPath: string = path.join(nodeModulesPath, registeredPlugin.name);
 
@@ -124,45 +122,41 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
       pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath);
     } else {
       app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`);
-      return Promise.resolve([]); // Resolve with empty array if plugin not found
     }
 
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
 
     if (pluginPaths) {
-      return Promise.all([
+      // @ts-ignore
+      const [result, ...rest] = await Promise.all([
         loadEntities(app, pluginPaths.entities),
         loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
-        loadRoutes(app, pluginPaths.routes),
+        loadRoutes(app, container, pluginPaths.routes, registeredPlugin.settings),
         loadGraphQL(app, pluginPaths.graphql),
         loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings)
-      ]).then(results => {
-        return results[0] as AnyEntity[];
-      });
-    } else {
-      return Promise.resolve([]); // Resolve with empty array if pluginPaths is null
+      ])
+
+      entities.push(...result);
     }
-  });
+  }
 
-  // Use Promise.all to wait for all plugins to load
-  let results = await Promise.all(pluginPromises);
+  const { type, ...rest } = config.database;
 
-  // Filter out null results and flatten the array
-  entities.push(...results.flat());
+  if (type === 'postgresql') {
+    rest.driver = PostgreSqlDriver;
+  }
 
   const dbConfig = merge({
     discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
-    debug: false,
+    debug: true,
     tsNode: false,
-    driverOptions: {
-      connection: { ssl: process.env.NODE_ENV !== 'development' }
-    },
     entities: entities as (string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>)[],
-  }, config.database)
+  }, rest)
 
   try {
     // Initialize the database connection
-    const db = await initDatabase(dbConfig);
+    const db = await MikroORM.init(dbConfig);
+    app.log.info('- Database connection established');
 
     // check connection
     const isConnected = await db.isConnected();
@@ -185,7 +179,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
       'dbService': asValue(db),
     })
   } catch (error) {
-    app.log.error(`- Error while loading entities: ${error}`);
+    app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`);
   }
 
 };

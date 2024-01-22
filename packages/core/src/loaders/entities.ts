@@ -6,7 +6,7 @@ export async function loadEntities(app: AyazmoInstance, entitiesPath: string): P
 
   try {
 
-    const entitiesFiles: string[] = await globby(`${entitiesPath}/*js`);
+    const entitiesFiles: string[] = await globby(`${entitiesPath}/*.js`);
 
     if (entitiesFiles.length === 0) {
       app.log.info(` - No entities found in ${entitiesPath}`);
@@ -16,8 +16,8 @@ export async function loadEntities(app: AyazmoInstance, entitiesPath: string): P
     const entitiesPromises = entitiesFiles.map(async (file) => {
       const entityModule = await import(file);
       if (!isDefaultExport(entityModule)) {
-        app.log.error(` - The module ${file} does not have a valid default export.`);
-        return null;
+        const { MyEntity } = entityModule; // Perform a named import here
+        return MyEntity;
       }
       return entityModule.default;
     });

@@ -1,8 +1,20 @@
 
 import { Options } from "@mikro-orm/core";
+
+export interface PluginRoutes {
+  [key: string]: {
+    hooks?: (...args: any[]) => any;
+  };
+}
+
+export interface PluginSettings {
+  private?: boolean;
+  routes?: PluginRoutes
+}
+
 export interface PluginConfig {
   name: string;
-  settings: any;
+  settings: PluginSettings;
 }
 
 export interface AppConfig {

@@ -11,6 +11,7 @@ import { fastifyAuth } from '@fastify/auth'
 import { validateJwtStrategy } from './auth/JwtStrategy.js';
 import { validateApitokenStrategy } from './auth/ApiTokenStrategy.js';
 import { validatePasswordStrategy } from './auth/PasswordStrategy.js';
+import anonymousStrategy from './auth/AnonymousStrategy.js';
 
 const SHUTDOWN_TIMEOUT = 5 * 1000; // 5 seconds, for example
 
@@ -41,6 +42,7 @@ export class Server {
       .decorate('passwordStrategy', async (request, reply) => {
         await validatePasswordStrategy(request, reply);
       })
+      .decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth)
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
     this.initializeRoutes();
