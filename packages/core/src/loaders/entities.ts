@@ -1,6 +1,6 @@
-import { AyazmoInstance } from '@ayazmo/types';
+import { AyazmoInstance, AnyEntity } from '@ayazmo/types';
 import { globby } from 'globby';
-import { isDefaultExport, AnyEntity } from '@ayazmo/utils';
+import { isDefaultExport } from '@ayazmo/utils';
 
 export async function loadEntities(app: AyazmoInstance, entitiesPath: string): Promise<AnyEntity[]> {
 

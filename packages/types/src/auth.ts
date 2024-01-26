@@ -1,5 +1,7 @@
+import { FastifyRequest, FastifyReply } from '@ayazmo/types';
+
 export interface IAuthStrategy {
-  authenticate(request: any): Promise<any>;
+  authenticate(request: FastifyRequest, reply: FastifyReply): Promise<boolean>;
   verify(credentials: any): Promise<boolean>;
-  logout(request: any): Promise<void>;
+  logout(request: FastifyRequest): Promise<void>;
 }

@@ -1,4 +1,5 @@
-import { initDatabase, importGlobalConfig, Migrator, MigrationObject } from '@ayazmo/utils';
+import { initDatabase, importGlobalConfig } from '@ayazmo/utils';
+import { Migrator, MigrationObject } from '@ayazmo/types';
 import { discoverPrivateMigrationPaths, discoverMigrationFiles, discoverPublicMigrationPaths } from '@ayazmo/core';
 import CliLogger from './cli-logger.js';
 

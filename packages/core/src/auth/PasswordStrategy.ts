@@ -1,11 +1,14 @@
-import { IAuthStrategy } from '@ayazmo/types';
+import { IAuthStrategy, FastifyRequest } from '@ayazmo/types';
 
 export class PasswordStrategy implements IAuthStrategy {
-  async authenticate(request: any): Promise<any> {
+  async authenticate(request: FastifyRequest): Promise<any> {
+    console.log(request.body)
     if (!request?.body) {
-      throw new Error('Invalid credentials');
+      return Promise.reject(new Error('Unauthorized'))
     }
-    const { username, password } = request?.body;
+
+    // @ts-ignore
+    const { username, password } = request.body;
 
     // Perform authentication logic (e.g., checking if username and password are valid)
     if (username && password) {
@@ -25,7 +28,7 @@ export class PasswordStrategy implements IAuthStrategy {
   }
 }
 
-export async function validatePasswordStrategy(request, reply) {
+export async function validatePasswordStrategy(request: FastifyRequest) {
   const jwtStrategy = new PasswordStrategy();
   await jwtStrategy.authenticate(request);
 }

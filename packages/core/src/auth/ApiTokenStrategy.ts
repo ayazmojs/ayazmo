@@ -1,17 +1,17 @@
 import { IAuthStrategy, FastifyRequest } from '@ayazmo/types';
 
 export class ApiTokenStrategy implements IAuthStrategy {
-  async authenticate(request: FastifyRequest): Promise<any> {
+  async authenticate(request: FastifyRequest) {
     // Extract token from the request
-    const apiToken = request.headers['x-api-key'] ?? '';
+    const apiToken = request.headers['x-api-key'] ?? null;
 
-    if (Array.isArray(apiToken)) {
-      throw new Error('Invalid credentials');
+    if (!apiToken || typeof apiToken !== 'string') {
+      return Promise.reject(new Error('Unauthorized'))
     }
 
     const isTokenValid = await this.verify(apiToken);
-  
-    if (!apiToken || !isTokenValid) {
+
+    if (!isTokenValid) {
       throw new Error('Invalid credentials');
     }
     return isTokenValid;
@@ -28,7 +28,8 @@ export class ApiTokenStrategy implements IAuthStrategy {
   }
 }
 
-export async function validateApitokenStrategy(request, reply) {
+export async function validateApitokenStrategy(request: FastifyRequest) {
+  console.log('------validateApitokenStrategy-------')
   const jwtStrategy = new ApiTokenStrategy();
   await jwtStrategy.authenticate(request);
 }
