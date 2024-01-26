@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT, Migrator } from '@ayazmo/utils'
-import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt } from '@ayazmo/types';
+import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT } from '@ayazmo/utils'
+import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt, Migrator } from '@ayazmo/types';
 import {
   askUserForTypeOfMigration,
   askUserForMigrationName,

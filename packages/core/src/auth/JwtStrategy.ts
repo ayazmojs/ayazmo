@@ -1,13 +1,25 @@
-import { IAuthStrategy } from '@ayazmo/types';
+import { IAuthStrategy, FastifyRequest } from '@ayazmo/types';
 
 export class JwtStrategy implements IAuthStrategy {
-  async authenticate(request: any): Promise<any> {
+  async authenticate(request: FastifyRequest): Promise<any> {
     // Extract token from the request
-    const token = request.headers['Authorization']?.split(' ')[1];
-    if (!token) {
+    const authorization = request.headers['authorization'] ?? null;
+    if (!authorization || typeof authorization !== 'string') {
+      return Promise.reject(new Error('Unauthorized'));
+    }
+
+    const token = authorization.split(' ')[1];
+    if (!token || typeof token !== 'string') {
+      return Promise.reject(new Error('Unauthorized'));
+    }
+
+    const isVerified = await this.verify(token);
+
+    if (!isVerified) {
       throw new Error('Invalid credentials');
     }
-    return this.verify(token);
+
+    return isVerified;
   }
 
   async verify(token: string): Promise<boolean> {
@@ -20,7 +32,7 @@ export class JwtStrategy implements IAuthStrategy {
   }
 }
 
-export async function validateJwtStrategy(request, reply) {
+export async function validateJwtStrategy(request: FastifyRequest) {
   const jwtStrategy = new JwtStrategy();
   await jwtStrategy.authenticate(request);
 }

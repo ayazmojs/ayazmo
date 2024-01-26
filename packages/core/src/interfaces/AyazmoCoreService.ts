@@ -1,11 +1,11 @@
 import { AwilixContainer } from 'awilix';
-import { PluginConfig } from '@ayazmo/types';
+import { AppConfig } from '@ayazmo/types';
 
 export abstract class AyazmoCoreService {
-  container: AwilixContainer; // Add property declaration for 'container'
-  pluginConfig: PluginConfig; // Add property declaration for 'pluginOptions'
+  container: AwilixContainer;
+  pluginConfig: AppConfig;
 
-  constructor(container: AwilixContainer, pluginConfig: PluginConfig) {
+  constructor(container: AwilixContainer, pluginConfig: AppConfig) {
     if (new.target === AyazmoCoreService) {
       throw new Error("AyazmoCoreService is an abstract class and cannot be instantiated directly.");
     }
@@ -13,7 +13,7 @@ export abstract class AyazmoCoreService {
     this.pluginConfig = pluginConfig;
   }
 
-  getGlobalConfig() {
+  getGlobalConfig(): AppConfig {
     // @ts-ignore
     return this.container.config;
   }

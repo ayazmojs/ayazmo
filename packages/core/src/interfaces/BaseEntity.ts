@@ -1,10 +1,10 @@
 import { PrimaryKey, Property, JsonType } from '@mikro-orm/core';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, } from 'uuid';
 
 export abstract class BaseEntity {
 
-  @PrimaryKey({ type: 'uuid' })
-  id: string = uuidv4();
+  @PrimaryKey()
+  id = uuidv4();
 
   @Property()
   createdAt = new Date();
@@ -14,10 +14,5 @@ export abstract class BaseEntity {
 
   @Property({ type: JsonType, nullable: true })
   meta: any;
-
-  constructor() {
-    this.id = uuidv4();
-    this.meta = {};
-  }
 
 }

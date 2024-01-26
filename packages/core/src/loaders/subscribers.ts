@@ -1,4 +1,4 @@
-import { AyazmoInstance, PluginConfig, Subscriber } from '@ayazmo/types';
+import { AyazmoInstance, PluginSettings, Subscriber } from '@ayazmo/types';
 import { AwilixContainer } from 'awilix';
 import { globby } from 'globby';
 
@@ -6,7 +6,7 @@ export async function loadSubscribers(
   fastify: AyazmoInstance,
   diContainer: AwilixContainer,
   subscribersPath: string,
-  pluginSettings: PluginConfig
+  pluginSettings: PluginSettings
   ): Promise<void> {
   const subscribersFiles = await globby(`${subscribersPath}/*.js`);
 

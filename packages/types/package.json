@@ -15,5 +15,10 @@
   "scripts": {
     "build": "rimraf dist && tsc --build",
     "watch": "tsc --build --watch"
+  },
+  "dependencies": {
+    "@mikro-orm/core": "^6.0.5",
+    "@mikro-orm/migrations": "^6.0.5",
+    "@mikro-orm/postgresql": "^6.0.5"
   }
 }

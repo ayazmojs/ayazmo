@@ -1,4 +1,4 @@
-import { AyazmoInstance, PluginConfig } from '@ayazmo/types';
+import { AyazmoInstance, PluginSettings } from '@ayazmo/types';
 import { AwilixContainer, asFunction } from 'awilix';
 import path from 'node:path';
 import { globby } from 'globby';
@@ -7,7 +7,7 @@ export async function loadServices(
   fastify: AyazmoInstance,
   diContainer: AwilixContainer,
   servicesPath: string,
-  pluginSettings: PluginConfig
+  pluginSettings: PluginSettings
 ): Promise<void> {
   const serviceFiles = await globby(`${servicesPath}/*.js`);
   
@@ -24,7 +24,7 @@ async function importAndLoadModule(
   fastify: AyazmoInstance,
   diContainer: AwilixContainer,
   file: string,
-  pluginSettings: PluginConfig
+  pluginSettings: PluginSettings
 ): Promise<void> {
   try {
     // load the service file

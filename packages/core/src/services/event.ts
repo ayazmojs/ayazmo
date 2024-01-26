@@ -1,3 +1,5 @@
+import { AwilixContainer } from "awilix";
+import { AppConfig } from "@ayazmo/types";
 import BaseEventEmitter from "../interfaces/BaseEventEmitter.js";
 import { InMemoryEventEmitter } from "../emitter/InMemoryEventEmitter.js";
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js';
@@ -7,10 +9,10 @@ class EventService extends AyazmoCoreService {
     listSubscribers: (event: string) => any[];
   };
 
-  constructor(container, config) {
+  constructor(container: AwilixContainer, config: AppConfig) {
     super(container, config);
     const configModule = this.getGlobalConfig();
-    switch (configModule?.eventEmitterType) {
+    switch (configModule?.app?.eventEmitterType) {
       // case 'redis': this.eventEmitter = new RedisEventEmitter(config.redisConfig); break;
       // Add other cases for different event emitter types
       default: this.eventEmitter = new InMemoryEventEmitter();

@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core';
-import { PostgreSqlDriver } from "@mikro-orm/postgresql";
-import { EntityClass, EntityClassGroup, EntitySchema } from '@ayazmo/utils';
+import { merge } from '@ayazmo/utils';
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver } from '@ayazmo/types'
 import { globby } from 'globby';
 
 import { loadRoutes } from '../loaders/routes.js';
@@ -13,8 +13,6 @@ import { loadEntities } from '../loaders/entities.js';
 import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
 import { loadSubscribers } from '../loaders/subscribers.js';
-import { AppConfig, merge } from '@ayazmo/utils'
-import { PluginPaths } from '@ayazmo/types'
 
 const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
@@ -103,6 +101,7 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
 export const loadPlugins = async (app: any, container: AwilixContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config');
   let entities: AnyEntity[] = [];
+  let typeDefs: string[] = [];
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {
@@ -128,17 +127,20 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
 
     if (pluginPaths) {
       // @ts-ignore
-      const [result, ...rest] = await Promise.all([
+      const [entityCollection, gqlCollection, ...rest] = await Promise.all([
         loadEntities(app, pluginPaths.entities),
+        loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
         loadRoutes(app, container, pluginPaths.routes, registeredPlugin.settings),
-        loadGraphQL(app, pluginPaths.graphql),
         loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings)
       ])
 
-      entities.push(...result);
+      entities.push(...entityCollection);
+      // typeDefs.push(...gqlCollection?.schema || []);
     }
   }
+
+  console.log(typeDefs)
 
   const { type, ...rest } = config.database;
 
@@ -146,7 +148,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
     rest.driver = PostgreSqlDriver;
   }
 
-  const dbConfig = merge({
+  const dbConfig: any = merge({
     discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
     debug: true,
     tsNode: false,

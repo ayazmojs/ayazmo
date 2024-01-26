@@ -1,6 +1,4 @@
-import { MikroORM, Options } from "@mikro-orm/core";
-import { PostgreSqlDriver } from "@mikro-orm/postgresql";
-import { Migrator } from '@mikro-orm/migrations';
+import { MikroORM, Options, PostgreSqlDriver, Migrator } from "@ayazmo/types";
 import AyazmoMigrationGenerator from "./migration-generator.js";
 
 export default async function initDatabase(config: Options): Promise<MikroORM> {

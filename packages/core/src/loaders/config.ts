@@ -1,6 +1,6 @@
 // src/configLoader.ts
-import { AyazmoInstance } from '@ayazmo/types';
-import { merge, importGlobalConfig, AppConfig } from '@ayazmo/utils';
+import { AyazmoInstance, AppConfig } from '@ayazmo/types';
+import { merge, importGlobalConfig } from '@ayazmo/utils';
 import { AwilixContainer, asValue } from 'awilix';
 
 export const loadConfig = async (config: string, app: AyazmoInstance, diContainer: AwilixContainer): Promise<AppConfig> => {

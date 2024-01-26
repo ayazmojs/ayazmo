@@ -7,19 +7,26 @@ export interface PluginRoutes {
   };
 }
 
-export interface PluginSettings {
+export type PluginSettings = {
   private?: boolean;
   routes?: PluginRoutes
 }
 
-export interface PluginConfig {
+export type PluginConfig = {
   name: string;
   settings: PluginSettings;
 }
 
-export interface AppConfig {
+export type AyazmoAppConfig = {
+  eventEmitterType: 'memory' | 'redis'
+}
+
+export type AppConfig = {
   plugins: PluginConfig[];
-  database: Options;
+  database: Options & {
+    type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite' | 'mongodb';
+  };
+  app: AyazmoAppConfig;
 }
 
 export interface PluginPaths {

@@ -1,5 +1,5 @@
 import path from 'path';
-import { AppConfig } from './interfaces';
+import { AppConfig } from '@ayazmo/types';
 
 async function importGlobalConfig(filePath?: string): Promise<AppConfig> {
   const configPath: string = filePath ?? path.join(process.cwd(), 'ayazmo.config.js');

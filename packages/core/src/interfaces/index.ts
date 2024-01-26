@@ -1,3 +1,2 @@
-export * from './app.js';
-export * from './BaseService.js';
+export * from './BasePluginService.js';
 export * from './BaseEntity.js';

@@ -1,10 +1,12 @@
 import fastify from 'fastify';
-import { AyazmoInstance } from '@ayazmo/types';
+import { FastifyAuthFunction } from '@fastify/auth';
+import { AyazmoInstance, FastifyRequest } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
 import { loadConfig } from './loaders/config.js';
 import mercurius from 'mercurius';
+import mercuriusAuth from 'mercurius-auth';
 import { loadPlugins } from './plugins/plugin-manager.js';
 import { loadCoreServices } from './loaders/core/services.js';
 import { fastifyAuth } from '@fastify/auth'
@@ -33,28 +35,82 @@ export class Server {
       logger: coreLogger
     });
     this.fastify
-      .decorate('jwtStrategy', async (request, reply) => {
-        await validateJwtStrategy(request, reply);
+      .decorate('jwtStrategy', async (request: FastifyRequest) => {
+        await validateJwtStrategy(request);
       })
-      .decorate('apiTokenStrategy', async (request, reply) => {
-        await validateApitokenStrategy(request, reply);
+      .decorate('apiTokenStrategy', async (request: FastifyRequest) => {
+        await validateApitokenStrategy(request);
       })
-      .decorate('passwordStrategy', async (request, reply) => {
-        await validatePasswordStrategy(request, reply);
+      .decorate('passwordStrategy', async (request: FastifyRequest) => {
+        await validatePasswordStrategy(request);
       })
       .decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth)
-    this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true, disposeOnResponse: true })
+    this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes();
+    this.registerGQL();
+    this.setupGracefulShutdown();
+  }
+
+  public registerGQL() {
     this.fastify.register(mercurius, {
-      schema: 'type Query { health: Boolean } type Mutation { health: Boolean }',
+      schema: `
+        directive @auth(strategies: [String]) on OBJECT | FIELD_DEFINITION
+
+        type Query {
+          health: Boolean
+        }
+        type Mutation {
+          health: Boolean
+        }
+      `,
       resolvers: {
         Query: {
           health: async (_, { }) => true,
         },
+        Mutation: {
+          health: async (_, { }) => true,
+        },
       },
     });
-    this.setupGracefulShutdown();
+  }
+
+  public registerAuthDirective() {
+    this.fastify.register(mercuriusAuth, {
+      // @ts-ignore
+      applyPolicy: async (authDirectiveAST, parent, args, context, info) => {
+        const strategies: string[] = authDirectiveAST.arguments[0].value.values.map(value => value.value);
+        let runStrategies: any[] = [];
+        let shouldThrow: boolean = false;
+
+        strategies.forEach(authStrategy => {
+          if (!this.fastify[authStrategy]) {
+            console.warn(`Auth strategy '${authStrategy}' does not exist.`);
+            return;
+          }
+
+          runStrategies.push(this.fastify[authStrategy]);
+        });
+
+        const auth: FastifyAuthFunction = this.fastify.auth(runStrategies);
+        // @ts-ignore
+        auth(context.reply.request, context.reply, (error: Error) => {
+          if (error) {
+            shouldThrow = true;
+          }
+        });
+
+        if (shouldThrow) {
+          const authError = new mercurius.ErrorWithProps('UNAUTHORIZED');
+          authError.statusCode = 401; // Use the appropriate status code for unauthorized
+          throw authError;
+        }
+
+        return true;
+      },
+      authContext: async (context) => {},
+      authDirective: 'auth',
+    });
   }
 
   private initializeRoutes(): void {
@@ -87,6 +143,7 @@ export class Server {
 
       if (shutdownCompleted) {
         this.fastify.log.info('Server has been shut down gracefully');
+        process.exit(0); // Exit with a success code
       } else {
         this.fastify.log.warn('Server shutdown timed out; forcing shutdown');
         process.exit(1); // Exit with a failure code
@@ -114,6 +171,8 @@ export class Server {
 
     // load plugins
     await loadPlugins(this.fastify, diContainer);
+
+    this.registerAuthDirective();
   }
 
   async start(port: number): Promise<void> {
