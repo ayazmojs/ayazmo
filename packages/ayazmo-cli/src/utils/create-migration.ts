@@ -18,7 +18,7 @@ export async function createMigration() {
   let migrationNamePrompt: INamePrompt = { filename: '' };
   const cwd = process.cwd();
   let ormConfig: IBaseOrmConfig = {
-    entities: [`./dist/plugins/**/src/entities/*.js`],
+    entities: [`./src/plugins/**/dist/entities/*.js`],
     entitiesTs: [`./src/plugins/**/src/entities`],
     baseDir: cwd,
     migrations: {

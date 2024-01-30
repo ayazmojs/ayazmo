@@ -14,12 +14,12 @@ import { loadServices } from '../loaders/services.js';
 import { loadGraphQL } from '../loaders/graphql.js';
 import { loadSubscribers } from '../loaders/subscribers.js';
 
-const pluginsRoot: string = path.join(process.cwd(), 'dist', 'plugins');
+const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins');
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
 
-// Helper function to construct paths
+// Helper function to construct plugin paths
 const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
-  const basePath: string = path.join(baseDir, pluginName, 'src');
+  const basePath: string = path.join(baseDir, pluginName, 'dist');
   return {
     services: path.join(basePath, 'services'),
     graphql: path.join(basePath, 'graphql'),

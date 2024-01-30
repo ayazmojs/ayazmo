@@ -20,7 +20,7 @@ export async function runMigrations() {
 
     orm = await initDatabase({
       ... {
-        entities: ['./dist/plugins/**/src/entities/*.js'],
+        entities: ['./src/plugins/**/dist/entities/*.js'],
         entitiesTs: ['./src/plugins/**/src/entities/*.ts'],
         baseDir: process.cwd(),
         migrations: {

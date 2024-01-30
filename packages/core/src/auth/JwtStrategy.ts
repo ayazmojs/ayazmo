@@ -1,7 +1,16 @@
 import { IAuthStrategy, FastifyRequest } from '@ayazmo/types';
 
 export class JwtStrategy implements IAuthStrategy {
-  async authenticate(request: FastifyRequest): Promise<any> {
+  async authenticate(request: FastifyRequest): Promise<boolean> {
+    let jwtService: any;
+
+    try {
+      jwtService = request.diScope.resolve('jwtService');
+    } catch (error) {
+      request.log.error('JwtService not found. Pleasee make sure you install a plugin which supports JWT authentication.');
+      return Promise.reject(new Error('Unauthorized'));
+    }
+    
     // Extract token from the request
     const authorization = request.headers['authorization'] ?? null;
     if (!authorization || typeof authorization !== 'string') {
@@ -13,18 +22,13 @@ export class JwtStrategy implements IAuthStrategy {
       return Promise.reject(new Error('Unauthorized'));
     }
 
-    const isVerified = await this.verify(token);
+    const isAuthenticated = await jwtService.authenticate(request, token);
 
-    if (!isVerified) {
+    if (!isAuthenticated) {
       throw new Error('Invalid credentials');
     }
 
-    return isVerified;
-  }
-
-  async verify(token: string): Promise<boolean> {
-    // Token verification logic (e.g., checking if the token is valid)
-    return token === 'expectedToken'; // Simplified for example purposes
+    return isAuthenticated;
   }
 
   async logout(request: any): Promise<void> {

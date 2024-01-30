@@ -16,7 +16,7 @@ export abstract class BasePluginService {
     this.em = container.dbService.em;
   }
 
-  public getEntity(entityName: string): EntityRepository<object> {
+  public getRepository(entityName: string): EntityRepository<any> {
     return this.em.getRepository(entityName);
   }
 

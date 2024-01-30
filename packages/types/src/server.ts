@@ -1,6 +1,7 @@
 import { FastifyInstance, RouteOptions } from 'fastify';
 import { AwilixContainer } from 'awilix';
 import http from 'http';
+import { FastifyAuthFunction } from '@fastify/auth';
 
 export type AyazmoInstance = FastifyInstance<
   http.Server,
@@ -14,6 +15,7 @@ export type AyazmoRouteOptions = RouteOptions;
 declare module 'fastify' {
   export interface FastifyRequest {
     diScope: AwilixContainer;
-    jwtStrategy: any;
+    auth: FastifyAuthFunction;
+    user: any;
   }
 }
