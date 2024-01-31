@@ -1,8 +1,8 @@
 import fastify from 'fastify';
 import { FastifyAuthFunction } from '@fastify/auth';
-import { AyazmoInstance, FastifyRequest } from '@ayazmo/types';
+import { AyazmoInstance, FastifyRequest, FastifyReply } from '@ayazmo/types';
 import pino from 'pino';
-import path from 'path';
+import path from 'node:path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
 import { loadConfig } from './loaders/config.js';
 import mercurius from 'mercurius';
@@ -12,7 +12,6 @@ import { loadCoreServices } from './loaders/core/services.js';
 import { fastifyAuth } from '@fastify/auth'
 import { validateJwtStrategy } from './auth/JwtStrategy.js';
 import { validateApitokenStrategy } from './auth/ApiTokenStrategy.js';
-import { validatePasswordStrategy } from './auth/PasswordStrategy.js';
 import anonymousStrategy from './auth/AnonymousStrategy.js';
 
 const SHUTDOWN_TIMEOUT = 5 * 1000; // 5 seconds, for example
@@ -24,9 +23,8 @@ const coreLogger = pino({
   }
 });
 
-const rootDir = process.cwd(); // Get the current working directory
-const configDir = path.join(rootDir, 'ayazmo.config.js'); // Adjust this path as needed
-
+const rootDir = process.cwd();
+const configDir = path.join(rootDir, 'ayazmo.config.js');
 export class Server {
   private fastify: AyazmoInstance;
 
@@ -41,15 +39,33 @@ export class Server {
       .decorate('apiTokenStrategy', async (request: FastifyRequest) => {
         await validateApitokenStrategy(request);
       })
-      .decorate('passwordStrategy', async (request: FastifyRequest) => {
-        await validatePasswordStrategy(request);
-      })
       .decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth)
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes();
     this.registerGQL();
     this.setupGracefulShutdown();
+    // Set the default error handler
+    this.setDefaultErrorHandler();
+  }
+
+  // Method to set the default error handler
+  private setDefaultErrorHandler() {
+    this.fastify.setErrorHandler((error, request, reply) => {
+      // Default error handling logic
+      if (error.validation) {
+        reply.status(400).send(error);
+      } else {
+        request.log.error(error);
+        const statusCode = error.statusCode || 500;
+        reply.status(statusCode).send({ message: error.message || 'Internal Server Error' });
+      }
+    });
+  }
+
+  // Public method to allow custom error handler to be set
+  public setErrorHandler(customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
+    this.fastify.setErrorHandler(customErrorHandler);
   }
 
   public registerGQL() {
@@ -114,7 +130,7 @@ export class Server {
   }
 
   private initializeRoutes(): void {
-    // Define your core routes here
+    // Define core routes here
     this.fastify.get('/health', async (request, reply) => {
       reply.code(200).send({ status: 'ok' });
     });
