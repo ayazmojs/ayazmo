@@ -12,7 +12,7 @@ export type PluginSettings = {
   routes?: PluginRoutes
 }
 
-export type PluginConfig = {
+export interface PluginConfig {
   name: string;
   settings: PluginSettings;
 }
@@ -36,6 +36,7 @@ export interface PluginPaths {
   routes: string;
   migrations: string;
   subscribers: string;
+  bootstrap?: string;
 }
 
 export interface Subscriber {

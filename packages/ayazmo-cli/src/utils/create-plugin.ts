@@ -1,13 +1,13 @@
 import path from 'node:path';
 import { cloneRepository } from './download-from-github.js';
-import { sleep, PLUGINS_ROOT } from '@ayazmo/utils'
+import { PLUGINS_ROOT } from '@ayazmo/utils'
 import { askUserForPluginName } from "./prompts.js";
 import CliLogger from './cli-logger.js';
+import PackagetJson from '@npmcli/package-json';
 
 export async function createPlugin() {
   CliLogger.info('Checking environment...');
 
-  await sleep(5000);
   const answers = await askUserForPluginName();
   const pluginName = answers.name;
   const pluginsDir = path.join(PLUGINS_ROOT, pluginName);
@@ -20,7 +20,17 @@ export async function createPlugin() {
 
     // Download and extract the template
     await cloneRepository(repo, pluginsDir);
-    CliLogger.success(`Plugin ${pluginName} created successfully in ${pluginsDir}`);
+    const pkgJson = await PackagetJson.load(pluginsDir)
+    pkgJson.update({
+      name: pluginName,
+      description: pluginName.replaceAll('-', ' '),
+      keywords: [
+        `${pluginName}`
+      ]
+    })
+    await pkgJson.save()
+
+    CliLogger.success(`Plugin ${pluginName} created successfully in ${pluginsDir}. You may enable this plugin in ayazmo.config.js`);
   } catch (error) {
     CliLogger.error(error);
   }

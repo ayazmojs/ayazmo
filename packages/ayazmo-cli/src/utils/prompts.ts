@@ -59,7 +59,7 @@ export async function askUserWhichPlugin(availablePlugins: string[]) {
   ]);
 }
 
-export async function askUserForPluginName() {
+export async function askUserForPluginName(): Promise<{ name: string }> {
   return await inquirer.prompt([
     {
       type: 'input',

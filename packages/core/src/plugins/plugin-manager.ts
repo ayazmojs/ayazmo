@@ -5,7 +5,7 @@ import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core';
 import { merge } from '@ayazmo/utils';
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver } from '@ayazmo/types'
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, FastifyInstance } from '@ayazmo/types'
 import { globby } from 'globby';
 
 import { loadRoutes } from '../loaders/routes.js';
@@ -27,6 +27,7 @@ const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
     routes: path.join(basePath, 'routes.js'),
     migrations: path.join(basePath, 'migrations'),
     subscribers: path.join(basePath, 'subscribers'),
+    bootstrap: path.join(basePath, 'bootstrap.js'),
   };
 };
 
@@ -98,10 +99,9 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   );
 }
 
-export const loadPlugins = async (app: any, container: AwilixContainer): Promise<void> => {
+export const loadPlugins = async (app: FastifyInstance, container: AwilixContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config');
   let entities: AnyEntity[] = [];
-  let typeDefs: string[] = [];
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {
@@ -110,14 +110,14 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
   }
 
   for (const registeredPlugin of config.plugins) {
-    const customPluginPath: string = path.join(pluginsRoot, registeredPlugin.name);
-    const nodeModulePluginPath: string = path.join(nodeModulesPath, registeredPlugin.name);
+    const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name);
+    const publicPluginPath: string = path.join(nodeModulesPath, registeredPlugin.name);
 
     let pluginPaths: PluginPaths | null = null;
 
-    if (fs.existsSync(customPluginPath)) {
+    if (fs.existsSync(privatePluginPath)) {
       pluginPaths = constructPaths(registeredPlugin.name, pluginsRoot);
-    } else if (fs.existsSync(nodeModulePluginPath)) {
+    } else if (fs.existsSync(publicPluginPath)) {
       pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath);
     } else {
       app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`);
@@ -136,11 +136,13 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
       ])
 
       entities.push(...entityCollection);
-      // typeDefs.push(...gqlCollection?.schema || []);
+
+      if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
+        const bootstrap = await import(pluginPaths.bootstrap);
+        await bootstrap(app, container);
+      }
     }
   }
-
-  console.log(typeDefs)
 
   const { type, ...rest } = config.database;
 
@@ -150,7 +152,7 @@ export const loadPlugins = async (app: any, container: AwilixContainer): Promise
 
   const dbConfig: any = merge({
     discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
-    debug: true,
+    debug: false,
     tsNode: false,
     entities: entities as (string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>)[],
   }, rest)
