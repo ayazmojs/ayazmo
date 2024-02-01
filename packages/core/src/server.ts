@@ -57,8 +57,13 @@ export class Server {
         reply.status(400).send(error);
       } else {
         request.log.error(error);
-        const statusCode = error.statusCode || 500;
-        reply.status(statusCode).send({ message: error.message || 'Internal Server Error' });
+        if ('statusCode' in error && error.statusCode) {
+          // It's a Fastify error, send the error message with the status code
+          reply.status(error.statusCode).send({ message: error.message });
+        } else {
+          // It's a generic error, log it and send a generic error message
+          reply.status(500).send({ message: 'Internal Server Error' });
+        }
       }
     });
   }
@@ -124,7 +129,7 @@ export class Server {
 
         return true;
       },
-      authContext: async (context) => {},
+      authContext: async (context) => { },
       authDirective: 'auth',
     });
   }

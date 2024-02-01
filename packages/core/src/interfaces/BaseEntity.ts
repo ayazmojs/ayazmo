@@ -1,4 +1,4 @@
-import { PrimaryKey, Property, JsonType } from '@mikro-orm/core';
+import { PrimaryKey, Property, JsonType, Opt } from '@mikro-orm/core';
 import { v4 as uuidv4, } from 'uuid';
 
 export abstract class BaseEntity {
@@ -7,12 +7,12 @@ export abstract class BaseEntity {
   id = uuidv4();
 
   @Property()
-  createdAt = new Date();
+  createdAt?: Date & Opt = new Date();
 
   @Property({ onUpdate: () => new Date(), nullable: true })
-  updatedAt = new Date();
+  updatedAt?: Date & Opt = new Date();
 
   @Property({ type: JsonType, nullable: true })
-  meta: any;
+  meta?: any = null;
 
 }
