@@ -1,5 +1,7 @@
 import fastify from 'fastify';
 import { FastifyAuthFunction } from '@fastify/auth';
+import cors from '@fastify/cors'
+import fastifyCookie from '@fastify/cookie';
 import { AyazmoInstance, FastifyRequest, FastifyReply } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'node:path';
@@ -176,6 +178,20 @@ export class Server {
     }
   }
 
+  private async registerCORS() {
+    await this.fastify.register(cors, {
+      origin: 'http://localhost:4000',
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookies'],
+      credentials: true
+    });
+  }
+
+  private registerCookies() {
+    this.fastify.register(fastifyCookie, {
+      hook: 'onRequest'
+    })
+  }
+
 
   private setupGracefulShutdown() {
     // Listen for termination signals
@@ -197,8 +213,11 @@ export class Server {
   }
 
   async start(port: number): Promise<void> {
+    this.registerCookies();
     // load plugins
     await this.loadPlugins();
+
+    await this.registerCORS();
 
     try {
       await this.fastify.listen({ port });

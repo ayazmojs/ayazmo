@@ -5,7 +5,7 @@ import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core';
 import { merge } from '@ayazmo/utils';
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, FastifyInstance } from '@ayazmo/types'
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, FastifyInstance, PluginConfig } from '@ayazmo/types'
 import { globby } from 'globby';
 
 import { loadRoutes } from '../loaders/routes.js';
@@ -41,7 +41,7 @@ export const getPluginPaths = (pluginName: string, settings: any): PluginPaths =
   return constructPaths(pluginName, nodeModulesPath);
 }
 
-export const discoverPublicMigrationPaths = (plugins: any[]): string[] => {
+export const discoverPublicMigrationPaths = (plugins: PluginConfig[]): string[] => {
   let migrationPaths: string[] = [];
   const publicPlugins = plugins.filter(plugin => plugin.settings?.private !== true);
   for (const plugin of publicPlugins) {
@@ -62,7 +62,7 @@ export const discoverPublicMigrationPaths = (plugins: any[]): string[] => {
  * @param plugins plugin definitions from config
  * @returns array of paths to private plugins
  */
-export const discoverPrivateMigrationPaths = (plugins: any[]): string[] => {
+export const discoverPrivateMigrationPaths = (plugins: PluginConfig[]): string[] => {
   let migrationPaths: string[] = [];
   const privatePlugins = plugins.filter(plugin => plugin.settings?.private === true);
   for (const plugin of privatePlugins) {
@@ -139,7 +139,11 @@ export const loadPlugins = async (app: FastifyInstance, container: AwilixContain
 
       if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
         const bootstrap = await import(pluginPaths.bootstrap);
-        await bootstrap(app, container);
+
+        if (!bootstrap.default || typeof bootstrap.default !== 'function') {
+          throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`);
+        }
+        await bootstrap.default(app, container);
       }
     }
   }

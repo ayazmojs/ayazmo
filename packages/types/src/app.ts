@@ -12,7 +12,7 @@ export type PluginSettings = {
   routes?: PluginRoutes
 }
 
-export interface PluginConfig {
+export type PluginConfig = {
   name: string;
   settings: PluginSettings;
 }

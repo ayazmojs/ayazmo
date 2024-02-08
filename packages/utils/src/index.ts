@@ -10,4 +10,6 @@ export { default as listPlugins } from './list-plugins.js';
 export { default as initDatabase } from './init-database.js';
 export * from './constants.js';
 export { default as AyazmoMigrationGenerator } from './migration-generator.js';
-export { default as AyazmoError } from './ayazmo-error.js'
+export { default as AyazmoError } from './ayazmo-error.js';
+export { mergeFolders } from './merge-folders.js';
+export { default as getRegisteredPlugins } from './get-registered-plugins.js';
