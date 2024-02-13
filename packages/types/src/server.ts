@@ -1,7 +1,6 @@
-import { FastifyInstance, RouteOptions } from 'fastify';
+import { FastifyInstance, RouteOptions, preHandlerHookHandler } from 'fastify';
 import { AwilixContainer } from 'awilix';
 import http from 'http';
-import { FastifyAuthFunction } from '@fastify/auth';
 
 export type AyazmoInstance = FastifyInstance<
   http.Server,
@@ -12,10 +11,18 @@ export type AyazmoInstance = FastifyInstance<
 
 export type AyazmoRouteOptions = RouteOptions;
 
+interface User {
+  id: string;
+  [key: string]: any; // This allows for any number of optional properties with any type
+}
+
 declare module 'fastify' {
   export interface FastifyRequest {
     diScope: AwilixContainer;
-    auth: FastifyAuthFunction;
-    user: any;
+    cookies: { [cookieName: string]: string | undefined };
+    user: User;
+  }
+  export interface FastifyInstance {
+    auth: preHandlerHookHandler;
   }
 }

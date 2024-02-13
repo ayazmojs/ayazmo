@@ -1,10 +1,11 @@
-import { AyazmoInstance, AyazmoRouteOptions, PluginSettings } from '@ayazmo/types';
+import { AyazmoRouteOptions, PluginSettings } from '@ayazmo/types';
+import { FastifyInstance } from 'fastify';
 import fs from 'node:fs';
 import { AwilixContainer } from 'awilix';
 import { isValidRoute } from '../utils/route-validator.js';
 
 export async function loadRoutes(
-  app: AyazmoInstance,
+  app: FastifyInstance,
   container: AwilixContainer,
   path: string,
   pluginSettings: PluginSettings): Promise<void> {

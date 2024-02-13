@@ -1,8 +1,7 @@
-import fastify from 'fastify';
-import { FastifyAuthFunction } from '@fastify/auth';
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply, type FastifyBaseLogger } from 'fastify';
+import { FastifyAuthFunction, fastifyAuth } from '@fastify/auth';
 import cors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie';
-import { AyazmoInstance, FastifyRequest, FastifyReply } from '@ayazmo/types';
 import pino from 'pino';
 import path from 'node:path';
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix';
@@ -11,10 +10,10 @@ import mercurius from 'mercurius';
 import mercuriusAuth from 'mercurius-auth';
 import { loadPlugins } from './plugins/plugin-manager.js';
 import { loadCoreServices } from './loaders/core/services.js';
-import { fastifyAuth } from '@fastify/auth'
 import { validateJwtStrategy } from './auth/JwtStrategy.js';
 import { validateApitokenStrategy } from './auth/ApiTokenStrategy.js';
 import anonymousStrategy from './auth/AnonymousStrategy.js';
+import os from 'os';
 
 const SHUTDOWN_TIMEOUT = 5 * 1000; // 5 seconds, for example
 
@@ -28,11 +27,11 @@ const coreLogger = pino({
 const rootDir = process.cwd();
 const configDir = path.join(rootDir, 'ayazmo.config.js');
 export class Server {
-  private fastify: AyazmoInstance;
+  private fastify: FastifyInstance;
 
   constructor() {
     this.fastify = fastify({
-      logger: coreLogger
+      logger: coreLogger as FastifyBaseLogger
     });
     this.fastify
       .decorate('jwtStrategy', async (request: FastifyRequest) => {
@@ -42,7 +41,8 @@ export class Server {
         await validateApitokenStrategy(request);
       })
       .decorate('anonymousStrategy', anonymousStrategy)
-      .register(fastifyAuth)
+      .register(fastifyAuth);
+
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes();
     this.registerGQL();
@@ -165,7 +165,7 @@ export class Server {
       const shutdownCompleted = await Promise.race([serverClosed, timeout]);
 
       if (shutdownCompleted) {
-        this.fastify.log.info('Server has been shut down gracefully');
+        this.fastify.log.info(`Server has been shut down gracefully${os.EOL}`);
         process.exit(0); // Exit with a success code
       } else {
         this.fastify.log.warn('Server shutdown timed out; forcing shutdown');
@@ -188,7 +188,7 @@ export class Server {
 
   private registerCookies() {
     this.fastify.register(fastifyCookie, {
-      hook: 'onRequest'
+      hook: 'preParsing'
     })
   }
 

@@ -20,7 +20,7 @@ export async function mergeFolders(sourcePath: string, destinationPath: string, 
   try {
     // Ensure both source and destination directories exist
     if (!fs.existsSync(sourcePath)) {
-      throw new Error(`source directory does not exist: ${sourcePath}`);
+      return;
     }
     if (!fs.existsSync(destinationPath)) {
       throw new Error(`Destination directory does not exist: ${destinationPath}`);
@@ -55,7 +55,6 @@ async function copyFiles(source: string, destination: string, config: MergeConfi
     if (stats.isDirectory()) {
       if (config.recursive) {
         await fs.ensureDir(destinationPath);
-        console.log(sourcePath, destinationPath);
         await copyFiles(sourcePath, destinationPath, config);
       }
     } else {

@@ -5,8 +5,9 @@ import path from 'node:path';
 import { asValue, AwilixContainer } from 'awilix';
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core';
 import { merge } from '@ayazmo/utils';
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, FastifyInstance, PluginConfig } from '@ayazmo/types'
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
 import { globby } from 'globby';
+import { FastifyInstance } from 'fastify'
 
 import { loadRoutes } from '../loaders/routes.js';
 import { loadEntities } from '../loaders/entities.js';
