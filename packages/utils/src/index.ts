@@ -1,4 +1,4 @@
-export { merge } from 'lodash-es'
+export { merge } from 'lodash-es';
 export { default as isDefaultExport } from './is-default-export.js'
 export { default as determinePackageManager } from './determine-package-manager.js'
 export { default as checkCommandExists } from './check-command-exists.js'
@@ -13,3 +13,4 @@ export { default as AyazmoMigrationGenerator } from './migration-generator.js';
 export { default as AyazmoError } from './ayazmo-error.js';
 export { mergeFolders } from './merge-folders.js';
 export { default as getRegisteredPlugins } from './get-registered-plugins.js';
+export * from './merge-env-files.js';

@@ -9,23 +9,14 @@
   "files": [
     "dist"
   ],
-  "devDependencies": {
-    "@types/lodash-es": "^4.17.12",
-    "rimraf": "^5.0.5",
-    "vitest": "^1.1.0"
-  },
   "scripts": {
     "build": "rimraf dist && tsc --build",
-    "watch": "tsc --build --watch",
-    "test": "vitest",
-    "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage"
+    "watch": "tsc --build --watch"
   },
   "dependencies": {
     "@ayazmo/types": "^0.1.0",
     "@fastify/error": "^3.4.1",
     "@types/fs-extra": "^11.0.4",
-    "fs-extra": "^11.2.0",
-    "lodash-es": "^4.17.21"
+    "fs-extra": "^11.2.0"
   }
 }

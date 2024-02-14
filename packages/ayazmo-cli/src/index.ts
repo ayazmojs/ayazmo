@@ -12,7 +12,7 @@ import { validateAyazmoProject } from "./utils/validate-ayazmo-project.js";
 const version = getAyazmoVersion();
 
 program
-  .name("ayazmo-cli")
+  .name("ayazmo")
   .description("CLI to manage Ayazmo projects")
   .version(`Ayazmo CLI v${version}`);
 
@@ -40,10 +40,7 @@ program
 program
   .command('plugin:create')
   .description('Create a new Ayazmo plugin')
-  .action(() => {
-    validateAyazmoProject();
-    createPlugin()
-  });
+  .action(createPlugin);
 
 program
   .command('help')
