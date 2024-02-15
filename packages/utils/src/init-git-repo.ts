@@ -1,4 +1,4 @@
-import execa from 'execa';
+import { execa } from 'execa';
 
 async function tryGitInit(directory: string, command: string): Promise<boolean> {
   try {

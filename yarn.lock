@@ -1101,6 +1101,14 @@ awilix-manager@^4.0.0:
   dependencies:
     awilix "^9.0.0"
 
+awilix@^10.0.1:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/awilix/-/awilix-10.0.1.tgz#873eabb2216b4bce085f4dbd4554c88e0fc57626"
+  integrity sha512-+ylXK26rx4BVfzAB9AXQE+k/nomshpW8ISR+vZN2QecMiCoaT8km4DaIO0nazYSCX6nZCHYOFnoeCa5cE13NEA==
+  dependencies:
+    camel-case "^4.1.2"
+    fast-glob "^3.3.2"
+
 awilix@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/awilix/-/awilix-9.0.0.tgz#965cad9e3ed210ba2d84165c40185cbe3dd4f041"
@@ -1762,7 +1770,7 @@ dotenv@16.4.3:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.3.tgz#481235ec516c4e47d2612a478482ee36607f70c1"
   integrity sha512-II98GFrje5psQTSve0E7bnwMFybNLqT8Vu8JIFWRjsE3khyNUm/loZupuy5DVzG2IXf/ysxvrixYOQnM6mjD3A==
 
-dotenv@^16.3.1:
+dotenv@^16.3.1, dotenv@^16.4.4:
   version "16.4.4"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.4.tgz#a26e7bb95ebd36272ebb56edb80b826aecf224c1"
   integrity sha512-XvPXc8XAQThSjAbY6cQ/9PcBXmFoWuw1sQ3b8HqUCR6ziGXjkTi//kB9SWa2UwqlgdAIuRqAa/9hVljzPehbYg==
@@ -2024,7 +2032,7 @@ fastify-plugin@^4.0.0, fastify-plugin@^4.2.0, fastify-plugin@^4.5.1:
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.5.1.tgz#44dc6a3cc2cce0988bc09e13f160120bbd91dbee"
   integrity sha512-stRHYGeuqpEZTL1Ef0Ovr2ltazUT9g844X5z/zEBFLG8RYlpDiOCIG+ATvYEp+/zmc7sN29mcIMp8gvYplYPIQ==
 
-fastify@^4.25.1:
+fastify@^4.25.1, fastify@^4.26.1:
   version "4.26.1"
   resolved "https://registry.yarnpkg.com/fastify/-/fastify-4.26.1.tgz#91b11565d2533b7e83d267ad8998c39d263e0279"
   integrity sha512-tznA/G55dsxzM5XChBfcvVSloG2ejeeotfPPJSFaWmHyCDVGMpvf3nRNbsCb/JTBF9RmQFBfuujWt3Nphjesng==

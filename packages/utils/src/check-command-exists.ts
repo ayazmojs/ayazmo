@@ -1,4 +1,4 @@
-import execa from 'execa';
+import { execa } from 'execa';
 
 export default async function checkCommandExists(command: string): Promise<boolean> {
   try {
