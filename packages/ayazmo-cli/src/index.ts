@@ -8,8 +8,10 @@ import { createPlugin } from './utils/create-plugin.js';
 import { getAyazmoVersion } from "./utils/ayazmo-cli-info.js";
 import { runMigrations } from "./utils/run-migrations.js";
 import { validateAyazmoProject } from "./utils/validate-ayazmo-project.js";
+import printAyazmo from "./utils/print-ayazmo.js";
 
 const version = getAyazmoVersion();
+printAyazmo()
 
 program
   .name("ayazmo")
@@ -29,7 +31,7 @@ program
     createMigration()
   });
 
-  program
+program
   .command('migration:up')
   .description('Run all migrations')
   .action(() => {
@@ -41,13 +43,6 @@ program
   .command('plugin:create')
   .description('Create a new Ayazmo plugin')
   .action(createPlugin);
-
-program
-  .command('help')
-  .description('List all command options')
-  .action(() => {
-    program.outputHelp();
-  });
 
 
 program.parse(process.argv);

@@ -14,6 +14,7 @@
     "commander": "^11.1.0",
     "dotenv": "^16.3.1",
     "execa": "^8.0.1",
+    "figlet": "^1.7.0",
     "figures": "^6.0.1",
     "inquirer": "^9.2.12",
     "ora": "^8.0.1",
@@ -23,6 +24,7 @@
     "ayazmo": "./dist/index.js"
   },
   "devDependencies": {
+    "@types/figlet": "^1.5.8",
     "@types/inquirer": "^9.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
