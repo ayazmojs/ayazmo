@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { determinePackageManager, runInstall, initializeGitRepo, APP_TEMPATE_REPO } from '@ayazmo/utils';
 import { cloneRepository } from './download-from-github.js';
 import { askUserForPackageManager, askUserWhereToCreateApp, askUserToCreateGitRepo } from './prompts.js';
@@ -30,29 +31,38 @@ export async function createApplication() {
     // Initialize Git repository
     const { gitInit } = await askUserToCreateGitRepo();
 
-    const appDirectory = path.resolve(process.cwd(), directory);
+    const appInstallationPath = path.resolve(process.cwd(), directory);
+    const installationPathExists = fs.existsSync(appInstallationPath);
 
-    // Create directory if it doesn't exist
-    if (directory !== '.' && !fs.existsSync(appDirectory)) {
-      fs.mkdirSync(appDirectory, { recursive: true });
+    if (installationPathExists) {
+      const files = await readdir(appInstallationPath);
+
+      if (files.length > 0) {
+        throw new Error(`${appInstallationPath} already exists and is not empty!`)
+      }
     }
 
-    CliLogger.info(`Creating a new Ayazmo application in ${appDirectory}...`);
+    // Create directory if it doesn't exist
+    if (directory !== '.' && !installationPathExists) {
+      fs.mkdirSync(appInstallationPath, { recursive: true });
+    }
+
+    CliLogger.info(`Creating a new Ayazmo application in ${appInstallationPath}...`);
 
 
     // Download and extract the template
-    await cloneRepository(APP_TEMPATE_REPO, appDirectory);
+    await cloneRepository(APP_TEMPATE_REPO, appInstallationPath);
     CliLogger.success('Application files created.');
 
-    await runInstall(manager, appDirectory);
+    await runInstall(manager, appInstallationPath);
     CliLogger.success('Dependencies installed.');
 
     if (gitInit) {
-      await initializeGitRepo(appDirectory);
+      await initializeGitRepo(appInstallationPath);
       CliLogger.success('Initialized a new Git repository.');
     }
 
-    CliLogger.info(`Ayazmo application successfully created in ${appDirectory}`);
+    CliLogger.info(`Ayazmo application successfully created in ${appInstallationPath}`);
   } catch (error) {
     CliLogger.error(error);
     process.exit(1);
