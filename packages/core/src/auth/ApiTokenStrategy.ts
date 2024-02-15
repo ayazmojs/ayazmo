@@ -29,7 +29,6 @@ export class ApiTokenStrategy implements IAuthStrategy {
 }
 
 export async function validateApitokenStrategy(request: FastifyRequest) {
-  console.log('------validateApitokenStrategy-------')
   const jwtStrategy = new ApiTokenStrategy();
   await jwtStrategy.authenticate(request);
 }
