@@ -1,5 +1,5 @@
 {
-  "name": "ayazmo",
+  "name": "@ayazmo/ayazmo-cli",
   "version": "0.1.1",
   "description": "Ayazmo CLI to streamline the developers experience. Scaffold a new API, manage migrations and more",
   "exports": "./dist/index.js",
@@ -20,7 +20,7 @@
     "tiged": "^2.12.5"
   },
   "bin": {
-    "ayazmo-cli": "./dist/index.js"
+    "ayazmo": "./dist/index.js"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
