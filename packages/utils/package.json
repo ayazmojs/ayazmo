@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/utils",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ayazmo helper functions used in core and modules",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -15,7 +15,7 @@
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build"
   },
   "dependencies": {
-    "@ayazmo/types": "^0.1.1",
+    "@ayazmo/types": "^0.1.2",
     "@fastify/error": "^3.4.1",
     "@types/fs-extra": "^11.0.4",
     "fs-extra": "^11.2.0"
