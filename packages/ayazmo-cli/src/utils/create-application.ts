@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { readdir } from 'node:fs/promises';
-import { determinePackageManager, runInstall, initializeGitRepo, APP_TEMPATE_REPO } from '@ayazmo/utils';
+import { determinePackageManager, runInstall, initializeGitRepo, APP_TEMPLATE_REPO_NAME } from '@ayazmo/utils';
 import { cloneRepository } from './download-from-github.js';
 import { askUserForPackageManager, askUserWhereToCreateApp, askUserToCreateGitRepo } from './prompts.js';
 import CliLogger from './cli-logger.js';
@@ -51,7 +51,7 @@ export async function createApplication() {
 
 
     // Download and extract the template
-    await cloneRepository(APP_TEMPATE_REPO, appInstallationPath);
+    await cloneRepository(APP_TEMPLATE_REPO_NAME, appInstallationPath);
     CliLogger.success('Application files created.');
 
     await runInstall(manager, appInstallationPath);
