@@ -26,10 +26,10 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "turbo run build --no-daemon",
     "turbo-build": "turbo run build --no-daemon",
     "test": "turbo run test",
-    "start": "node ./packages/core/dist/index.js"
+    "publish": "lerna run turbo-build && lerna publish"
   },
   "engines": {
     "node": ">=18"
