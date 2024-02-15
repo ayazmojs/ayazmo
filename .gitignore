@@ -22,3 +22,5 @@ www/**/.yarn/*
 build/**
 **/dist
 **/stats
+
+lerna-debug.log

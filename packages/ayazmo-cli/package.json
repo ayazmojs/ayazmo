@@ -28,13 +28,14 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "build": "rimraf dist && tsc --build"
+    "build": "rimraf dist && tsc --build",
+    "prepublishOnly": "cross-env NODE_ENV=production tsc --build"
   },
   "files": [
     "dist",
     "index.js"
   ],
-  "engines": {
-    "node": ">=18"
+  "publishConfig": {
+    "access": "public"
   }
 }

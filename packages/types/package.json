@@ -12,7 +12,10 @@
   "devDependencies": {},
   "scripts": {
     "build": "rimraf dist && tsc --build",
-    "watch": "tsc --build --watch"
+    "watch": "tsc --build --watch",
+    "prepublishOnly": "cross-env NODE_ENV=production tsc --build"
   },
-  "dependencies": {}
+  "publishConfig": {
+    "access": "public"
+  }
 }

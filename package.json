@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Plugin-driven API framework designed for building modular, scalable, and performance-optimized web services.",
   "main": "index.js",
+  "repository": "git@github.com:ayazmojs/ayazmo.git",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
   "private": true,
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.10.5",
+    "lerna": "^8.1.2",
     "rimraf": "^5.0.5",
     "turbo": "^1.11.2",
     "typescript": "^5.3.3"
@@ -28,5 +30,8 @@
     "turbo-build": "turbo run build --no-daemon",
     "test": "turbo run test",
     "start": "node ./packages/core/dist/index.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
