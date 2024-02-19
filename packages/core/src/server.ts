@@ -10,8 +10,6 @@ import mercurius from 'mercurius';
 import mercuriusAuth from 'mercurius-auth';
 import { loadPlugins } from './plugins/plugin-manager.js';
 import { loadCoreServices } from './loaders/core/services.js';
-import { validateJwtStrategy } from './auth/JwtStrategy.js';
-import { validateApitokenStrategy } from './auth/ApiTokenStrategy.js';
 import anonymousStrategy from './auth/AnonymousStrategy.js';
 import os from 'os';
 
@@ -34,12 +32,6 @@ export class Server {
       logger: coreLogger as FastifyBaseLogger
     });
     this.fastify
-      .decorate('jwtStrategy', async (request: FastifyRequest) => {
-        await validateJwtStrategy(request);
-      })
-      .decorate('apiTokenStrategy', async (request: FastifyRequest) => {
-        await validateApitokenStrategy(request);
-      })
       .decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth);
 

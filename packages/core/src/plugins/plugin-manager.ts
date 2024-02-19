@@ -154,7 +154,7 @@ export const loadPlugins = async (app: FastifyInstance, container: AwilixContain
         if (!bootstrap.default || typeof bootstrap.default !== 'function') {
           throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`);
         }
-        await bootstrap.default(app, container);
+        await bootstrap.default(app, container, registeredPlugin);
       }
     }
   }

@@ -7,12 +7,13 @@ export interface PluginRoutes {
   };
 }
 
-export type PluginSettings = {
+export interface PluginSettings {
   private?: boolean;
-  routes?: PluginRoutes
+  routes?: PluginRoutes;
+  [key: string]: any;
 }
 
-export type PluginConfig = {
+export interface PluginConfig {
   name: string;
   settings: PluginSettings;
 }
