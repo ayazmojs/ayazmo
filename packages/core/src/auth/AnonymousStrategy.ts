@@ -1,3 +1,3 @@
-export default function AnonymousStrategy(request, reply, done) {
-  done();
+export default function AnonymousStrategy (request, reply, done): void {
+  done()
 }
