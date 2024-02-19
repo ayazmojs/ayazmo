@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Ayazmo core functionality",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -10,8 +10,8 @@
     "dist"
   ],
   "dependencies": {
-    "@ayazmo/types": "^0.1.4",
-    "@ayazmo/utils": "^0.1.6",
+    "@ayazmo/types": "^0.1.7",
+    "@ayazmo/utils": "^0.1.7",
     "@fastify/auth": "^4.4.0",
     "@fastify/awilix": "^4.0.0",
     "@fastify/cookie": "^9.3.1",
