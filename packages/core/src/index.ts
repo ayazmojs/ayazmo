@@ -7,4 +7,4 @@ export * from './loaders/graphql.js'
 export * from './loaders/config.js'
 export * from './loaders/entities.js'
 export { FastifyInstance, FastifyRequest, preHandlerHookHandler, FastifyReply } from 'fastify'
-export { AwilixContainer } from 'awilix';
+export { AwilixContainer } from 'awilix'
