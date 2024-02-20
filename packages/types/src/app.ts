@@ -1,5 +1,6 @@
 
 import { Options } from "@mikro-orm/core";
+import { FastifyCorsOptions } from "@ayazmo/core";
 
 export interface PluginRoutes {
   [key: string]: {
@@ -18,14 +19,15 @@ export interface PluginConfig {
   settings: PluginSettings;
 }
 
-export type AyazmoAppConfig = {
-  eventEmitterType: 'memory' | 'redis'
+export interface AyazmoAppConfig {
+  eventEmitterType: 'memory' | 'redis',
+  cors: FastifyCorsOptions,
 }
 
-export type AppConfig = {
+export interface AppConfig {
   plugins: PluginConfig[];
   database: Options & {
-    type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite' | 'mongodb';
+    type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite';
   };
   app: AyazmoAppConfig;
 }

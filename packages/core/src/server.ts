@@ -12,6 +12,7 @@ import { loadPlugins } from './plugins/plugin-manager.js'
 import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import os from 'os'
+import { AppConfig } from '@ayazmo/types'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
@@ -169,15 +170,12 @@ export class Server {
     }
   }
 
-  private async registerCORS () {
-    await this.fastify.register(cors, {
-      origin: 'http://localhost:4000',
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookies'],
-      credentials: true
-    })
+  private async enableCORS () {
+    const config = diContainer.resolve('config') as AppConfig;
+    await this.fastify.register(cors, config.app.cors)
   }
 
-  private registerCookies () {
+  private enableCookies () {
     this.fastify.register(fastifyCookie, {
       hook: 'preParsing'
     })
@@ -203,11 +201,11 @@ export class Server {
   }
 
   async start (port: number): Promise<void> {
-    this.registerCookies()
+    this.enableCookies()
     // load plugins
     await this.loadPlugins()
 
-    await this.registerCORS()
+    await this.enableCORS()
 
     try {
       await this.fastify.listen({ port })
