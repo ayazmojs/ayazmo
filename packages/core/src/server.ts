@@ -28,7 +28,7 @@ const configDir = path.join(rootDir, 'ayazmo.config.js')
 export class Server {
   private readonly fastify: FastifyInstance
 
-  constructor () {
+  constructor() {
     this.fastify = fastify({
       logger: coreLogger as FastifyBaseLogger
     })
@@ -45,7 +45,7 @@ export class Server {
   }
 
   // Method to set the default error handler
-  private setDefaultErrorHandler () {
+  private setDefaultErrorHandler() {
     this.fastify.setErrorHandler((error, request, reply) => {
       // Default error handling logic
       if (error.validation != null) {
@@ -64,11 +64,11 @@ export class Server {
   }
 
   // Public method to allow custom error handler to be set
-  public setErrorHandler (customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
+  public setErrorHandler(customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
     this.fastify.setErrorHandler(customErrorHandler)
   }
 
-  public registerGQL () {
+  public registerGQL() {
     this.fastify.register(mercurius, {
       schema: `
         directive @auth(strategies: [String]) on OBJECT | FIELD_DEFINITION
@@ -91,7 +91,7 @@ export class Server {
     })
   }
 
-  public registerAuthDirective () {
+  public registerAuthDirective() {
     this.fastify.register(mercuriusAuth, {
       applyPolicy: async (authDirectiveAST, parent, args, context, info) => {
         const strategies: string[] = authDirectiveAST.arguments[0].value.values.map(value => value.value)
@@ -128,14 +128,14 @@ export class Server {
     })
   }
 
-  private initializeRoutes (): void {
+  private initializeRoutes(): void {
     // Define core routes here
     this.fastify.get('/health', async (request, reply) => {
       reply.code(200).send({ status: 'ok' })
     })
   }
 
-  private async shutdownServer () {
+  private async shutdownServer() {
     const shutdownInitiated = Date.now()
 
     try {
@@ -170,24 +170,24 @@ export class Server {
     }
   }
 
-  private async enableCORS () {
+  private async enableCORS() {
     const config = diContainer.resolve('config') as AppConfig;
     await this.fastify.register(cors, config.app.cors)
   }
 
-  private enableCookies () {
+  private enableCookies() {
     this.fastify.register(fastifyCookie, {
       hook: 'preParsing'
     })
   }
 
-  private setupGracefulShutdown () {
+  private setupGracefulShutdown() {
     // Listen for termination signals
     process.on('SIGINT', async () => await this.shutdownServer())
     process.on('SIGTERM', async () => await this.shutdownServer())
   }
 
-  public async loadPlugins (): Promise<void> {
+  public async loadPlugins(): Promise<void> {
     // load config
     await loadConfig(configDir, this.fastify, diContainer)
 
@@ -200,7 +200,7 @@ export class Server {
     this.registerAuthDirective()
   }
 
-  async start (port: number): Promise<void> {
+  async start(port: number): Promise<void> {
     this.enableCookies()
     // load plugins
     await this.loadPlugins()

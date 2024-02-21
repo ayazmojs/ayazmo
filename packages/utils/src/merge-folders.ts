@@ -29,7 +29,6 @@ export async function mergeFolders(sourcePath: string, destinationPath: string, 
     // Copy files and directories from source to destination based on config
     await copyFiles(sourcePath, destinationPath, config);
 
-    console.log('Folder structure merged successfully!');
   } catch (error: any) {
     throw new Error(`Error merging folders: ${error.message}`);
   }
