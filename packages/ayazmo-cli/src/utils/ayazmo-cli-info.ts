@@ -1,26 +1,46 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'url';
 
-export async function getAyazmoVersion() {
+export function getAyazmoVersion(): string {
   try {
-    // Path for local development
-    let packageJsonPath = join(process.cwd(), 'node_modules', 'ayazmo', 'package.json');
-
-    // Attempt to dynamically import the package to see if it's accessible
     try {
-      // @ts-ignore
-      const modulePath = await import('ayazmo/package.json', {
-        assert: { type: 'json' }
-      });
-      packageJsonPath = modulePath.default;
-    } catch (error) {
-      // If the import fails, it might be installed globally, handle accordingly
-      // This is a simplistic approach and might not work in all environments
-    }
+      // local installation path
+      const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'node_modules', 'ayazmo', 'package.json'), 'utf8'));
+      return packageJson.version;
+    } catch (error) { }
 
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
-    return packageJson.version;
-  } catch (error) {
-    // ignore the error
+    try {
+      const packageVersion = findAndParsePackageJsonVersion();
+      return packageVersion ?? ''
+    } catch (error) { }
+
+  } catch (error) { }
+
+  return ''
+}
+
+/**
+ * Finds the package.json file starting from the given directory and moving up the directory tree.
+ * If found, parses the file and returns the version field.
+ * @param {number} maxLevelsUp The maximum number of directory levels to traverse upwards.
+ * @returns {string|null} The version string from the found package.json or null if not found or if no version is specified.
+ */
+function findAndParsePackageJsonVersion(maxLevelsUp = 4): string | null {
+  let currentDir = dirname(fileURLToPath(import.meta.url));
+  const root = dirname(currentDir);
+  let levelsTraversed = 0;
+
+  while (currentDir !== root && levelsTraversed < maxLevelsUp) {
+    const possiblePath = join(currentDir, 'package.json');
+    if (existsSync(possiblePath)) {
+      // Read and parse package.json
+      const packageJson = JSON.parse(readFileSync(possiblePath, 'utf8'));
+      return packageJson.version || null;
+    }
+    currentDir = dirname(currentDir);
+    levelsTraversed++;
   }
+
+  return null; // package.json not found or no version found within the limit
 }

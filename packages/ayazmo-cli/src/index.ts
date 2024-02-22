@@ -10,7 +10,7 @@ import { runMigrations } from "./utils/run-migrations.js";
 import { validateAyazmoProject } from "./utils/validate-ayazmo-project.js";
 import printAyazmo from "./utils/print-ayazmo.js";
 
-const version = getAyazmoVersion();
+const version = getAyazmoVersion()
 printAyazmo()
 
 program

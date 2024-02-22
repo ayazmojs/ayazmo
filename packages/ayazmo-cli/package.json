@@ -31,7 +31,9 @@
   },
   "scripts": {
     "build": "rimraf dist && tsc --build",
-    "prepublishOnly": "cross-env NODE_ENV=production tsc --build"
+    "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
+    "lint": "ts-standard src/*",
+    "lint-fix": "ts-standard --fix src/*"
   },
   "files": [
     "dist",
