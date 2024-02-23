@@ -1,6 +1,7 @@
 
 import { Options } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@ayazmo/core";
+import { AwilixContainer } from 'awilix';
 
 export interface PluginRoutes {
   [key: string]: {
@@ -51,4 +52,10 @@ export interface IEventEmitter {
   publish(event: string, data: any): Promise<void>;
   subscribe(event: string, handler: (...args: any[]) => void): void;
   unsubscribe(event: string, handler: (...args: any[]) => void): void;
+}
+
+export type AyazmoContainer = AwilixContainer & {
+  eventService: IEventEmitter
+  config: AppConfig
+  resolve<T = unknown>(key: string): T
 }

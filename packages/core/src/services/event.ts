@@ -1,5 +1,4 @@
-import { AwilixContainer } from 'awilix'
-import { AppConfig } from '@ayazmo/types'
+import { AppConfig, AyazmoContainer } from '@ayazmo/types'
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js'
 import { InMemoryEventEmitter } from '../emitter/InMemoryEventEmitter.js'
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js'
@@ -9,7 +8,7 @@ class EventService extends AyazmoCoreService {
     listSubscribers: (event: string) => any[]
   }
 
-  constructor (container: AwilixContainer, config: AppConfig) {
+  constructor (container: AyazmoContainer, config: AppConfig) {
     super(container, config)
     const configModule = this.getGlobalConfig()
     switch (configModule?.app?.eventEmitterType) {

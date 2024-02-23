@@ -8,7 +8,7 @@ import {
 } from './prompts.js'
 import CliLogger from './cli-logger.js'
 
-export async function createMigration(): Promise<void> {
+export async function createMigration (): Promise<void> {
   let orm: any
   let migrationPath: string
   let availablePlugins: string[]

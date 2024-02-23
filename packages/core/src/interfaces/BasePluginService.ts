@@ -1,12 +1,11 @@
-import { AwilixContainer } from 'awilix'
-import { PluginConfig, EntityManager, EntityRepository } from '@ayazmo/types'
+import { PluginConfig, EntityManager, EntityRepository, AyazmoContainer } from '@ayazmo/types'
 
 export abstract class BasePluginService {
   public em: EntityManager
-  public container: AwilixContainer
+  public container: AyazmoContainer
   public pluginConfig: PluginConfig
 
-  constructor (container: AwilixContainer, pluginConfig: PluginConfig) {
+  constructor (container: AyazmoContainer, pluginConfig: PluginConfig) {
     if (new.target === BasePluginService) {
       throw new Error('BaseService is an abstract class and cannot be instantiated directly.')
     }

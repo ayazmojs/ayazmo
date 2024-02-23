@@ -1,6 +1,5 @@
-import { RouteOptions } from 'fastify'
+import { AyazmoRouteOptions } from '@ayazmo/types'
 
-export function isValidRoute (route: RouteOptions): boolean {
-  // Add any necessary validation logic for a route
+export function isValidRoute (route: AyazmoRouteOptions): boolean {
   return 'method' in route && 'url' in route && typeof route.handler === 'function'
 }

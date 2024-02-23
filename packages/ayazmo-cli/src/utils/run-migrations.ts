@@ -19,8 +19,8 @@ export async function runMigrations (): Promise<void> {
 
     orm = await initDatabase({
       ...{
-        entities: ['./src/plugins/**/dist/entities/*.js'],
-        entitiesTs: ['./src/plugins/**/src/entities/*.ts'],
+        entities: ['./src/plugins/*/dist/entities/*.js'],
+        entitiesTs: ['./src/plugins/*/src/entities/*.ts'],
         baseDir: process.cwd(),
         migrations: {
           snapshot: false,

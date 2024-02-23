@@ -9,11 +9,13 @@ export type AyazmoInstance = FastifyInstance<
   any
 >;
 
-export type AyazmoRouteOptions = RouteOptions;
+export interface AyazmoRouteOptions extends RouteOptions {
+  
+}
 
 interface User {
   id: string;
-  [key: string]: any; // This allows for any number of optional properties with any type
+  [key: string]: any;
 }
 
 declare module 'fastify' {
