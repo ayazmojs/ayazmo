@@ -88,7 +88,7 @@ export const discoverPrivateMigrationPaths = (plugins: PluginConfig[]): string[]
   return migrationPaths
 }
 
-export async function discoverMigrationFiles (migrationPaths: string[]): Promise<MigrationObject[]> {
+export async function discoverMigrationFiles(migrationPaths: string[]): Promise<MigrationObject[]> {
   const migrationFiles = await globby(migrationPaths.map(path => `${path}/*.js`))
 
   return await Promise.all(
@@ -198,11 +198,25 @@ export const loadPlugins = async (app: FastifyInstance, container: AwilixContain
       dbService: asValue(db)
     })
   } catch (error) {
-    app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`)
+    if (error instanceof AggregateError) {
+      for (const individualError of error.errors) {
+        if (individualError.code === 'ECONNREFUSED') {
+          app.log.error(`- Database connection refused: ${individualError.message}`);
+        } else {
+          app.log.error(`- Error while initializing database: ${individualError.message}`);
+        }
+      }
+    } else if (error.code === 'ENOTFOUND') {
+      app.log.error(`- Database host not found: ${error.message}. Please check your database host settings.`);
+    } else {
+      app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`);
+    }
+
+    process.exit(1)
   }
 }
 
-export async function listFilesInDirectory (directory: string): Promise<string[]> {
+export async function listFilesInDirectory(directory: string): Promise<string[]> {
   // // Check if the directory exists
   if (!fs.existsSync(directory)) {
     return []
