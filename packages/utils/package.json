@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/utils",
-  "version": "0.1.11",
+  "version": "0.1.13",
   "description": "Ayazmo helper functions used in core and modules",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
