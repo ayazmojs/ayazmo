@@ -172,7 +172,9 @@ export class Server {
 
   private async enableCORS() {
     const config = diContainer.resolve('config') as AppConfig;
-    await this.fastify.register(cors, config.app.cors)
+    if (config?.app?.cors) {
+      await this.fastify.register(cors, config.app.cors)
+    }
   }
 
   private enableCookies() {
