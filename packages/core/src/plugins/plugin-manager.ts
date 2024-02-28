@@ -43,7 +43,7 @@ export const getPluginRoot = (pluginName: string, settings: any): string => {
 }
 
 export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
-  const nodeModulesPath: string = path.join(process.cwd(), 'node_modules', 'dist')
+  const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
   // check if the plugin settings private is true and load the plugin paths from src
   if (settings?.private) {
     return constructPaths(pluginName, pluginsRoot)
