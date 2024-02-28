@@ -1,25 +1,46 @@
 import { initDatabase, importGlobalConfig } from '@ayazmo/utils'
 import { Migrator, MigrationObject } from '@ayazmo/types'
-import { discoverPrivateMigrationPaths, discoverMigrationFiles, discoverPublicMigrationPaths } from '@ayazmo/core'
+import {
+  discoverPrivateMigrationPaths,
+  discoverMigrationFiles,
+  discoverPublicPaths
+} from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
 
-export async function runMigrations (): Promise<void> {
+export async function runMigrations(): Promise<void> {
   let orm: any
   CliLogger.info('Checking environment...')
 
   try {
     const globalConfig = await importGlobalConfig()
+
+    if (!globalConfig.plugins.length) {
+      throw new Error('No plugins enabled!')
+    }
+
     const privateMigrationPaths: string[] = discoverPrivateMigrationPaths(globalConfig.plugins)
-    const publicMigrationPaths: string[] = discoverPublicMigrationPaths(globalConfig.plugins)
-    const privateMigrationClasses: MigrationObject[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicMigrationPaths])
+    const publicPaths = discoverPublicPaths(globalConfig.plugins)
+    const privateMigrationClasses: MigrationObject[] = await discoverMigrationFiles([...privateMigrationPaths, ...publicPaths.migrations])
 
     if (privateMigrationClasses.length === 0) {
       throw new Error('No migrations found. Did you build your application?')
     }
 
+    const entities = ['./src/plugins/*/dist/entities/*.js']
+
+    if (publicPaths.entities.length) {
+      entities.push(...publicPaths.entities.map(entityPath => `${entityPath}/*.js`));
+    }
+
+    if (!entities.length) {
+      throw new Error("No database entities found.")
+    }
+
+    console.log(entities)
+
     orm = await initDatabase({
       ...{
-        entities: ['./src/plugins/*/dist/entities/*.js'],
+        entities: entities,
         entitiesTs: ['./src/plugins/*/src/entities/*.ts'],
         baseDir: process.cwd(),
         migrations: {

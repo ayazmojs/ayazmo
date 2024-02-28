@@ -52,19 +52,24 @@ export const getPluginPaths = (pluginName: string, settings: any): PluginPaths =
   return constructPaths(pluginName, nodeModulesPath)
 }
 
-export const discoverPublicMigrationPaths = (plugins: PluginConfig[]): string[] => {
-  const migrationPaths: string[] = []
+export const discoverPublicPaths = (plugins: PluginConfig[]): { migrations: string[], entities: string[] } => {
+  const paths = {
+    migrations: [] as string[],
+    entities: [] as string[]
+  };
   const publicPlugins = plugins.filter(plugin => plugin.settings?.private !== true)
   for (const plugin of publicPlugins) {
     const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings)
-    if (!fs.existsSync(pluginPaths.migrations)) {
-      continue
+    if (fs.existsSync(pluginPaths.migrations)) {
+      paths.migrations.push(pluginPaths.migrations);
     }
-
-    migrationPaths.push(pluginPaths.migrations)
+    
+    if (fs.existsSync(pluginPaths.entities)) {
+      paths.entities.push(pluginPaths.entities);
+    }
   }
 
-  return migrationPaths
+  return paths
 }
 
 /**
