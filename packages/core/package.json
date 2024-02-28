@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/core",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Ayazmo core functionality",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
