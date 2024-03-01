@@ -36,8 +36,6 @@ export async function runMigrations(): Promise<void> {
       throw new Error("No database entities found.")
     }
 
-    console.log(entities)
-
     orm = await initDatabase({
       ...{
         entities: entities,

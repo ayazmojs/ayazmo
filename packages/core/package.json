@@ -34,13 +34,18 @@
     "watch": "tsc --build --watch",
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
     "lint": "ts-standard src/*",
-    "lint-fix": "ts-standard --fix src/*"
+    "lint-fix": "ts-standard --fix src/*",
+    "test": "node --import tsx --test __tests__"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.7"
+    "@types/uuid": "^9.0.7",
+    "tsx": "^4.7.1"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">19"
   },
   "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7"
 }

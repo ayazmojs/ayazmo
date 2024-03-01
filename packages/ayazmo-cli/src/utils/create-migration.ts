@@ -1,6 +1,7 @@
 import path from 'node:path'
-import { importGlobalConfig, listPlugins, initDatabase, PLUGINS_ROOT } from '@ayazmo/utils'
-import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt, Migrator } from '@ayazmo/types'
+import { importGlobalConfig, initDatabase } from '@ayazmo/utils'
+import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt, Migrator, PluginConfig } from '@ayazmo/types'
+import { getPluginRoot } from '@ayazmo/core'
 import {
   askUserForTypeOfMigration,
   askUserForMigrationName,
@@ -8,17 +9,17 @@ import {
 } from './prompts.js'
 import CliLogger from './cli-logger.js'
 
-export async function createMigration (): Promise<void> {
+export async function createMigration(): Promise<void> {
   let orm: any
   let migrationPath: string
+  let entitiesPath: string[] = ['./src/plugins/*/dist/entities/*.js']
   let availablePlugins: string[]
-  let globalConfig: any
   let selectPluginPrompt: IPluginPrompt = { selectedPlugin: '' }
   let migrationTypePrompt: ITypePrompt = { type: 'entities' }
   let migrationNamePrompt: INamePrompt = { filename: '' }
   const cwd = process.cwd()
   const ormConfig: IBaseOrmConfig = {
-    entities: ['./src/plugins/*/dist/entities/*.js'],
+    entities: entitiesPath,
     entitiesTs: ['./src/plugins/*/src/entities'],
     baseDir: cwd,
     migrations: {
@@ -29,9 +30,7 @@ export async function createMigration (): Promise<void> {
   }
 
   try {
-    await CliLogger.task('Checking environment...', async () => {
-      globalConfig = await importGlobalConfig()
-    })
+    const globalConfig = await importGlobalConfig()
     migrationTypePrompt = await askUserForTypeOfMigration()
 
     if (migrationTypePrompt.type === 'empty') {
@@ -44,23 +43,38 @@ export async function createMigration (): Promise<void> {
       migrationNamePrompt = await askUserForMigrationName()
     }
 
-    availablePlugins = listPlugins(PLUGINS_ROOT)
+    availablePlugins = globalConfig.plugins.map(plugin => plugin.name)
 
     if (availablePlugins.length === 1) {
-      migrationPath = path.join(PLUGINS_ROOT, availablePlugins[0], 'src', 'migrations')
+
+      migrationPath = path.join(getPluginRoot(globalConfig.plugins[0].name, globalConfig.plugins[0].settings ?? {}), 'src', 'migrations')
+      entitiesPath = [...entitiesPath, path.join(getPluginRoot(globalConfig.plugins[0].name, globalConfig.plugins[0].settings ?? {}), 'dist', 'entities')]
+
     } else if (availablePlugins.length > 1) {
+
       selectPluginPrompt = await askUserWhichPlugin(availablePlugins)
-      // check the plugin is enabled in the config
       if (!globalConfig.plugins.some((plugin) => plugin.name === selectPluginPrompt.selectedPlugin)) {
         throw new Error(`Plugin ${selectPluginPrompt.selectedPlugin} is not enabled in ayazmo.config.js`)
       }
-      migrationPath = path.join(PLUGINS_ROOT, selectPluginPrompt.selectedPlugin, 'src', 'migrations')
+
+      const pluginConfig: PluginConfig | undefined = globalConfig.plugins.find(p => p.name == selectPluginPrompt.selectedPlugin)
+
+      if (!pluginConfig) {
+        throw new Error(`Plugin ${selectPluginPrompt.selectedPlugin} is not enabled in ayazmo.config.js`)
+      }
+
+      migrationPath = path.join(getPluginRoot(selectPluginPrompt.selectedPlugin, pluginConfig.settings ?? {}), 'src', 'migrations')
+      entitiesPath = [...entitiesPath, path.join(getPluginRoot(selectPluginPrompt.selectedPlugin, pluginConfig.settings ?? {}), 'dist', 'entities')]
     } else {
+
       throw new Error('No plugins available in this project.')
+
     }
 
     ormConfig.migrations.path = migrationPath
+    ormConfig.entities = entitiesPath
 
+    // @ts-ignore
     orm = await initDatabase({
       ...ormConfig,
       ...globalConfig.database
