@@ -12,7 +12,7 @@ import CliLogger from './cli-logger.js'
 export async function createMigration(): Promise<void> {
   let orm: any
   let migrationPath: string
-  let entitiesPath: string[] = ['./src/plugins/*/dist/entities/*.js']
+  let entitiesPath: string[] = []
   let availablePlugins: string[]
   let selectPluginPrompt: IPluginPrompt = { selectedPlugin: '' }
   let migrationTypePrompt: ITypePrompt = { type: 'entities' }
@@ -44,6 +44,7 @@ export async function createMigration(): Promise<void> {
     }
 
     availablePlugins = globalConfig.plugins.map(plugin => plugin.name)
+    const entitiesPaths: string[] = globalConfig.plugins.map(plugin => path.join(getPluginRoot(plugin.name, plugin.settings), 'dist', 'entities'))
 
     if (availablePlugins.length === 1) {
 
@@ -64,7 +65,7 @@ export async function createMigration(): Promise<void> {
       }
 
       migrationPath = path.join(getPluginRoot(selectPluginPrompt.selectedPlugin, pluginConfig.settings ?? {}), 'src', 'migrations')
-      entitiesPath = [...entitiesPath, path.join(getPluginRoot(selectPluginPrompt.selectedPlugin, pluginConfig.settings ?? {}), 'dist', 'entities')]
+      entitiesPath = [...entitiesPath, ...entitiesPaths]
     } else {
 
       throw new Error('No plugins available in this project.')
