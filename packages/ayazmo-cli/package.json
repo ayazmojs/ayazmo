@@ -1,6 +1,6 @@
 {
   "name": "ayazmo",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Ayazmo CLI to streamline the developers experience. Scaffold a new API, manage migrations and more",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
