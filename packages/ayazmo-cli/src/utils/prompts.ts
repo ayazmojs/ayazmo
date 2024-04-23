@@ -130,3 +130,15 @@ export async function askUserToCreateGitRepo (): Promise<{ gitInit: boolean }> {
     }
   ])
 }
+
+// ask user to confirm downgrade of plugin migrations
+export async function askUserToConfirmDowngradeMigrations (): Promise<{ confirm: boolean }> {
+  return await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: 'Are you sure you want to downgrade the plugin migrations?',
+      default: false
+    }
+  ])
+}

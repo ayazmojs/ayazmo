@@ -17,7 +17,7 @@ const CliLogger = {
   success: (msg: string): void => {
     console.log(chalk.green(figures.tick), chalk.green(msg))
   },
-  info: (msg: string): void => {
+  info: (msg: any): void => {
     console.log(chalk.cyan(msg))
   },
   list: async (tasks: Task[]): Promise<void> => {

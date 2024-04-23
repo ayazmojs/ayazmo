@@ -14,4 +14,5 @@ export { default as AyazmoError } from './ayazmo-error.js';
 export { mergeFolders } from './merge-folders.js';
 export { default as getRegisteredPlugins } from './get-registered-plugins.js';
 export * from './merge-env-files.js';
-export * from './string-utils.js'
+export * from './string-utils.js';
+export * from './package-manager-utils.js';

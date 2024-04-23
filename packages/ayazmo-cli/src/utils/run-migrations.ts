@@ -1,4 +1,9 @@
-import { initDatabase, importGlobalConfig } from '@ayazmo/utils'
+import {
+  initDatabase,
+  importGlobalConfig,
+  ENTITIES_TS_PATH,
+  ENTITIES_JS_PATH
+} from '@ayazmo/utils'
 import { Migrator, MigrationObject } from '@ayazmo/types'
 import {
   discoverPrivateMigrationPaths,
@@ -26,7 +31,7 @@ export async function runMigrations(): Promise<void> {
       throw new Error('No migrations found. Did you build your application?')
     }
 
-    const entities = ['./src/plugins/*/dist/entities/*.js']
+    const entities = [ENTITIES_JS_PATH]
 
     if (publicPaths.entities.length) {
       entities.push(...publicPaths.entities.map(entityPath => `${entityPath}/*.js`));
@@ -39,7 +44,7 @@ export async function runMigrations(): Promise<void> {
     orm = await initDatabase({
       ...{
         entities: entities,
-        entitiesTs: ['./src/plugins/*/src/entities/*.ts'],
+        entitiesTs: [ENTITIES_TS_PATH],
         baseDir: process.cwd(),
         migrations: {
           snapshot: false,
