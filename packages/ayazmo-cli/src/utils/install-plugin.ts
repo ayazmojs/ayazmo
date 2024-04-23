@@ -5,7 +5,7 @@ import path from "node:path";
 import { isPluginInstalled, installPackageInMonorepo, GLOBAL_CONFIG_FILE_NAME } from "@ayazmo/utils";
 import { getPluginPaths } from "@ayazmo/core";
 import { addPluginToConfig } from "./code-transform-utils.js";
-import globby from "globby";
+import { globby } from 'globby'
 import { runMigrations } from "./run-migrations.js";
 
 const writeFile = async (path: string, content: string) => {

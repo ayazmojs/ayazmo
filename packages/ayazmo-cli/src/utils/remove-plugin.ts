@@ -11,7 +11,7 @@ import { execa } from 'execa';
 import { PluginConfig } from "@ayazmo/types";
 import { getPluginPaths } from "@ayazmo/core";
 import { getPackageManager } from "@ayazmo/utils";
-import globby from "globby";
+import { globby } from 'globby'
 import { askUserToConfirmDowngradeMigrations } from "./prompts.js";
 import { removePluginFromConfig } from "./code-transform-utils.js";
 import { downMigrations } from "./down-migrations.js";

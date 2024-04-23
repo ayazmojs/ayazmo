@@ -12,6 +12,10 @@
   Ayazmo
 </h1>
 
+<h3 align="center">
+  API platform for busy engineers
+</h3>
+
 <section align="center">
   <a href="https://github.com/medusajs/medusa/blob/develop/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Ayazmo is released under the MIT license." />
@@ -22,3 +26,19 @@
 </section>
 
 ## Getting Started
+
+```
+npx ayazmo app:create
+```
+
+## Creating a plugin
+
+```
+npx ayazmo plugin:create
+```
+
+## Installing a plugin
+
+```
+npx ayazmo add <plugin-name>
+```
