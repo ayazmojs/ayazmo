@@ -1,13 +1,19 @@
 
 import { Options } from "@mikro-orm/core";
-import { FastifyCorsOptions } from "@ayazmo/core";
+import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
 
-export interface PluginRoutes {
+export interface PluginRoutesCustom {
+  enabled?: boolean;
+}
+
+export interface PluginRoutesHooks {
   [key: string]: {
     hooks?: (...args: any[]) => any;
   };
 }
+
+export type PluginRoutes = PluginRoutesCustom & PluginRoutesHooks;
 
 export interface PluginSettings {
   private?: boolean;

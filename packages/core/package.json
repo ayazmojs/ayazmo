@@ -27,7 +27,6 @@
     "mercurius": "^14.0.0",
     "mercurius-auth": "^5.0.0",
     "pino-pretty": "^10.3.0",
-    "tsx": "^4.7.2",
     "uuid": "^9.0.1"
   },
   "scripts": {
@@ -40,7 +39,7 @@
   },
   "devDependencies": {
     "@types/uuid": "^9.0.7",
-    "tsx": "^4.7.1"
+    "tsx": "^4.8.2"
   },
   "publishConfig": {
     "access": "public"

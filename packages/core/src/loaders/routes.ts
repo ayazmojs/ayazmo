@@ -1,10 +1,10 @@
-import { AyazmoRouteOptions, PluginSettings } from '@ayazmo/types'
+import { AyazmoRouteOptions, PluginSettings, PluginRoutes } from '@ayazmo/types'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
 import { AwilixContainer } from 'awilix'
-import { isValidRoute } from '../utils/route-validator.js'
+import { isValidRoute, isRouteEnabled } from '../utils/route-validator.js'
 
-export async function loadRoutes (
+export async function loadRoutes(
   app: FastifyInstance,
   container: AwilixContainer,
   path: string,
@@ -15,6 +15,12 @@ export async function loadRoutes (
   }
 
   const routeConfig = pluginSettings?.routes ?? {}
+  const pluginRoutesEnabled = routeConfig?.enabled ?? true
+
+  if (!pluginRoutesEnabled) {
+    app.log.info(` - Routes plugin is disabled`)
+    return
+  }
 
   app
     .after(async () => {
@@ -30,16 +36,19 @@ export async function loadRoutes (
           routes = routesModule.default(app)
         }
 
-        routes.forEach((route: AyazmoRouteOptions) => {
-          if (isValidRoute(route)) {
+        routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
+          if (isValidRoute(route) && isRouteEnabled(route)) {
             const routeHooks = routeConfig[route.url]?.hooks
             let hooksResult: any = {}
             if (typeof routeHooks === 'function') {
               hooksResult = routeHooks(app, container)
             }
 
+            // extract custom route options
+            const { enabled, ...routeOptions } = route
+
             app.route({
-              ...route,
+              ...routeOptions,
               ...hooksResult
             })
             app.log.info(` - Registered route ${route.method} ${route.url}`)

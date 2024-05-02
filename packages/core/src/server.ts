@@ -11,6 +11,7 @@ import mercuriusAuth from 'mercurius-auth'
 import { loadPlugins } from './plugins/plugin-manager.js'
 import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
+import abstractAuthStrategy from './auth/AbstractAuthStrategy.js'
 import os from 'os'
 import { AppConfig } from '@ayazmo/types'
 
@@ -34,6 +35,7 @@ export class Server {
     })
     this.fastify
       .decorate('anonymousStrategy', anonymousStrategy)
+      .decorate('abstractAuthStrategy', abstractAuthStrategy)
       .register(fastifyAuth)
 
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })

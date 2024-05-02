@@ -26,5 +26,7 @@ declare module 'fastify' {
   }
   export interface FastifyInstance {
     auth: preHandlerHookHandler;
+    anonymousStrategy: preHandlerHookHandler;
+    abstractAuthStrategy: preHandlerHookHandler;
   }
 }
