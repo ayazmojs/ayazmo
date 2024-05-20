@@ -14,6 +14,7 @@ import anonymousStrategy from './auth/AnonymousStrategy.js'
 import abstractAuthStrategy from './auth/AbstractAuthStrategy.js'
 import os from 'os'
 import { AppConfig } from '@ayazmo/types'
+import fastifyRedis from '@fastify/redis'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
@@ -185,6 +186,13 @@ export class Server {
     })
   }
 
+  private async maybeEnableRedis() {
+    const config = diContainer.resolve('config') as AppConfig;
+    if (config?.app?.redis) {
+      await this.fastify.register(fastifyRedis, config.app.redis)
+    }
+  }
+
   private setupGracefulShutdown() {
     // Listen for termination signals
     process.on('SIGINT', async () => await this.shutdownServer())
@@ -194,6 +202,8 @@ export class Server {
   public async loadPlugins(): Promise<void> {
     // load config
     await loadConfig(configDir, this.fastify, diContainer)
+
+    await this.maybeEnableRedis()
 
     // load ayazmo services
     await loadCoreServices(this.fastify, diContainer)

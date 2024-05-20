@@ -9,7 +9,7 @@ export class InMemoryEventEmitter extends BaseEventEmitter {
     this.emitter = new EventEmitter()
   }
 
-  override async publish (event: string, data: any): Promise<void> {
+  override async publish (event: string, data: any, config: any): Promise<void> {
     console.log('InMemory: publishing event ', event)
     this.emitter.emit(event, data)
   }

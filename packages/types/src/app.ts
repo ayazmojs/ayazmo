@@ -28,6 +28,7 @@ export interface PluginConfig {
 
 export interface AyazmoAppConfig {
   eventEmitterType: 'memory' | 'redis',
+  redis: any,
   cors: FastifyCorsOptions,
 }
 
@@ -55,7 +56,7 @@ export interface Subscriber {
 }
 
 export interface IEventEmitter {
-  publish(event: string, data: any): Promise<void>;
+  publish(event: string, data: any, config?: any): Promise<void>;
   subscribe(event: string, handler: (...args: any[]) => void): void;
   unsubscribe(event: string, handler: (...args: any[]) => void): void;
 }

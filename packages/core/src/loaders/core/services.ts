@@ -33,7 +33,7 @@ export async function loadCoreServices (
       // Register the service in the DI container
       diContainer.register({
         [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(cradle, {})
+          (cradle) => new serviceModule.default(cradle, {}, fastify)
         ).singleton()
       })
 
