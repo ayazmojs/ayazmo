@@ -12,9 +12,11 @@ import { loadPlugins } from './plugins/plugin-manager.js'
 import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import abstractAuthStrategy from './auth/AbstractAuthStrategy.js'
+import enabledAuthProvidersStrategy from './auth/EnabledAuthProvidersStrategy.js'
 import os from 'os'
-import { AppConfig } from '@ayazmo/types'
+import { AppConfig, AyazmoContainer } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
+import { GLOBAL_CONFIG_FILE_NAME } from '@ayazmo/utils'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
@@ -26,7 +28,7 @@ const coreLogger = pino({
 })
 
 const rootDir = process.cwd()
-const configDir = path.join(rootDir, 'ayazmo.config.js')
+const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: FastifyInstance
 
@@ -193,6 +195,11 @@ export class Server {
     }
   }
 
+  private async enableAuthProviders() {
+    const config = diContainer.resolve('config') as AppConfig;
+    this.fastify.decorate('enabledAuthProvidersStrategy', await enabledAuthProvidersStrategy(this.fastify, config))
+  }
+
   private setupGracefulShutdown() {
     // Listen for termination signals
     process.on('SIGINT', async () => await this.shutdownServer())
@@ -209,8 +216,9 @@ export class Server {
     await loadCoreServices(this.fastify, diContainer)
 
     // load plugins
-    await loadPlugins(this.fastify, diContainer)
+    await loadPlugins(this.fastify, diContainer as AyazmoContainer)
 
+    await this.enableAuthProviders()
     this.registerAuthDirective()
   }
 

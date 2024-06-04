@@ -30,6 +30,8 @@ export interface AyazmoAppConfig {
   eventEmitterType: 'memory' | 'redis',
   redis: any,
   cors: FastifyCorsOptions,
+  cache: any,
+  enabledAuthProviders: any[],
 }
 
 export interface AppConfig {

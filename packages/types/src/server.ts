@@ -28,6 +28,7 @@ declare module 'fastify' {
     auth: preHandlerHookHandler;
     anonymousStrategy: preHandlerHookHandler;
     abstractAuthStrategy: preHandlerHookHandler;
+    enabledAuthProvidersStrategy: preHandlerHookHandler;
     redis: any;
   }
 }

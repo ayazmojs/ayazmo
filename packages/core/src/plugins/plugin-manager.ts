@@ -2,10 +2,10 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { asValue, AwilixContainer } from 'awilix'
+import { asValue } from 'awilix'
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core'
 import { merge } from '@ayazmo/utils'
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig, AyazmoContainer } from '@ayazmo/types'
 import { globby } from 'globby'
 import { FastifyInstance } from 'fastify'
 
@@ -170,7 +170,7 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   )
 }
 
-export const loadPlugins = async (app: FastifyInstance, container: AwilixContainer): Promise<void> => {
+export const loadPlugins = async (app: FastifyInstance, container: AyazmoContainer): Promise<void> => {
   const config: AppConfig = container.resolve('config')
   const entities: AnyEntity[] = []
 
