@@ -1,7 +1,7 @@
 // create a cache service on top of async-cache-dedupe by abstracting all possible cache operations using a single interface
 import { Cache, createCache } from 'async-cache-dedupe'
 import { AyazmoContainer, AppConfig, AyazmoInstance } from '@ayazmo/types'
-// import { AwilixContainer } from 'awilix'
+// import { asFunction } from 'awilix'
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js'
 
 export default class CacheService extends AyazmoCoreService {
@@ -21,6 +21,11 @@ export default class CacheService extends AyazmoCoreService {
       return this.cache[cacheKey](opts);
     }
     throw new Error(`Cache: ${cacheKey} is not a function.`);
+  }
+
+  async getOrSet(cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): Promise<any> {
+    this.define(cacheKey, opts, fetcher)
+    return this.get(cacheKey, opts)
   }
 
   define(cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): void {
@@ -58,10 +63,3 @@ export default class CacheService extends AyazmoCoreService {
     this.cache.invalidateAll(references);
   }
 }
-
-// export async function register (fastify: AyazmoInstance, diContainer: AwilixContainer, pluginSettings: PluginSettings): Promise<void> {
-//   const cacheService = new CacheService(diContainer, pluginSettings)
-//   diContainer.register({
-//     cacheService: cacheService
-//   })
-// }
