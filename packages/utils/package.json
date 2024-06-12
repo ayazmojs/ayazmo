@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/utils",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Ayazmo helper functions used in core and modules",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -17,7 +17,7 @@
     "lint-fix": "ts-standard --fix src/*"
   },
   "dependencies": {
-    "@ayazmo/types": "^0.1.21",
+    "@ayazmo/types": "^0.1.22",
     "@fastify/error": "^3.4.1",
     "@mikro-orm/migrations": "^6.2.8",
     "@types/fs-extra": "^11.0.4",
