@@ -14,6 +14,7 @@ import { loadEntities } from '../loaders/entities.js'
 import { loadServices } from '../loaders/services.js'
 import { loadGraphQL } from '../loaders/graphql.js'
 import { loadSubscribers } from '../loaders/subscribers.js'
+import { loadAdminRoutes } from '../loaders/admin/routes.js'
 
 const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins')
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
@@ -39,7 +40,10 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
     routes: path.join(basePath, 'routes.js'),
     migrations: path.join(basePath, 'migrations'),
     subscribers: path.join(basePath, 'subscribers'),
-    bootstrap: path.join(basePath, 'bootstrap.js')
+    bootstrap: path.join(basePath, 'bootstrap.js'),
+    admin: {
+      routes: path.join(basePath, 'admin', 'routes.js')
+    }
   }
 }
 
@@ -203,7 +207,8 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
         loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
         loadRoutes(app, container, pluginPaths.routes, registeredPlugin.settings),
-        loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings)
+        loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings),
+        loadAdminRoutes(app, container, pluginPaths.admin.routes, registeredPlugin.settings)
       ])
 
       entities.push(...entityCollection)

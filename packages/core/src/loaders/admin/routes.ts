@@ -1,15 +1,22 @@
-import { AyazmoRouteOptions, PluginSettings, PluginRoutes, AyazmoContainer } from '@ayazmo/types'
+import { AyazmoRouteOptions, PluginSettings, PluginRoutes, AyazmoContainer, AppConfig } from '@ayazmo/types'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
-import { isValidRoute, isRouteEnabled } from '../utils/route-validator.js'
+import { isValidAdminRoute, isRouteEnabled } from '../../utils/route-validator.js'
 
-export async function loadRoutes(
+export async function loadAdminRoutes(
   app: FastifyInstance,
   container: AyazmoContainer,
   path: string,
   pluginSettings: PluginSettings): Promise<void> {
   if (!fs.existsSync(path)) {
-    app.log.info(` - Routes file not found in plugin directory: ${path}`)
+    app.log.info(` - Admin routes file not found in plugin directory: ${path}`)
+    return
+  }
+
+  const { admin } = container.resolve('config') as AppConfig
+
+  if (!admin.enabled) {
+    app.log.info(` - Admin routes plugin is disabled via config`)
     return
   }
 
@@ -17,7 +24,7 @@ export async function loadRoutes(
   const pluginRoutesEnabled = routeConfig?.enabled ?? true
 
   if (!pluginRoutesEnabled) {
-    app.log.info(` - Routes plugin is disabled`)
+    app.log.info(` - Admin routes plugin is disabled`)
     return
   }
 
@@ -36,7 +43,7 @@ export async function loadRoutes(
         }
 
         routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
-          if (isValidRoute(route) && isRouteEnabled(route)) {
+          if (isValidAdminRoute(route) && isRouteEnabled(route)) {
             const routeHooks = routeConfig[route.url]?.hooks
             let hooksResult: any = {}
             if (typeof routeHooks === 'function') {
@@ -50,9 +57,9 @@ export async function loadRoutes(
               ...routeOptions,
               ...hooksResult
             })
-            app.log.info(` - Registered route ${route.method} ${route.url}`)
+            app.log.info(` - Registered admin route ${route.method} ${route.url}`)
           } else {
-            app.log.error(` - Invalid route detected in ${path}`)
+            app.log.error(` - Invalid admin route detected in ${path}`)
           }
         })
       }

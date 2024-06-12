@@ -1,5 +1,5 @@
 
-import { Options } from "@mikro-orm/core";
+import { Options, MikroORM } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
 
@@ -31,7 +31,24 @@ export interface AyazmoAppConfig {
   redis: any,
   cors: FastifyCorsOptions,
   cache: any,
-  enabledAuthProviders: any[],
+  enabledAuthProviders: string[],
+}
+
+export type RoleCheckFunction = (user: any) => boolean;
+
+export type RolesConfig = {
+  [roleName: string]: RoleCheckFunction;
+};
+
+export type RouteRolesConfig = {
+  [routePath: string]: string[];
+};
+
+export interface AyazmoAdminConfig {
+  enabled: boolean;
+  enabledAuthProviders: string[];
+  roles: RolesConfig
+  routes: RouteRolesConfig
 }
 
 export interface AppConfig {
@@ -40,6 +57,11 @@ export interface AppConfig {
     type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite';
   };
   app: AyazmoAppConfig;
+  admin: AyazmoAdminConfig;
+}
+
+export interface AdminPluginPaths {
+  routes: string;
 }
 
 export interface PluginPaths {
@@ -50,6 +72,7 @@ export interface PluginPaths {
   migrations: string;
   subscribers: string;
   bootstrap?: string;
+  admin: AdminPluginPaths;
 }
 
 export interface Subscriber {
@@ -66,5 +89,6 @@ export interface IEventEmitter {
 export type AyazmoContainer = AwilixContainer & {
   eventService: IEventEmitter
   config: AppConfig
+  dbService: MikroORM
   resolve<T = unknown>(key: string): T
 }

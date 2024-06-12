@@ -1,13 +1,13 @@
 import { AyazmoError } from "@ayazmo/utils"
-import { AyazmoInstance, FastifyRequest, FastifyReply } from "@ayazmo/types"
+import { AyazmoInstance, FastifyRequest, FastifyReply, AppConfig } from "@ayazmo/types"
 
-export default async function EnabledAuthProvidersStrategy(app: AyazmoInstance, globalConfig?: any) {
+export default async function EnabledAuthProvidersStrategy(app: AyazmoInstance, globalConfig?: AppConfig) {
 
   return (request: FastifyRequest, reply: FastifyReply, done: any) => {
     const enabledAuthProviders = globalConfig?.app?.enabledAuthProviders
 
     if (!Array.isArray(enabledAuthProviders) || enabledAuthProviders.length === 0) {
-      app.log.warn(`No authentication providers configured! If you need to enable authentication please configure authProviders in the config`)
+      app.log.warn(`No authentication providers configured! If you need to enable authentication please configure enabledAuthProviders in the config`)
       throw AyazmoError({
         statusCode: 401,
         message: 'Unauthenticated',

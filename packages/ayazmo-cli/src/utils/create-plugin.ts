@@ -2,10 +2,11 @@ import path from 'node:path'
 import fs from 'fs/promises'
 import { cloneRepository } from './download-from-github.js'
 import { PLUGINS_ROOT } from '@ayazmo/utils'
-import { askUserForPluginName } from './prompts.js'
+import { askUserForPluginName, askUserForPackageManager } from './prompts.js'
 import CliLogger from './cli-logger.js'
 import PackagetJson from '@npmcli/package-json'
 import { isAyazmoProject } from './is-ayazmo-project.js'
+import { execa } from 'execa';
 
 export async function createPlugin (): Promise<void> {
   CliLogger.info('Checking environment...')
@@ -51,6 +52,10 @@ export async function createPlugin (): Promise<void> {
       ]
     })
     await pkgJson.save()
+
+    // Install dependencies
+    const packageManager = await askUserForPackageManager()
+    await execa(packageManager.manager, ['install'], { cwd: pluginInstallPath })
 
     CliLogger.success(`Plugin ${pluginName} created successfully in ${pluginInstallPath}. You may enable this plugin in ayazmo.config.js`)
   } catch (error) {

@@ -18,7 +18,10 @@ describe("core: testing the plugin manager", () => {
       routes: path.join(process.cwd(), plugins[0].name, 'dist', 'routes.js'),
       migrations: path.join(process.cwd(), plugins[0].name, 'dist', 'migrations'),
       subscribers: path.join(process.cwd(), plugins[0].name, 'dist', 'subscribers'),
-      bootstrap: path.join(process.cwd(), plugins[0].name, 'dist', 'bootstrap.js')
+      bootstrap: path.join(process.cwd(), plugins[0].name, 'dist', 'bootstrap.js'),
+      admin: {
+        routes: path.join(process.cwd(), plugins[0].name, 'dist', 'admin', 'routes.js'),
+      }
     }
     assert.deepEqual(constructPaths(plugins[0].name, process.cwd()), expected)
   })

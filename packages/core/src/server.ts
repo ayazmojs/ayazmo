@@ -13,10 +13,11 @@ import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import abstractAuthStrategy from './auth/AbstractAuthStrategy.js'
 import enabledAuthProvidersStrategy from './auth/EnabledAuthProvidersStrategy.js'
+import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
-import { AppConfig, AyazmoContainer } from '@ayazmo/types'
+import { AppConfig, AyazmoContainer, RolesConfig } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
-import { GLOBAL_CONFIG_FILE_NAME } from '@ayazmo/utils'
+import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
@@ -36,10 +37,6 @@ export class Server {
     this.fastify = fastify({
       logger: coreLogger as FastifyBaseLogger
     })
-    this.fastify
-      .decorate('anonymousStrategy', anonymousStrategy)
-      .decorate('abstractAuthStrategy', abstractAuthStrategy)
-      .register(fastifyAuth)
 
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes()
@@ -47,6 +44,30 @@ export class Server {
     this.setupGracefulShutdown()
     // Set the default error handler
     this.setDefaultErrorHandler()
+  }
+
+  private registerAdminRoles() {
+    const config = diContainer.resolve('config') as AppConfig;
+    const adminRoles = config?.admin?.roles as RolesConfig
+
+    if (adminRoles) {
+      Object.entries(adminRoles).forEach(([roleName, checkUserRole]) => {
+        this.fastify.decorate(roleName, (request: FastifyRequest, reply: FastifyReply, done: any) => {
+          // @ts-ignore
+          const roleIsAllowed: boolean = checkUserRole(this.fastify.admin)
+          
+          if (roleIsAllowed) {
+            done()
+          } else {
+            done(AyazmoError({
+              statusCode: 403,
+              message: "Unauthorized",
+              code: "UNAUTHORIZED"
+            }))
+          }
+        })
+      })
+    }
   }
 
   // Method to set the default error handler
@@ -198,6 +219,7 @@ export class Server {
   private async enableAuthProviders() {
     const config = diContainer.resolve('config') as AppConfig;
     this.fastify.decorate('enabledAuthProvidersStrategy', await enabledAuthProvidersStrategy(this.fastify, config))
+    this.fastify.decorate('adminAuthChain', adminAuthChain(this.fastify, config))
   }
 
   private setupGracefulShutdown() {
@@ -207,8 +229,13 @@ export class Server {
   }
 
   public async loadPlugins(): Promise<void> {
-    // load config
     await loadConfig(configDir, this.fastify, diContainer)
+
+    this.registerAdminRoles()
+    this.fastify
+      .decorate('anonymousStrategy', anonymousStrategy)
+      .decorate('abstractAuthStrategy', abstractAuthStrategy)
+      .register(fastifyAuth)
 
     await this.maybeEnableRedis()
 
