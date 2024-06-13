@@ -1,7 +1,7 @@
 import { AyazmoError } from "@ayazmo/utils"
 import { AyazmoInstance, FastifyRequest, FastifyReply, AppConfig } from "@ayazmo/types"
 
-export default async function EnabledAuthProvidersStrategy(app: AyazmoInstance, globalConfig?: AppConfig) {
+export default async function useAuthChain(app: AyazmoInstance, globalConfig?: AppConfig) {
 
   return (request: FastifyRequest, reply: FastifyReply, done: any) => {
     const enabledAuthProviders = globalConfig?.app?.enabledAuthProviders

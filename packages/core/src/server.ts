@@ -11,8 +11,7 @@ import mercuriusAuth from 'mercurius-auth'
 import { loadPlugins } from './plugins/plugin-manager.js'
 import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
-import abstractAuthStrategy from './auth/AbstractAuthStrategy.js'
-import enabledAuthProvidersStrategy from './auth/EnabledAuthProvidersStrategy.js'
+import userAuthChain from './auth/userAuthChain.js'
 import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
 import { AppConfig, AyazmoContainer, RolesConfig } from '@ayazmo/types'
@@ -22,7 +21,7 @@ import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
 const coreLogger = pino({
-  level: 'info',
+  level: process.env.LOG_LEVEL || 'info',
   transport: {
     target: 'pino-pretty'
   }
@@ -42,7 +41,6 @@ export class Server {
     this.initializeRoutes()
     this.registerGQL()
     this.setupGracefulShutdown()
-    // Set the default error handler
     this.setDefaultErrorHandler()
   }
 
@@ -218,7 +216,7 @@ export class Server {
 
   private async enableAuthProviders() {
     const config = diContainer.resolve('config') as AppConfig;
-    this.fastify.decorate('enabledAuthProvidersStrategy', await enabledAuthProvidersStrategy(this.fastify, config))
+    this.fastify.decorate('userAuthChain', await userAuthChain(this.fastify, config))
     this.fastify.decorate('adminAuthChain', adminAuthChain(this.fastify, config))
   }
 
@@ -226,6 +224,23 @@ export class Server {
     // Listen for termination signals
     process.on('SIGINT', async () => await this.shutdownServer())
     process.on('SIGTERM', async () => await this.shutdownServer())
+
+    // Catch unhandled promise rejections
+    process.on('unhandledRejection', (reason, promise) => {
+    // Check if reason is an Error and log its stack for more details
+    this.fastify.log.error('unhandledRejection:');
+    if (reason instanceof Error) {
+      this.fastify.log.error(reason.stack);
+    } else {
+      this.fastify.log.error(reason);
+    }
+
+    // Perform a graceful shutdown
+    this.shutdownServer().catch(err => {
+      this.fastify.log.error('Failed to shutdown the server gracefully', err);
+      process.exit(1); // Exit with a failure code
+    });
+  });
   }
 
   public async loadPlugins(): Promise<void> {
@@ -234,7 +249,6 @@ export class Server {
     this.registerAdminRoles()
     this.fastify
       .decorate('anonymousStrategy', anonymousStrategy)
-      .decorate('abstractAuthStrategy', abstractAuthStrategy)
       .register(fastifyAuth)
 
     await this.maybeEnableRedis()
