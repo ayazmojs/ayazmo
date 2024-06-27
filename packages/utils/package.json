@@ -14,20 +14,24 @@
     "watch": "tsc --build --watch",
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
     "lint": "ts-standard src/*",
-    "lint-fix": "ts-standard --fix src/*"
+    "lint-fix": "ts-standard --fix src/*",
+    "test": "node --import tsx --test __tests__"
   },
   "dependencies": {
     "@ayazmo/types": "^0.1.23",
     "@fastify/error": "^3.4.1",
     "@mikro-orm/migrations": "^6.2.8",
     "@types/fs-extra": "^11.0.4",
+    "ast-types": "^0.14.2",
     "dotenv": "^16.4.4",
     "execa": "^8.0.1",
     "fs-extra": "^11.2.0",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "recast": "^0.23.9"
   },
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7"
+  "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7",
+  "devDependencies": {}
 }

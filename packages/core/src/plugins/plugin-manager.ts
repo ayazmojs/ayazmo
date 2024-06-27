@@ -41,6 +41,7 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
     migrations: path.join(basePath, 'migrations'),
     subscribers: path.join(basePath, 'subscribers'),
     bootstrap: path.join(basePath, 'bootstrap.js'),
+    config: path.join(basePath, 'config.template.js'),
     admin: {
       routes: path.join(basePath, 'admin', 'routes.js')
     }

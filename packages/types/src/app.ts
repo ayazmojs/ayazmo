@@ -72,6 +72,7 @@ export interface PluginPaths {
   migrations: string;
   subscribers: string;
   bootstrap?: string;
+  config?: string;
   admin: AdminPluginPaths;
 }
 

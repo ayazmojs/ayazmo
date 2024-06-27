@@ -1,9 +1,9 @@
 import { PrimaryKey, Property, JsonType, Opt } from '@mikro-orm/core'
-import { v4 as uuidv4 } from 'uuid'
+import { ulid } from "ulidx";
 
 export abstract class BaseEntity {
   @PrimaryKey()
-    id = uuidv4()
+    id = ulid()
 
   @Property()
     createdAt?: Date & Opt = new Date()
