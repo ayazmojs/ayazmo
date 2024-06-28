@@ -2,6 +2,7 @@
 import { Options, MikroORM } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
+import { FastifyListenOptions } from "fastify";
 
 export interface PluginRoutesCustom {
   enabled?: boolean;
@@ -27,6 +28,7 @@ export interface PluginConfig {
 }
 
 export interface AyazmoAppConfig {
+  server: FastifyListenOptions,
   eventEmitterType: 'memory' | 'redis',
   redis: any,
   cors: FastifyCorsOptions,

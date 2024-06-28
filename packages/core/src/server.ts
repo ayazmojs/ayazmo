@@ -263,15 +263,17 @@ export class Server {
     this.registerAuthDirective()
   }
 
-  async start(port: number): Promise<void> {
+  async start(): Promise<void> {
     this.enableCookies()
     // load plugins
     await this.loadPlugins()
 
     await this.enableCORS()
 
+    const config = diContainer.resolve('config') as AppConfig;
+
     try {
-      await this.fastify.listen({ port })
+      await this.fastify.listen(config.app.server)
     } catch (err) {
       this.fastify.log.error(err)
       process.exit(1)
