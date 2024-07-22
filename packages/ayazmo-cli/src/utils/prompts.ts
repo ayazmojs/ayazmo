@@ -137,7 +137,7 @@ export async function askUserToConfirmDowngradeMigrations (): Promise<{ confirm:
     {
       type: 'confirm',
       name: 'confirm',
-      message: 'Are you sure you want to downgrade the plugin migrations?',
+      message: 'Do you want to downgrade the plugin migrations?',
       default: false
     }
   ])

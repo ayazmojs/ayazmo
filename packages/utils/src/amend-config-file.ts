@@ -31,7 +31,7 @@ export async function amendConfigFile(appConfigPath: string, pluginConfigPath: s
       import(pluginConfigPath)
     ]);
 
-    const pluginConfig: PluginConfig = pluginConfigImport.config;
+    const pluginConfig: PluginConfig = pluginConfigImport.default;
 
     // Parse the code into an AST with recast
     const ast = recast.parse(appConfig);
