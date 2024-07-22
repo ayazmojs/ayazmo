@@ -27,11 +27,12 @@ const writeFile = async (path: string, content: string) => {
 };
 
 export const removePlugin = async (pluginName: string): Promise<void> => {
-  CliLogger.info(`Removing plugin ${pluginName}`);
   if (!isAyazmoProject()) {
     CliLogger.error("You must be in an Ayazmo project directory to remove a plugin.");
     return;
   }
+
+  CliLogger.info(`Removing plugin ${pluginName}`);
 
   // get the ayazmo.config.js file path
   const configFilePath = path.join(process.cwd(), 'ayazmo.config.js');
@@ -62,19 +63,18 @@ export const removePlugin = async (pluginName: string): Promise<void> => {
     const { confirm } = await askUserToConfirmDowngradeMigrations()
 
     if (!confirm) {
-      CliLogger.info('Migrations not downgraded.')
-      return;
-    }
+      CliLogger.info('Skipped downgrading migrations.')
+    } else {
+      // down all migrationFiles one by one
+      for (const migrationFile of migrationFiles) {
+        // get the migration file name without the extension
+        const migrationFileName = path.basename(migrationFile, '.js')
+        CliLogger.info(`Downgrading migration ${migrationFileName}`)
+        await downMigrations(migrationFileName.replace('Migration', ''))
+      }
 
-    // down all migrationFiles one by one
-    for (const migrationFile of migrationFiles) {
-      // get the migration file name without the extension
-      const migrationFileName = path.basename(migrationFile, '.js')
-      CliLogger.info(`Downgrading migration ${migrationFileName}`)
-      await downMigrations(migrationFileName.replace('Migration', ''))
+      CliLogger.success('Migrations downgraded successfully!')
     }
-
-    CliLogger.success('Migrations downgraded successfully!')
   }
 
   // read the ayazmo.config.js file source code
@@ -104,8 +104,6 @@ const uninstallPluginWithPackageManager = async (pluginName: string, packageMana
 const uninstallPluginFromYarn = async (pluginName: string) => {
   // uninstall the plugin using yarn
   const { stderr } = await execa("yarn", ["remove", pluginName, "-W"], { cwd: process.cwd(), stdio: 'inherit' });
-
-  CliLogger.info("uninstalling with yarn")
 
   if (stderr) {
     CliLogger.error(`Failed to uninstall plugin ${pluginName}: ${stderr}`);
