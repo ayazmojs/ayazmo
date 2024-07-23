@@ -15,7 +15,7 @@ export async function loadAdminRoutes(
 
   const { admin } = container.resolve('config') as AppConfig
 
-  if (!admin.enabled) {
+  if (!admin?.enabled) {
     app.log.info(` - Admin routes plugin is disabled via config`)
     return
   }
