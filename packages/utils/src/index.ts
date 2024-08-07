@@ -17,3 +17,4 @@ export * from './merge-env-files.js';
 export * from './string-utils.js';
 export * from './package-manager-utils.js';
 export { amendConfigFile } from './amend-config-file.js';
+export * from './auth.js';

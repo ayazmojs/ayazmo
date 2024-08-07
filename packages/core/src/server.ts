@@ -53,7 +53,7 @@ export class Server {
         this.fastify.decorate(roleName, (request: FastifyRequest, reply: FastifyReply, done: any) => {
           // @ts-ignore
           const roleIsAllowed: boolean = checkUserRole(this.fastify.admin)
-          
+
           if (roleIsAllowed) {
             done()
           } else {
@@ -216,7 +216,7 @@ export class Server {
 
   private async enableAuthProviders() {
     const config = diContainer.resolve('config') as AppConfig;
-    this.fastify.decorate('userAuthChain', await userAuthChain(this.fastify, config))
+    this.fastify.decorate('userAuthChain', userAuthChain(this.fastify, config))
     this.fastify.decorate('adminAuthChain', adminAuthChain(this.fastify, config))
   }
 
@@ -227,20 +227,20 @@ export class Server {
 
     // Catch unhandled promise rejections
     process.on('unhandledRejection', (reason, promise) => {
-    // Check if reason is an Error and log its stack for more details
-    this.fastify.log.error('unhandledRejection:');
-    if (reason instanceof Error) {
-      this.fastify.log.error(reason.stack);
-    } else {
-      this.fastify.log.error(reason);
-    }
+      // Check if reason is an Error and log its stack for more details
+      this.fastify.log.error('unhandledRejection:');
+      if (reason instanceof Error) {
+        this.fastify.log.error(reason.stack);
+      } else {
+        this.fastify.log.error(reason);
+      }
 
-    // Perform a graceful shutdown
-    this.shutdownServer().catch(err => {
-      this.fastify.log.error('Failed to shutdown the server gracefully', err);
-      process.exit(1); // Exit with a failure code
+      // Perform a graceful shutdown
+      this.shutdownServer().catch(err => {
+        this.fastify.log.error('Failed to shutdown the server gracefully', err);
+        process.exit(1); // Exit with a failure code
+      });
     });
-  });
   }
 
   public async loadPlugins(): Promise<void> {
@@ -259,13 +259,15 @@ export class Server {
     // load plugins
     await loadPlugins(this.fastify, diContainer as AyazmoContainer)
 
+    // load auth providers after loading plugins
     await this.enableAuthProviders()
+
     this.registerAuthDirective()
   }
 
   async start(): Promise<void> {
     this.enableCookies()
-    // load plugins
+
     await this.loadPlugins()
 
     await this.enableCORS()

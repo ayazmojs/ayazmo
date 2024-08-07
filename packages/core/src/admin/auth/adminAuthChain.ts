@@ -1,41 +1,23 @@
-// import { AyazmoError } from "@ayazmo/utils"
-import { AyazmoInstance, FastifyRequest, FastifyReply, AppConfig } from "@ayazmo/types"
-import { AyazmoError } from "@ayazmo/utils"
+import { AyazmoInstance, AppConfig } from "@ayazmo/types"
+import { alwaysFailAuth, sanitizeProvider, mapAuthProviders } from "@ayazmo/utils"
 
 export default function adminAuthChain(app: AyazmoInstance, globalConfig?: AppConfig) {
-  const enabledAuthProviders = globalConfig?.admin?.enabledAuthProviders ?? []
+  const enabledAuthProviders = globalConfig?.admin?.enabledAuthProviders ?? [];
 
-  return (request: FastifyRequest, reply: FastifyReply, done: any) => {
-    const isCustomRoute: boolean = !!globalConfig?.admin?.routes[request.url]
-
-    if (isCustomRoute) {
-      const authRules = globalConfig?.admin?.routes[request.url]
-      
-      if (authRules && authRules.length > 0) {
-        // perform auth based on custom config
-        const appAuthRules = authRules.map(p => Array.isArray(p) ? p.map(subP => app[subP]) : app[p])
-        // @ts-ignore
-        const _auth = app.auth(appAuthRules)
-        // @ts-ignore
-        return _auth(request, reply, done)
-      } else {
-        app.log.warn(`No admin authentication rules configured for route ${request.url}`)
-      }
-
-      if (enabledAuthProviders.length > 0) {
-        // @ts-ignore
-        const _auth = app.auth(enabledAuthProviders.map(p => Array.isArray(p) ? p.map(subP => app[subP]) : app[p]))
-        // @ts-ignore
-        return _auth(request, reply, done)
-      } else {
-        app.log.warn(`No admin authentication rules configured for route ${request.url} in enabledAuthProviders`)
-      }
+  const filteredAuthProviders = enabledAuthProviders.filter(provider => {
+    if (!provider.startsWith('admin')) {
+      app.log.warn(`Invalid admin authentication provider "${provider}" excluded. Admin authentication providers must start with "admin"`);
+      return false;
     }
+    return true;
+  }).filter(sanitizeProvider);
 
-    done(AyazmoError({
-      statusCode: 403,
-      message: "Unauthorized",
-      code: "UNAUTHORIZED"
-    }))
+  if (!Array.isArray(filteredAuthProviders) || filteredAuthProviders.length === 0) {
+    app.log.warn(`No authentication providers configured! If you need to enable authentication please configure enabledAuthProviders in the config admin section`);
+    return app.auth([alwaysFailAuth]); // Return the fail-safe method directly
   }
+
+  const validAuthProviders = mapAuthProviders(app, filteredAuthProviders);
+
+  return app.auth(validAuthProviders)
 }
