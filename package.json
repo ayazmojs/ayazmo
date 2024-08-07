@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "0.1.0",
+  "version": "0.1.27",
   "description": "Plugin-driven API framework designed for building modular, scalable, and performance-optimized web services.",
   "main": "index.js",
   "repository": "git@github.com:ayazmojs/ayazmo.git",
