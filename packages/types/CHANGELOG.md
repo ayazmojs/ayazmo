@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.1.27
+
+### Patch Changes
+
+- refactoring authentication strategy
+
 ## 0.1.26
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.1.27
+
+### Patch Changes
+
+- refactoring authentication strategy
+
+- Updated dependencies []:
+  - @ayazmo/types@0.1.27
+
 ## 0.1.26
 
 ### Patch Changes

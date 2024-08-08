@@ -247,7 +247,7 @@ export class Server {
     await loadConfig(configDir, this.fastify, diContainer)
 
     this.registerAdminRoles()
-    this.fastify
+    await this.fastify
       .decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth)
 

@@ -59,11 +59,11 @@ export async function runMigrations(): Promise<void> {
     const pendingMigrations = await migrator.getPendingMigrations()
 
     if (!Array.isArray(pendingMigrations) || pendingMigrations.length === 0) {
-      throw new Error('There are no pending migrations. Please create a migration first or build the existing ones.')
+      CliLogger.info('There are no pending migrations. Please create a migration first or build the existing ones.')
+    } else {
+      await migrator.up()
+      CliLogger.success('Migrations applied successfully!')
     }
-
-    await migrator.up()
-    CliLogger.success('Migrations applied successfully!')
   } catch (error) {
     CliLogger.error(error)
   } finally {
