@@ -1,5 +1,15 @@
 # @ayazmo/core
 
+## 0.1.28
+
+### Patch Changes
+
+- [`d6dda8d`](https://github.com/ayazmojs/ayazmo/commit/d6dda8d673047abc5646448f7414686f247d3078) - fix race condition when loading authentication
+
+- Updated dependencies [[`d6dda8d`](https://github.com/ayazmojs/ayazmo/commit/d6dda8d673047abc5646448f7414686f247d3078)]:
+  - @ayazmo/types@0.1.28
+  - @ayazmo/utils@0.1.28
+
 ## 0.1.27
 
 ### Patch Changes
