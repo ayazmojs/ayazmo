@@ -118,7 +118,7 @@ export const discoverPublicPaths = (plugins: PluginConfig[]): { migrations: stri
     if (fs.existsSync(pluginPaths.migrations)) {
       paths.migrations.push(pluginPaths.migrations);
     }
-    
+
     if (fs.existsSync(pluginPaths.entities)) {
       paths.entities.push(pluginPaths.entities);
     }
@@ -225,60 +225,63 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
     }
   }
 
-  const { type, ...rest } = config.database
+  if (config.database) {
+    const { type, ...rest } = config.database
 
-  if (type === 'postgresql') {
-    rest.driver = PostgreSqlDriver
-  }
-
-  const dbConfig: any = merge({
-    discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
-    debug: false,
-    tsNode: false,
-    entities: entities as Array<string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>>
-  }, rest)
-
-  try {
-    // Initialize the database connection
-    const db = await MikroORM.init(dbConfig)
-    app.log.info('- Database connection established')
-
-    // check connection
-    const isConnected = await db.isConnected()
-    if (!isConnected) {
-      app.log.error('- Database connection failed')
+    if (type === 'postgresql') {
+      rest.driver = PostgreSqlDriver
     }
 
-    // register request context hook
-    app.addHook('onRequest', (request, reply, done) => {
-      RequestContext.create(db.em, done)
-    })
+    const dbConfig: any = merge({
+      discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
+      debug: false,
+      tsNode: false,
+      entities: entities as Array<string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>>
+    }, rest)
 
-    // shut down the connection when closing the app
-    app.addHook('onClose', async () => {
-      await db.close()
-    })
+    try {
+      // Initialize the database connection
+      const db = await MikroORM.init(dbConfig)
+      app.log.info('- Database connection established')
 
-    // register the db instance in the DI container
-    container.register({
-      dbService: asValue(db)
-    })
-  } catch (error) {
-    if (error instanceof AggregateError) {
-      for (const individualError of error.errors) {
-        if (individualError.code === 'ECONNREFUSED') {
-          app.log.error(`- Database connection refused: ${individualError.message}`);
-        } else {
-          app.log.error(`- Error while initializing database: ${individualError.message}`);
-        }
+      // check connection
+      const isConnected = await db.isConnected()
+      if (!isConnected) {
+        app.log.error('- Database connection failed')
       }
-    } else if (error.code === 'ENOTFOUND') {
-      app.log.error(`- Database host not found: ${error.message}. Please check your database host settings.`);
-    } else {
-      app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`);
-    }
 
-    process.exit(1)
+      // register request context hook
+      app.addHook('onRequest', (request, reply, done) => {
+        RequestContext.create(db.em, done)
+      })
+
+      // shut down the connection when closing the app
+      app.addHook('onClose', async () => {
+        await db.close()
+      })
+
+      // register the db instance in the DI container
+      container.register({
+        dbService: asValue(db)
+      })
+
+    } catch (error) {
+      if (error instanceof AggregateError) {
+        for (const individualError of error.errors) {
+          if (individualError.code === 'ECONNREFUSED') {
+            app.log.error(`- Database connection refused: ${individualError.message}`);
+          } else {
+            app.log.error(`- Error while initializing database: ${individualError.message}`);
+          }
+        }
+      } else if (error.code === 'ENOTFOUND') {
+        app.log.error(`- Database host not found: ${error.message}. Please check your database host settings.`);
+      } else {
+        app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`);
+      }
+
+      process.exit(1)
+    }
   }
 }
 

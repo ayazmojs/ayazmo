@@ -6,7 +6,6 @@ import { AwilixContainer, asValue } from 'awilix'
 export const loadConfig = async (config: string, app: AyazmoInstance, diContainer: AwilixContainer): Promise<AppConfig> => {
   const defaultConfig: any = {
     // Define your default configurations here
-    database: {},
     plugins: []
   }
 
