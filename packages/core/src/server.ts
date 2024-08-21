@@ -1,8 +1,7 @@
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply, type FastifyBaseLogger } from 'fastify'
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { FastifyAuthFunction, fastifyAuth } from '@fastify/auth'
 import cors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
-import pino from 'pino'
 import path from 'node:path'
 import { fastifyAwilixPlugin, diContainer } from '@fastify/awilix'
 import { loadConfig } from './loaders/config.js'
@@ -14,28 +13,19 @@ import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
-import { AppConfig, AyazmoContainer, RolesConfig } from '@ayazmo/types'
+import { AppConfig, AyazmoContainer, RolesConfig, ServerOptions } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
-
-const coreLogger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty'
-  }
-})
 
 const rootDir = process.cwd()
 const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: FastifyInstance
 
-  constructor() {
-    this.fastify = fastify({
-      logger: coreLogger as FastifyBaseLogger
-    })
+  constructor(options: ServerOptions = {}) {
+    this.fastify = fastify(options)
 
     this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes()

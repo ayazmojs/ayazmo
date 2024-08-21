@@ -1,9 +1,13 @@
-import { FastifyInstance, RouteOptions, preHandlerHookHandler } from 'fastify';
+import { FastifyInstance, RouteOptions, preHandlerHookHandler, FastifyServerOptions } from 'fastify';
 import { AwilixContainer } from 'awilix';
 import http from 'http';
 
 export interface AyazmoRouteOptions extends RouteOptions {
   
+}
+
+export interface ServerOptions extends FastifyServerOptions {
+  // Define any additional options here if needed
 }
 
 interface User {
