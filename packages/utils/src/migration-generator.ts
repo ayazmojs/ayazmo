@@ -1,4 +1,4 @@
-import { TSMigrationGenerator } from '@mikro-orm/migrations';
+import { TSMigrationGenerator } from '@ayazmo/types';
 
 export default class AyazmoMigrationGenerator extends TSMigrationGenerator {
   override generateMigrationFile(className: string, diff: { up: string[]; down: string[] }): string {
