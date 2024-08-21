@@ -226,18 +226,13 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
   }
 
   if (config.database) {
-    const { type, ...rest } = config.database
-
-    if (type === 'postgresql') {
-      rest.driver = PostgreSqlDriver
-    }
-
     const dbConfig: any = merge({
+      driver: PostgreSqlDriver,
       discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
       debug: false,
       tsNode: false,
       entities: entities as Array<string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>>
-    }, rest)
+    }, config.database)
 
     try {
       // Initialize the database connection

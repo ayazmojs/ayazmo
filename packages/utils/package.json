@@ -20,7 +20,7 @@
   "dependencies": {
     "@ayazmo/types": "^0.1.28",
     "@fastify/error": "^3.4.1",
-    "@mikro-orm/migrations": "^6.2.8",
+    "@mikro-orm/migrations": "6.2.9",
     "@types/fs-extra": "^11.0.4",
     "ast-types": "^0.14.2",
     "dotenv": "^16.4.4",

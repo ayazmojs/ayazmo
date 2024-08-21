@@ -55,9 +55,7 @@ export interface AyazmoAdminConfig {
 
 export interface AppConfig {
   plugins: PluginConfig[];
-  database: Options & {
-    type: 'postgresql' | 'mysql' | 'mariadb' | 'sqlite';
-  };
+  database: Options;
   app: AyazmoAppConfig;
   admin: AyazmoAdminConfig;
 }

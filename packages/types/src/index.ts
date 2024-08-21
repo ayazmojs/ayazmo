@@ -5,5 +5,5 @@ export { FastifyRequest, FastifyReply, FastifyInstance, RouteOptions, RouteGener
 export * from './auth.js';
 export { AwilixContainer } from 'awilix';
 export * from '@mikro-orm/core';
-export * from '@mikro-orm/migrations';
+export { Migrator } from '@mikro-orm/migrations';
 export { PostgreSqlDriver } from '@mikro-orm/postgresql';
