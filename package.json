@@ -13,9 +13,6 @@
   "dependencies": {
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.7",
-    "@mikro-orm/core": "^6.2.8",
-    "@mikro-orm/migrations": "^6.2.8",
-    "@mikro-orm/postgresql": "^6.2.8",
     "cross-env": "^7.0.3",
     "fastify": "^4.25.1",
     "lodash-es": "^4.17.21"
