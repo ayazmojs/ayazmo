@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.1.29
+
+### Patch Changes
+
+- [`1382ea4`](https://github.com/ayazmojs/ayazmo/commit/1382ea45373d8ad96706736940d711c7c776ef4a) - database connection is optional. Allow server options
+
+- Updated dependencies [[`1382ea4`](https://github.com/ayazmojs/ayazmo/commit/1382ea45373d8ad96706736940d711c7c776ef4a)]:
+  - @ayazmo/types@0.1.29
+
 ## 0.1.28
 
 ### Patch Changes

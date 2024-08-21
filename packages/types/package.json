@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/types",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "description": "Core interfaces for Ayazmo",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
