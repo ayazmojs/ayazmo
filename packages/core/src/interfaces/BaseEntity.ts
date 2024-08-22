@@ -1,4 +1,4 @@
-import { PrimaryKey, Property, JsonType, Opt } from '@mikro-orm/core'
+import { PrimaryKey, Property, JsonType, Opt } from '@ayazmo/types'
 import { ulid } from "ulidx";
 
 export abstract class BaseEntity {

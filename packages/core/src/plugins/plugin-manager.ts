@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { asValue } from 'awilix'
-import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@mikro-orm/core'
+import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@ayazmo/types'
 import { merge } from '@ayazmo/utils'
 import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig, AyazmoContainer } from '@ayazmo/types'
 import { globby } from 'globby'

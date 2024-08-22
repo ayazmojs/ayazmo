@@ -1114,44 +1114,44 @@
     globby "^11.0.0"
     read-yaml-file "^1.1.0"
 
-"@mikro-orm/core@6.2.9":
-  version "6.2.9"
-  resolved "https://registry.yarnpkg.com/@mikro-orm/core/-/core-6.2.9.tgz#d466add0ec7d528f881dbfa0c88199a228f0a2ac"
-  integrity sha512-fzeg8qNwNr0f9embDhs0L75EBC8ivIOsK1GGPXe48Ab+P0Vmv1qCskSP7/vNDsz4s1xDu0h0l6fIsv1N7j4jKQ==
+"@mikro-orm/core@^6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/core/-/core-6.3.6.tgz#5f79973403a1bf387502115cc584e1457fdf3060"
+  integrity sha512-zIcUT9Q5U4n0bFBybrUhLNZWaKv8OZIZwuukBNFQChy3Y5ziLwGpomsPWWGxuh/YZJbgj+bbYhmlMYy0hTyzeQ==
   dependencies:
     dataloader "2.2.2"
     dotenv "16.4.5"
     esprima "4.0.1"
     fs-extra "11.2.0"
     globby "11.1.0"
-    mikro-orm "6.2.9"
+    mikro-orm "6.3.6"
     reflect-metadata "0.2.2"
 
-"@mikro-orm/knex@6.2.9":
-  version "6.2.9"
-  resolved "https://registry.yarnpkg.com/@mikro-orm/knex/-/knex-6.2.9.tgz#f56a07d4f2f18e6b90811c9b6e987c5c3c85c7bf"
-  integrity sha512-eSHPiS5em+RGv/jx5lP7a1xDVVlnrG+l90/7N7WAgTGcPOzyILVw9EJOZl2KR8dh8EfPI6Wm35Lo4qkO2LoDUg==
+"@mikro-orm/knex@6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/knex/-/knex-6.3.6.tgz#8b7dd5054e4196a61fe80e7d3676b0a2b992efec"
+  integrity sha512-mRQmrt7+Q8CbLE/UA+Mj0O2QSD98wHNc3OVFg1tMX8t9u75p+ob5oWUEutcUOU9cg3lm031jeZ7PPhUVgStGqQ==
   dependencies:
     fs-extra "11.2.0"
     knex "3.1.0"
     sqlstring "2.3.3"
 
-"@mikro-orm/migrations@6.2.9":
-  version "6.2.9"
-  resolved "https://registry.yarnpkg.com/@mikro-orm/migrations/-/migrations-6.2.9.tgz#c88715510022e377549883c6bcc29eae4d6910cb"
-  integrity sha512-QDaYjKxzeGxHhbdP4KDGjD1NM1n6UwRHBjnx+cIB/bLo0sGIcVhT8ajVFKwULweh5bf9iSn9U9/OiU+Ykem/Jg==
+"@mikro-orm/migrations@^6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/migrations/-/migrations-6.3.6.tgz#e710a7192ada315185c44674e55f73bc2b1f8bb0"
+  integrity sha512-mMdsHpW3Jg+ydm0aylnInDAG1ZKhdGGCzrnYASfB53DEvUe48CSdBQ4dt47uAzoHLfQzOjQfq4gWBNQPHZlIqg==
   dependencies:
-    "@mikro-orm/knex" "6.2.9"
+    "@mikro-orm/knex" "6.3.6"
     fs-extra "11.2.0"
-    umzug "3.8.0"
+    umzug "3.8.1"
 
-"@mikro-orm/postgresql@6.2.9":
-  version "6.2.9"
-  resolved "https://registry.yarnpkg.com/@mikro-orm/postgresql/-/postgresql-6.2.9.tgz#480322affb69482204d7170a0865c53936185c30"
-  integrity sha512-CRW5QPvsQhlhRZbx9SsgLrdC7LxCSbz+Pm5rAA8S1SAZG8qJ1WxMovHF61PFZj/7rydnb9fSh4nVwfutOyYwWg==
+"@mikro-orm/postgresql@^6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/postgresql/-/postgresql-6.3.6.tgz#bc00960a66f43fc104e9c5291c02fa6ca9f7b3c8"
+  integrity sha512-S2dcccJGZcB8Bj5HpT77Qjf7MrHd+6VoSsacecUnEQMkI4mCPYfMKC0yChEmEchXJT0vtcr6ZJhLivPVUPVAeQ==
   dependencies:
-    "@mikro-orm/knex" "6.2.9"
-    pg "8.11.5"
+    "@mikro-orm/knex" "6.3.6"
+    pg "8.12.0"
     postgres-array "3.0.2"
     postgres-date "2.1.0"
     postgres-interval "4.0.2"
@@ -5758,10 +5758,10 @@ micromatch@^4.0.2, micromatch@^4.0.4:
     braces "^3.0.3"
     picomatch "^2.3.1"
 
-mikro-orm@6.2.9:
-  version "6.2.9"
-  resolved "https://registry.yarnpkg.com/mikro-orm/-/mikro-orm-6.2.9.tgz#c126966de59e3e179f104004a3f8ecad71aac19e"
-  integrity sha512-zpP8D7Lw8Q2WYwd43iFQI+5e0zPUM+vEAAyJaGE87RzSiQwchqZNPuV/H74STNJYqj8mLSvwZxFvRzrQXsCRRw==
+mikro-orm@6.3.6:
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/mikro-orm/-/mikro-orm-6.3.6.tgz#6956cbbc201e3e1ea9f557aeb09e53ebad3d5759"
+  integrity sha512-1YzHYYiagqw6h5SqnrZ40XtudiqViENo5QlI0u9fRQHb0frU+UEZGHrSZWFeaqU4NHVSW3V6YRalk778RARzaw==
 
 mime-db@1.52.0:
   version "1.52.0"
@@ -6832,10 +6832,10 @@ pg-types@^2.1.0:
     postgres-date "~1.0.4"
     postgres-interval "^1.1.0"
 
-pg@8.11.5:
-  version "8.11.5"
-  resolved "https://registry.yarnpkg.com/pg/-/pg-8.11.5.tgz#e722b0a5f1ed92931c31758ebec3ddf878dd4128"
-  integrity sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==
+pg@8.12.0:
+  version "8.12.0"
+  resolved "https://registry.yarnpkg.com/pg/-/pg-8.12.0.tgz#9341724db571022490b657908f65aee8db91df79"
+  integrity sha512-A+LHUSnwnxrnL/tZ+OLfqR1SxLN3c/pgDztZ47Rpbsd4jUytsTtwQo/TLPRzPJMp/1pbhYVhH9cuSZLAajNfjQ==
   dependencies:
     pg-connection-string "^2.6.4"
     pg-pool "^3.6.2"
@@ -8509,10 +8509,10 @@ ulidx@^2.3.0:
   dependencies:
     layerr "^2.0.1"
 
-umzug@3.8.0:
-  version "3.8.0"
-  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.8.0.tgz#dfe2d753141f155f30106b2b893e355fed0c645f"
-  integrity sha512-FRBvdZxllW3eUzsqG3CIfgOVChUONrKNZozNOJfvmcfBn5pMKcJjICuMMEsDLHYa/aqd7a2NtXfYEG86XHe1lQ==
+umzug@3.8.1:
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.8.1.tgz#52e7f2c831b56fade367a42bf190ac73a786dda7"
+  integrity sha512-k0HjOc3b/s8vH24BUTvnaFiKhfWI9UQAGpqHDG+3866CGlBTB83Xs5wZ1io1mwYLj/GHvQ34AxKhbpYnWtkRJg==
   dependencies:
     "@rushstack/ts-command-line" "^4.12.2"
     emittery "^0.13.0"

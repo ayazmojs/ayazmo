@@ -14,10 +14,12 @@ export default function adminAuthChain(app: AyazmoInstance, globalConfig?: AppCo
 
   if (!Array.isArray(filteredAuthProviders) || filteredAuthProviders.length === 0) {
     app.log.warn(`No authentication providers configured! If you need to enable authentication please configure enabledAuthProviders in the config admin section`);
+    // @ts-ignore
     return app.auth([alwaysFailAuth]); // Return the fail-safe method directly
   }
 
   const validAuthProviders = mapAuthProviders(app, filteredAuthProviders);
 
+  // @ts-ignore
   return app.auth(validAuthProviders)
 }

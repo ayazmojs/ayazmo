@@ -83,6 +83,7 @@ export class Server {
   }
 
   public registerGQL() {
+    // @ts-ignore
     this.fastify.register(mercurius, {
       schema: `
         directive @auth(strategies: [String]) on OBJECT | FIELD_DEFINITION
@@ -106,10 +107,11 @@ export class Server {
   }
 
   public registerAuthDirective() {
+    // @ts-ignore
     this.fastify.register(mercuriusAuth, {
       applyPolicy: async (authDirectiveAST, parent, args, context, info) => {
         const strategies: string[] = authDirectiveAST.arguments[0].value.values.map(value => value.value)
-        const runStrategies: any[] = []
+        const runStrategies: FastifyAuthFunction[] = []
         let shouldThrow: boolean = false
 
         strategies.forEach(authStrategy => {
@@ -121,6 +123,7 @@ export class Server {
           runStrategies.push(this.fastify[authStrategy])
         })
 
+        // @ts-ignore
         const auth: FastifyAuthFunction = this.fastify.auth(runStrategies)
         // @ts-expect-error
         auth(context.reply.request, context.reply, (error: Error) => {
@@ -187,11 +190,13 @@ export class Server {
   private async enableCORS() {
     const config = diContainer.resolve('config') as AppConfig;
     if (config?.app?.cors) {
+      // @ts-ignore
       await this.fastify.register(cors, config.app.cors)
     }
   }
 
   private enableCookies() {
+    // @ts-ignore
     this.fastify.register(fastifyCookie, {
       hook: 'preParsing'
     })
@@ -200,13 +205,16 @@ export class Server {
   private async maybeEnableRedis() {
     const config = diContainer.resolve('config') as AppConfig;
     if (config?.app?.redis) {
+      // @ts-ignore
       await this.fastify.register(fastifyRedis, config.app.redis)
     }
   }
 
   private async enableAuthProviders() {
     const config = diContainer.resolve('config') as AppConfig;
+    // @ts-ignore
     this.fastify.decorate('userAuthChain', userAuthChain(this.fastify, config))
+    // @ts-ignore
     this.fastify.decorate('adminAuthChain', adminAuthChain(this.fastify, config))
   }
 
@@ -239,6 +247,7 @@ export class Server {
     this.registerAdminRoles()
     await this.fastify
       .decorate('anonymousStrategy', anonymousStrategy)
+      // @ts-ignore
       .register(fastifyAuth)
 
     await this.maybeEnableRedis()

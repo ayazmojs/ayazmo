@@ -2,8 +2,6 @@ import { MikroORM, Options, PostgreSqlDriver, Migrator } from "@ayazmo/types";
 import AyazmoMigrationGenerator from "./migration-generator.js";
 
 export default async function initDatabase(config: Options): Promise<MikroORM> {
-  // Perform necessary validation and checks on the config object
-
   // Initialize MikroORM database
   const orm = await MikroORM.init(prepareConfig(config));
 
@@ -14,7 +12,7 @@ export default async function initDatabase(config: Options): Promise<MikroORM> {
 function prepareConfig(config: any): Options {
   // Perform necessary validation and checks on the config object
 
-  const {type, ...rest} = config;
+  const {type = 'postgresql', ...rest} = config;
 
   // Return the prepared config object
   if (type === 'postgresql') {

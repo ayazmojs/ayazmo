@@ -28,9 +28,10 @@ export async function loadGraphQL (fastify: AyazmoInstance, GqlPath: string): Pr
       }
 
       fastify.register(async function (app) {
+        // @ts-ignore
         app.graphql.extendSchema(pluginSchema.default)
+        // @ts-ignore
         app.graphql.defineResolvers(pluginResolvers.default)
-        // app.graphql.defineLoaders(loaders)
       })
     }
   } catch (error) {
