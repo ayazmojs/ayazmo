@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.1.30
+
+### Patch Changes
+
+- [`94868f6`](https://github.com/ayazmojs/ayazmo/commit/94868f633a362df0b8ce8757c4627b69393fbafa) - add missing import and deps
+
+- Updated dependencies [[`94868f6`](https://github.com/ayazmojs/ayazmo/commit/94868f633a362df0b8ce8757c4627b69393fbafa)]:
+  - @ayazmo/types@0.1.30
+
 ## 0.1.29
 
 ### Patch Changes

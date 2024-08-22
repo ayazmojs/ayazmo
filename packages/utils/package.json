@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/utils",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "description": "Ayazmo helper functions used in core and modules",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -18,7 +18,7 @@
     "test": "node --import tsx --test __tests__"
   },
   "dependencies": {
-    "@ayazmo/types": "^0.1.29",
+    "@ayazmo/types": "^0.1.30",
     "@fastify/error": "^3.4.1",
     "@types/fs-extra": "^11.0.4",
     "ast-types": "^0.14.2",
