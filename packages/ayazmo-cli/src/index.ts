@@ -14,7 +14,9 @@ import { removePlugin } from './utils/remove-plugin.js'
 import { downMigrations } from './utils/down-migrations.js'
 
 const version = getAyazmoVersion()
-printAyazmo()
+if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+  printAyazmo()
+}
 
 program
   .name('ayazmo')
