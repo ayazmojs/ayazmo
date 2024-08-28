@@ -32,17 +32,22 @@ export const installPlugin = async (pluginName: string) => {
 
   try {
     await installPackageInMonorepo(pluginName);
-    const configFilePath = path.join(process.cwd(), GLOBAL_CONFIG_FILE_NAME);
+    const applicationConfigFilePath = path.join(process.cwd(), GLOBAL_CONFIG_FILE_NAME);
     const pluginPaths = getPluginPaths(pluginName, { private: false });
     const pluginConfigPath = path.join(pluginPaths.config ?? '');
-    const configFileSource = await fs.promises.readFile(configFilePath, 'utf8');
+
+    if (!pluginConfigPath || !fs.existsSync(pluginConfigPath)) {
+      throw new Error(`Plugin ${pluginName} does not have an application config file.`);
+    }
+
     // add the plugin to the plugins array in the ayazmo.config.js file
+    const configFileSource = await fs.promises.readFile(applicationConfigFilePath, 'utf8');
     const configFileUpdated = addPluginToConfig(configFileSource, pluginName);
-    await writeFile(configFilePath, configFileUpdated);
+    await writeFile(applicationConfigFilePath, configFileUpdated);
 
     // amend the config file
-    if (configFilePath && pluginConfigPath) {
-      await amendConfigFile(configFilePath, pluginConfigPath);
+    if (applicationConfigFilePath && pluginConfigPath) {
+      await amendConfigFile(applicationConfigFilePath, pluginConfigPath);
     }
   } catch (error) {
     CliLogger.error(`Failed to install plugin ${pluginName}: ${error}`);
