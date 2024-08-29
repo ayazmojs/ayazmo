@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.1.31
+
+### Patch Changes
+
+- fix for missing config template. Rework of redis events
+
 ## 0.1.30
 
 ### Patch Changes

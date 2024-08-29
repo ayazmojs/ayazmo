@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.1.31
+
+### Patch Changes
+
+- fix for missing config template. Rework of redis events
+
+- Updated dependencies []:
+  - @ayazmo/core@0.1.31
+  - @ayazmo/types@0.1.31
+  - @ayazmo/utils@0.1.31
+
 ## 0.1.30
 
 ### Patch Changes
