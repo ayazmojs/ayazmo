@@ -2,7 +2,7 @@
   "name": "@ayazmo/core",
   "version": "0.1.30",
   "description": "Ayazmo core functionality",
-  "exports": "./dist/index.js",
+  "exports": "./dist/src/index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
   "type": "module",
@@ -37,10 +37,11 @@
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
     "lint": "ts-standard src/*",
     "lint-fix": "ts-standard --fix src/*",
-    "test": "node --import tsx --test __tests__"
+    "test": "node --import tsx --test ./__tests__/**/*.test.mjs"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.7",
+    "request": "^2.88.2",
     "tsx": "^4.8.2"
   },
   "publishConfig": {

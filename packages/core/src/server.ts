@@ -19,7 +19,7 @@ import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 
-const rootDir = process.cwd()
+const rootDir = process.env.AYAZMO_ROOT_DIR ?? process.cwd()
 const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: FastifyInstance
@@ -56,6 +56,10 @@ export class Server {
         })
       })
     }
+  }
+
+  getServerInstance() {
+    return this.fastify
   }
 
   // Method to set the default error handler

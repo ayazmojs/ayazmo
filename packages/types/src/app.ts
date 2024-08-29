@@ -3,6 +3,7 @@ import { Options, MikroORM } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
 import { FastifyListenOptions } from "fastify";
+import { Queue, WorkerOptions } from 'bullmq';
 
 export interface PluginRoutesCustom {
   enabled?: boolean;
@@ -30,6 +31,14 @@ export interface PluginConfig {
 export interface AyazmoAppConfig {
   server: FastifyListenOptions,
   eventEmitterType: 'memory' | 'redis',
+  emitter: {
+    type: 'memory' | 'redis',
+    queues?: Queue[]
+    worker: {
+      queueName: string,
+      options: WorkerOptions
+    }
+  },
   redis: any,
   cors: FastifyCorsOptions,
   cache: any,

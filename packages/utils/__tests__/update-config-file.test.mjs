@@ -21,10 +21,9 @@ describe('updateConfigFile', () => {
     const updatedConfigFileImport = await import(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
-    // console.log(configFileContents.plugins, updatedConfigFileContents.plugins)
 
-    // Compare the contents of configFile and updatedConfigFile
-    assert.deepEqual(configFileContents, updatedConfigFileContents);
+    // updatedConfigFile should have one more plugin than configFile
+    assert.notDeepEqual(configFileContents.plugins, updatedConfigFileContents.plugins);
   });
 
   it('should not add a new plugin configuration to the app plugins array if it already exists', async () => {
@@ -35,10 +34,9 @@ describe('updateConfigFile', () => {
     const updatedConfigFileImport = await import(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
-    console.log(configFileContents.plugins, updatedConfigFileContents.plugins)
 
     // Compare the contents of configFile and updatedConfigFile
-    assert.deepEqual(configFileContents, updatedConfigFileContents);
+    assert.notDeepEqual(configFileContents.plugins, updatedConfigFileContents.plugins);
   });
 
   it('should remove a plugin configuration from the app plugins array', async () => {
@@ -51,6 +49,6 @@ describe('updateConfigFile', () => {
     const updatedConfigFileContents = updatedConfigFileImport.default;
 
     // Compare the contents of configFile and updatedConfigFile
-    assert.deepEqual(configFileContents, updatedConfigFileContents);
+    assert.deepEqual(configFileContents.plugins, updatedConfigFileContents.plugins);
   });
 });

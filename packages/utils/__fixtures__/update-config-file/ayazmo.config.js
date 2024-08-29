@@ -43,28 +43,23 @@ export default {
   admin: {
     enabled: true,
   },
-  plugins: [{
-    name: 'ayazmo-plugin-test',
-    settings: {
-      private: true,
-    }
-  }, {
-    name: "ayazmo-plugin-comments",
-    settings: {
-      private: false
-    }
-  }, {
-    name: 'ayazmo-plugin-rabbitmq',
-    settings: {
-    }
-  }, {
-    name: "new-plugin-name-test",
-    settings: {
-      private: false,
-      options: {
-        key: "value",
-        anotherOption: true
+  plugins: [
+    {
+      name: 'ayazmo-plugin-test',
+      settings: {
+        private: true,
+      }
+    },
+    {
+      name: "ayazmo-plugin-comments",
+      settings: {
+        private: false
+      }
+    },
+    {
+      name: 'ayazmo-plugin-rabbitmq',
+      settings: {
       }
     }
-  }]
+  ]
 }

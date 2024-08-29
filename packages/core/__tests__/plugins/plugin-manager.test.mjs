@@ -4,7 +4,7 @@ import path from "node:path";
 import {
   constructPaths,
   getPluginRoot
-} from "../../src/plugins/plugin-manager"
+} from "../../dist/plugins/plugin-manager.js"
 import { pluginConfig } from "../../__fixtures__/config"
 
 const plugins = pluginConfig.plugins

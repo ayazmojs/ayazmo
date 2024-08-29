@@ -12,9 +12,9 @@ class EventService extends AyazmoCoreService {
   constructor(container: AyazmoContainer, config: AppConfig, app: AyazmoInstance) {
     super(container, config, app)
     const configModule = this.getGlobalConfig()
-    switch (configModule?.app?.eventEmitterType) {
+    switch (configModule?.app?.emitter?.type) {
       case 'redis':
-        this.eventEmitter = new RedisEventEmitter(container, config, app);
+        this.eventEmitter = new RedisEventEmitter(container, configModule, app);
         break;
       // Add other cases for different event emitter types
       default: this.eventEmitter = new InMemoryEventEmitter()

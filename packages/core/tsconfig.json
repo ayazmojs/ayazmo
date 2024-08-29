@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "lib": [
 			"DOM",
 			"DOM.Iterable",
@@ -38,13 +39,13 @@
   },
   "include": [
     "src",
+    "__tests__/**/*.test.mjs",
+    "__fixtures__",
     "node_modules/@fastify/awilix/lib/index.d.ts",
     "node_modules/@fastify/cookie/types/plugin.d.ts"
   ],
   "exclude": [
     "dist",
-    "./__tests__",
-    "./__fixtures__",
     "node_modules/**/*",
     "!node_modules/@fastify/awilix/lib/index.d.ts",
     "!node_modules/@fastify/cookie/types/plugin.d.ts"  ]
