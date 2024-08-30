@@ -2,7 +2,7 @@
   "name": "@ayazmo/core",
   "version": "0.1.31",
   "description": "Ayazmo core functionality",
-  "exports": "./dist/src/index.js",
+  "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
   "license": "MIT",
   "type": "module",

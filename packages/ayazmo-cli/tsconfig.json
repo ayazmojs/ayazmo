@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "composite": true,
     "lib": [
 			"DOM",
 			"DOM.Iterable",
@@ -27,6 +26,7 @@
     "noUnusedLocals": true,
     "noImplicitOverride": true,
     "noUnusedParameters": true,
+    "baseUrl": "./src",
     "paths": {
       "@ayazmo/core": [
         "../core/src"
@@ -40,10 +40,5 @@
     "./src/**/__mocks__",
     "./src/**/__fixtures__",
     "node_modules"
-  ],
-  "references": [
-    {
-      "path": "../core"
-    }
   ]
 }
