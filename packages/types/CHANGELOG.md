@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.1.32
+
+### Patch Changes
+
+- fix for cli
+
 ## 0.1.31
 
 ### Patch Changes

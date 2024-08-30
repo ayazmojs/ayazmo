@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.1.32
+
+### Patch Changes
+
+- fix for cli
+
+- Updated dependencies []:
+  - @ayazmo/core@0.1.32
+  - @ayazmo/types@0.1.32
+  - @ayazmo/utils@0.1.32
+
 ## 0.1.31
 
 ### Patch Changes
