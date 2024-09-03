@@ -30,7 +30,6 @@ export interface PluginConfig {
 
 export interface AyazmoAppConfig {
   server: FastifyListenOptions,
-  eventEmitterType: 'memory' | 'redis',
   emitter: {
     type: 'memory' | 'redis',
     queues?: Queue[]

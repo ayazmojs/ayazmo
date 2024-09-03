@@ -10,6 +10,13 @@ const pluginConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-
 const initialConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-file/initial.config.js');
 const updatedConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-file/updated.config.js');
 
+async function importFresh(filePath) {
+  // Append a query string to filePath to bypass cache
+  const cacheBuster = `?update=${Date.now()}`;
+  const newUrl = new URL(filePath + cacheBuster, import.meta.url).href;
+  return import(newUrl);
+}
+
 describe('updateConfigFile', () => {
   it('should add a new plugin configuration to the app plugins array', async () => {
     // ensure clean state
@@ -17,8 +24,8 @@ describe('updateConfigFile', () => {
     await amendConfigFile(configFile, pluginConfigFile);
 
     // Read the contents of both files
-    const configFileImport = await import(configFile);
-    const updatedConfigFileImport = await import(updatedConfigFile);
+    const configFileImport = await importFresh(configFile);
+    const updatedConfigFileImport = await importFresh(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
 
@@ -30,8 +37,8 @@ describe('updateConfigFile', () => {
     await amendConfigFile(configFile, pluginConfigFile);
 
     // Read the contents of both files
-    const configFileImport = await import(configFile);
-    const updatedConfigFileImport = await import(updatedConfigFile);
+    const configFileImport = await importFresh(configFile);
+    const updatedConfigFileImport = await importFresh(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
 
@@ -40,11 +47,11 @@ describe('updateConfigFile', () => {
   });
 
   it('should remove a plugin configuration from the app plugins array', async () => {
-    await removePluginConfig(configFile, 'new-plugin-name-test');
+    await removePluginConfig(updatedConfigFile, 'new-plugin-name-test');
 
     // Read the contents of both files
-    const configFileImport = await import(configFile);
-    const updatedConfigFileImport = await import(updatedConfigFile);
+    const configFileImport = await importFresh(configFile);
+    const updatedConfigFileImport = await importFresh(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
 
