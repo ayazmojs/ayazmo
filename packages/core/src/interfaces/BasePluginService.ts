@@ -1,16 +1,18 @@
-import { PluginSettings, EntityManager, EntityRepository, AyazmoContainer } from '@ayazmo/types'
+import { PluginSettings, EntityManager, EntityRepository, AyazmoContainer, AyazmoInstance } from '@ayazmo/types'
 
 export abstract class BasePluginService {
   public container: AyazmoContainer
   public pluginSettings: PluginSettings
   private _em: EntityManager | undefined
+  app: AyazmoInstance
 
-  constructor (container: AyazmoContainer, pluginSettings: PluginSettings) {
+  constructor (container: AyazmoContainer, pluginSettings: PluginSettings, app: AyazmoInstance) {
     if (new.target === BasePluginService) {
       throw new Error('BaseService is an abstract class and cannot be instantiated directly.')
     }
     this.container = container
     this.pluginSettings = pluginSettings
+    this.app = app
   }
 
   public get em(): EntityManager {
