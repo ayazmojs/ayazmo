@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, before, after } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 import { amendConfigFile, removePluginConfig } from '../src/amend-config-file.js';
@@ -18,12 +18,20 @@ async function importFresh(filePath) {
 }
 
 describe('updateConfigFile', () => {
+  before(async () => {
+    // Copy the initial config file to the updated config file
+    fs.copyFileSync(initialConfigFile, updatedConfigFile);
+  });
+
+  after(async () => {
+    // Copy the initial config file to the updated config file
+    fs.copyFileSync(initialConfigFile, updatedConfigFile);
+  });
+
   it('should add a new plugin configuration to the app plugins array', async () => {
-    // ensure clean state
-    fs.copyFileSync(initialConfigFile, configFile);
+    // add plugin config to the app config file
     await amendConfigFile(configFile, pluginConfigFile);
 
-    // Read the contents of both files
     const configFileImport = await importFresh(configFile);
     const updatedConfigFileImport = await importFresh(updatedConfigFile);
     const configFileContents = configFileImport.default;
@@ -34,6 +42,7 @@ describe('updateConfigFile', () => {
   });
 
   it('should not add a new plugin configuration to the app plugins array if it already exists', async () => {
+    // should not add plugin config to the app config file as it already exists from prev test
     await amendConfigFile(configFile, pluginConfigFile);
 
     // Read the contents of both files
@@ -47,7 +56,7 @@ describe('updateConfigFile', () => {
   });
 
   it('should remove a plugin configuration from the app plugins array', async () => {
-    await removePluginConfig(updatedConfigFile, 'new-plugin-name-test');
+    await removePluginConfig(configFile, 'new-plugin-name-test');
 
     // Read the contents of both files
     const configFileImport = await importFresh(configFile);

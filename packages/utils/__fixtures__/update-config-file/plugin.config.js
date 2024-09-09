@@ -1,4 +1,4 @@
-export const config = {
+const config = {
   name: 'new-plugin-name-test',
   settings: {
     private: false,
@@ -8,3 +8,5 @@ export const config = {
     }
   }
 };
+
+export default config;
