@@ -27,13 +27,13 @@ export function getAuthProviderFunction(app: AyazmoInstance, providerName: strin
 export function mapAuthProviders(app: AyazmoInstance, providers: Array<string | string[]>): any[] {
   const authFunctions = providers.reduce((acc: any[], provider: string | string[]) => {
     if (typeof provider === 'string') {
-      const authFunction = getAuthProviderFunction(app,provider);
+      const authFunction = getAuthProviderFunction(app, provider);
       if (authFunction) { // Check for a non-null auth function
         acc.push(authFunction);
       }
     } else if (Array.isArray(provider)) {
       const nestedAuthFunctions = provider
-        .map(p => getAuthProviderFunction(app,p))
+        .map(p => getAuthProviderFunction(app, p))
         .filter(fn => fn !== null); // Filter out null values
       acc.push(...nestedAuthFunctions);
     }

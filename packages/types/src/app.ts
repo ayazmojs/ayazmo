@@ -3,7 +3,8 @@ import { Options, MikroORM } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
 import { FastifyListenOptions } from "fastify";
-import { Queue, WorkerOptions } from 'bullmq';
+import { QueueOptions, WorkerOptions } from 'bullmq';
+import { AyazmoInstance } from "./server";
 
 export interface PluginRoutesCustom {
   enabled?: boolean;
@@ -28,11 +29,18 @@ export interface PluginConfig {
   settings: PluginSettings;
 }
 
+export type AyazmoQueue = {
+  name: string;
+  options?: QueueOptions;
+  publishOn: string[];
+  transformer?: (payload: any, type: string, app: AyazmoInstance) => Promise<any>;
+};
+
 export interface AyazmoAppConfig {
   server: FastifyListenOptions,
   emitter: {
     type: 'memory' | 'redis',
-    queues?: Queue[]
+    queues?: AyazmoQueue[]
     worker: {
       queueName: string,
       options: WorkerOptions

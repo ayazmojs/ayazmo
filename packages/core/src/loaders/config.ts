@@ -1,21 +1,21 @@
 // src/configLoader.ts
 import { AyazmoInstance, AppConfig } from '@ayazmo/types'
 import { merge, importGlobalConfig } from '@ayazmo/utils'
-import { AwilixContainer, asValue } from 'awilix'
+import { asValue } from 'awilix'
 
-export const loadConfig = async (config: string, app: AyazmoInstance, diContainer: AwilixContainer): Promise<AppConfig> => {
+export const loadConfig = async (app: AyazmoInstance): Promise<AppConfig> => {
   const defaultConfig: any = {
     // Define your default configurations here
     plugins: []
   }
 
   try {
-    const userConfig: AppConfig = await importGlobalConfig(config)
+    const userConfig: AppConfig = await importGlobalConfig(app.configPath)
     // TODO: Validate userConfig here
 
     const mergedConfig: AppConfig = merge(defaultConfig, userConfig)
 
-    diContainer.register({
+    app.diContainer.register({
       config: asValue(mergedConfig)
     })
 

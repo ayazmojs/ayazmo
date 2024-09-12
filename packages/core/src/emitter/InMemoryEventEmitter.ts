@@ -26,6 +26,10 @@ export class InMemoryEventEmitter extends BaseEventEmitter {
     return this.emitter
   }
 
+  override getWorker (): EventEmitter {
+    return this.emitter
+  }
+
   listSubscribers (event: string) {
     return this.getEmitter().listeners(event)
   }

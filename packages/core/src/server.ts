@@ -26,8 +26,8 @@ export class Server {
 
   constructor(options: ServerOptions = {}) {
     this.fastify = fastify(options)
-
-    this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
+    this.fastify.decorate('configPath', options?.configPath ?? configDir)
+    // this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     this.initializeRoutes()
     this.registerGQL()
     this.setupGracefulShutdown()
@@ -206,20 +206,34 @@ export class Server {
     })
   }
 
-  private async maybeEnableRedis() {
-    const config = diContainer.resolve('config') as AppConfig;
-    if (config?.app?.redis) {
+  public async maybeEnableRedis(opts?: null | any) {
+    const config = this.fastify.diContainer.resolve('config') as AppConfig;
+    if (config?.app?.redis || opts) {
       // @ts-ignore
-      await this.fastify.register(fastifyRedis, config.app.redis)
+      await this.fastify.register(fastifyRedis, config.app.redis ?? opts)
     }
   }
 
-  private async enableAuthProviders() {
-    const config = diContainer.resolve('config') as AppConfig;
+  public async enableAuthProviders() {
+    const config = this.fastify.diContainer.resolve('config') as AppConfig;
+    await this.fastify.decorate('anonymousStrategy', anonymousStrategy)
+      .register(fastifyAuth);
     // @ts-ignore
-    this.fastify.decorate('userAuthChain', userAuthChain(this.fastify, config))
-    // @ts-ignore
-    this.fastify.decorate('adminAuthChain', adminAuthChain(this.fastify, config))
+    this.fastify
+      .decorate('userAuthChain', userAuthChain(this.fastify, config))
+      .decorate('adminAuthChain', adminAuthChain(this.fastify, config))
+  }
+
+  public async loadConfig() {
+    await loadConfig(this.fastify)
+  }
+
+  public async loadDiContainer() {
+    await this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
+  }
+
+  public async loadCoreServices() {
+    await loadCoreServices(this.fastify, diContainer)
   }
 
   private setupGracefulShutdown() {
@@ -246,18 +260,19 @@ export class Server {
   }
 
   public async loadPlugins(): Promise<void> {
-    await loadConfig(configDir, this.fastify, diContainer)
+    await this.loadDiContainer()
+    await this.loadConfig()
 
     this.registerAdminRoles()
-    await this.fastify
-      .decorate('anonymousStrategy', anonymousStrategy)
-      // @ts-ignore
-      .register(fastifyAuth)
+    // await this.fastify
+    //   .decorate('anonymousStrategy', anonymousStrategy)
+    //   // @ts-ignore
+    //   .register(fastifyAuth)
 
     await this.maybeEnableRedis()
 
     // load ayazmo services
-    await loadCoreServices(this.fastify, diContainer)
+    await this.loadCoreServices()
 
     // load plugins
     await loadPlugins(this.fastify, diContainer as AyazmoContainer)

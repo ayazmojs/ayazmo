@@ -18,12 +18,12 @@ async function importFresh(filePath) {
 }
 
 describe('updateConfigFile', () => {
-  before(async () => {
+  before(() => {
     // Copy the initial config file to the updated config file
     fs.copyFileSync(initialConfigFile, updatedConfigFile);
   });
 
-  after(async () => {
+  after(() => {
     // Copy the initial config file to the updated config file
     fs.copyFileSync(initialConfigFile, updatedConfigFile);
   });

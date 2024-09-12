@@ -16,6 +16,12 @@ export const appConfigDefaultQueue = {
       "settings": {
         "private": false
       }
+    },
+    {
+      "name": "ayazmo-plugin-test-service",
+      "settings": {
+        "private": false
+      }
     }
   ]
 }

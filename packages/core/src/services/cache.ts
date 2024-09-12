@@ -10,7 +10,7 @@ export default class CacheService extends AyazmoCoreService {
   constructor(container: AyazmoContainer, appConfig: AppConfig, app: AyazmoInstance) {
     super(container, appConfig, app)
     const appCacheConfig = container.config.app.cache
-    if (appCacheConfig.storage.type === 'redis') {
+    if (appCacheConfig && appCacheConfig.storage.type === 'redis') {
       appCacheConfig.storage.options.client = app.redis;
     }
     this.cache = createCache(appCacheConfig)

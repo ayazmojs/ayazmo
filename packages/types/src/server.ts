@@ -7,7 +7,7 @@ export interface AyazmoRouteOptions extends RouteOptions {
 }
 
 export interface ServerOptions extends FastifyServerOptions {
-  // Define any additional options here if needed
+  configPath?: string;
 }
 
 interface User {
@@ -33,6 +33,7 @@ declare module 'fastify' {
     userAuthChain: preHandlerHookHandler;
     adminAuthChain: preHandlerHookHandler,
     redis: any;
+    configPath: string;
   }
 }
 
