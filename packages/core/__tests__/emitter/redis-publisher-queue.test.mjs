@@ -13,20 +13,22 @@ describe("core: testing the redis publisher via Queue", () => {
     queue
 
   before(async () => {
-    // redisServer = new RedisMemoryServer({
-    //   instance: {
-    //     port: 6380,
-    //     ip: '127.0.0.1'
-    //   },
-    //   autoStart: true
-    // });
+    redisServer = new RedisMemoryServer({
+      instance: {
+        port: 6380,
+        ip: '127.0.0.1'
+      },
+      autoStart: true
+    });
     // console.log(redisServer.getInstanceInfo())
     server = buildServer(path.join(__dirname, 'emitter', 'redis-queue-ayazmo.config.js'))
     await server.loadDiContainer();
     await server.loadConfig();
     await server.maybeEnableRedis({
-      host: '127.0.0.1', //await redisServer.getHost(),
-      port: '6380', //await redisServer.getPort(),
+      // host: '127.0.0.1', //await redisServer.getHost(),
+      host: await redisServer.getHost(),
+      // port: '6380', //await redisServer.getPort(),
+      port: await redisServer.getPort(),
       closeClient: true,
       maxRetriesPerRequest: null,
       options: {
@@ -45,7 +47,7 @@ describe("core: testing the redis publisher via Queue", () => {
 
   after(async () => {
     await app.close()
-    // await redisServer.stop();
+    await redisServer.stop();
   })
 
   it("test redis connection", async () => {
@@ -95,16 +97,15 @@ describe("core: testing the redis publisher via Queue", () => {
     await worker.waitUntilReady()
 
     queue.on('waiting', async (job) => {
-      console.log('waiting', job.id);
       jobId = job.id;
     });
 
     await eventService.publish('test-queue-event', { key: 'value' })
-    const hander = async (payload) => {
+    const handler = async (payload) => {
       assert.deepStrictEqual(payload, { key: 'value' })
     }
 
-    await eventService.subscribe('test-queue-event', hander)
+    await eventService.subscribe('test-queue-event', handler)
     assert.equal(emitter.getEventHandlers().size, 1)
 
     // wait until the job has been consumed but timeout after 10 seconds
@@ -128,14 +129,13 @@ describe("core: testing the redis publisher via Queue", () => {
 
       worker.on('completed', async (job) => {
         if (job.id === jobId) {
-          console.log('clearning interval')
           clearInterval(interval);
           resolve();
         }
       });
     })
 
-    await eventService.unsubscribe('test-queue-event', hander)
+    await eventService.unsubscribe('test-queue-event', handler)
     assert.equal(emitter.getEventHandlers().size, 0)
     await worker.close()
   })

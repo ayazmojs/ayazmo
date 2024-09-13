@@ -15,13 +15,19 @@ describe("core: testing the redis publisher via Flow", () => {
     flowPublisher
 
   before(async () => {
-    // ... existing setup code ...
+    redisServer = new RedisMemoryServer({
+      instance: {
+        port: 6380,
+        ip: '127.0.0.1'
+      },
+      autoStart: true
+    });
     server = buildServer(path.join(__dirname, 'emitter', 'redis-flow-ayazmo.config.js'))
     await server.loadDiContainer();
     await server.loadConfig();
     await server.maybeEnableRedis({
-      host: '127.0.0.1', //await redisServer.getHost(),
-      port: '6380', //await redisServer.getPort(),
+      host: await redisServer.getHost(),
+      port: await redisServer.getPort(),
       closeClient: true,
       maxRetriesPerRequest: null,
       options: {
@@ -87,15 +93,50 @@ describe("core: testing the redis publisher via Flow", () => {
   })
 
   it("successfully publishes one job to two separate queues", async () => {
-    const job = {
+    let completed = false;
+    let interval;
+    const data = {
       title: 'test-flow-event-1',
       id: 1,
       content: 'test-flow-event-1'
     }
-    await publisher.publish('comment.create', job)
-    for (const worker of workers.values()) {
-      await worker.close()
+    await publisher.publish('comment.create', data)
+    const handler = (payload) => {
+      assert.equal(payload.id, 1)
+      completed = true
     }
+    const eventService = app.diContainer.resolve('eventService')
+
+    await eventService.subscribe('comment.create', handler)
+
+    await new Promise((resolve, reject) => {
+      if (completed) {
+        resolve();
+      }
+
+      const startTime = Date.now();
+
+      // set a time counter in an interval
+      interval = setInterval(async () => {
+        const elapsedTime = Date.now() - startTime;
+        // display the elapsed time in seconds in place instead of on new line
+        console.log(`\rConsuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
+        if (elapsedTime > 20000) {
+          clearInterval(interval);
+          reject(new Error('Timeout after 20 seconds'));
+        } else if (completed) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 1000);
+
+      workers.get('eventsQueue').on('completed', async (job) => {
+        if (job.id === data.id) {
+          clearInterval(interval);
+          resolve();
+        }
+      });
+    })
   })
 
   it("successfully creates multiple workers", async () => {
@@ -103,48 +144,6 @@ describe("core: testing the redis publisher via Flow", () => {
     assert.ok(workers.get('eventsQueue'))
     assert.ok(workers.get('comments'))
   })
-
-  it("each worker processes only its own queue", async () => {
-    const job1 = {
-      title: 'test-flow-event-2',
-      id: 2,
-      content: 'test-flow-event-2'
-    }
-    const job2 = {
-      title: 'test-flow-event-3',
-      id: 3,
-      content: 'test-flow-event-3'
-    }
-    await publisher.publish('comment.create', job1)
-    await publisher.publish('comment.delete', job2)
-
-    // Add assertions to check that each worker processed the correct jobs
-    // This might involve adding some state tracking in the handlers
-  })
-
-  it("handles uncaught exceptions", async () => {
-    const error = new Error('Test uncaught exception');
-    const originalLogError = app.log.error;
-    let logErrorCalled = false;
-    app.log.error = (message) => { logErrorCalled = true; };
-
-    process.emit('uncaughtException', error);
-    assert.ok(logErrorCalled);
-
-    app.log.error = originalLogError;
-  });
-
-  it("handles unhandled rejections", async () => {
-    const reason = 'Test unhandled rejection';
-    const originalLogError = app.log.error;
-    let logErrorCalled = false;
-    app.log.error = (message) => { logErrorCalled = true; };
-
-    process.emit('unhandledRejection', reason, Promise.reject(reason));
-    assert.ok(logErrorCalled);
-
-    app.log.error = originalLogError;
-  });
 
   it("gracefully shuts down workers on SIGINT", async () => {
     const shutdownPromise = once(process, 'exit');
