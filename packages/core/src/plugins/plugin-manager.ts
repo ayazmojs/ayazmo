@@ -191,7 +191,9 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
 
     let pluginPaths: PluginPaths | null = null
 
-    if (fs.existsSync(privatePluginPath)) {
+    if (registeredPlugin?.path) {
+      pluginPaths = constructPaths(registeredPlugin.name, registeredPlugin.path)
+    } else if (fs.existsSync(privatePluginPath)) {
       pluginPaths = constructPaths(registeredPlugin.name, pluginsRoot)
     } else if (fs.existsSync(publicPluginPath)) {
       pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath)
@@ -207,7 +209,7 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
         loadEntities(app, pluginPaths.entities),
         loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
-        loadRoutes(app, container, pluginPaths.routes, registeredPlugin.settings),
+        loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),
         loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings),
         loadAdminRoutes(app, container, pluginPaths.admin.routes, registeredPlugin.settings)
       ])

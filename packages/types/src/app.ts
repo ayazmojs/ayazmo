@@ -26,6 +26,7 @@ export interface PluginSettings {
 
 export interface PluginConfig {
   name: string;
+  path?: string;
   settings: PluginSettings;
 }
 

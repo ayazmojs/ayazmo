@@ -225,11 +225,15 @@ export class Server {
   }
 
   public async loadConfig() {
-    await loadConfig(this.fastify)
+    if (!this.fastify.diContainer.hasRegistration('config')) {
+      await loadConfig(this.fastify)
+    }
   }
 
   public async loadDiContainer() {
-    await this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
+    if (!this.fastify.hasDecorator('diContainer')) {
+      await this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
+    }
   }
 
   public async loadCoreServices() {
@@ -260,34 +264,23 @@ export class Server {
   }
 
   public async loadPlugins(): Promise<void> {
-    await this.loadDiContainer()
-    await this.loadConfig()
-
-    this.registerAdminRoles()
-    // await this.fastify
-    //   .decorate('anonymousStrategy', anonymousStrategy)
-    //   // @ts-ignore
-    //   .register(fastifyAuth)
-
-    await this.maybeEnableRedis()
-
     // load ayazmo services
     await this.loadCoreServices()
 
     // load plugins
     await loadPlugins(this.fastify, diContainer as AyazmoContainer)
-
-    // load auth providers after loading plugins
-    await this.enableAuthProviders()
-
-    this.registerAuthDirective()
   }
 
   async start(): Promise<void> {
     this.enableCookies()
-
+    await this.loadDiContainer()
+    await this.loadConfig()
+    this.registerAdminRoles()
+    await this.maybeEnableRedis()
     await this.loadPlugins()
-
+    // load auth providers after loading plugins
+    await this.enableAuthProviders()
+    this.registerAuthDirective()
     await this.enableCORS()
 
     const config = diContainer.resolve('config') as AppConfig;
