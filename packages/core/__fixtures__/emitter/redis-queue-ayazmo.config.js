@@ -18,14 +18,14 @@ export default {
           }
         }
       ],
-      worker: {
+      workers: [{
         queueName: "eventsQueue",
         options: {
           removeOnComplete: true,
           removeOnFail: { count: 0 },
           concurrency: 1,
         }
-      }
+      }]
     }
   },
   plugins: [

@@ -26,7 +26,7 @@ export class InMemoryEventEmitter extends BaseEventEmitter {
     return this.emitter
   }
 
-  override getWorker (): EventEmitter {
+  getWorker (): EventEmitter {
     return this.emitter
   }
 

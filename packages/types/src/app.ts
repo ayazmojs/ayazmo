@@ -41,10 +41,10 @@ export interface AyazmoAppConfig {
   emitter: {
     type: 'memory' | 'redis',
     queues?: AyazmoQueue[]
-    worker: {
+    workers: [{
       queueName: string,
       options: WorkerOptions
-    }
+    }]
   },
   redis: any,
   cors: FastifyCorsOptions,

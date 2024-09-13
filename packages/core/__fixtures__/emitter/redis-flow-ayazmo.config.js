@@ -46,6 +46,14 @@ export default {
             removeOnFail: { count: 0 },
             concurrency: 1,
           }
+        },
+        {
+          queueName: "comments",
+          options: {
+            removeOnComplete: true,
+            removeOnFail: { count: 0 },
+            concurrency: 1,
+          }
         }
       ]
     }

@@ -9,7 +9,7 @@ export async function loadCoreServices (
   diContainer: AwilixContainer
 ): Promise<void> {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
-  const servicesPath = path.join(__dirname, '..', '..', 'services')
+  const servicesPath = path.join(__dirname, '..', '..', '..', 'dist', 'services')
   const serviceFiles = await globby(`${servicesPath}/*.js`)
 
   if (serviceFiles.length === 0) {

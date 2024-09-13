@@ -18,8 +18,4 @@ export default abstract class BaseEventEmitter implements IEventEmitter {
   getEmitter (): any {
     throw new Error('Method not implemented.')
   }
-
-  getWorker (): any {
-    throw new Error('Method not implemented.')
-  }
 }

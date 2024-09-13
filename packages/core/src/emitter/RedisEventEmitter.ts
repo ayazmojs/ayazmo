@@ -1,4 +1,4 @@
-import { Queue, Worker, FlowProducer, QueueOptions, FlowJob } from 'bullmq';
+import { Queue, Worker, FlowProducer, QueueOptions, FlowJob, WorkerOptions } from 'bullmq';
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js';
 import { AppConfig, AyazmoContainer, AyazmoInstance, AyazmoQueue } from '@ayazmo/types';
 
@@ -17,7 +17,7 @@ export class AyazmoPublisher {
 
     this.setEventQueueMap(queues);
 
-    if (queues.length > 1) {
+    if (this.getEventQueueMap().size > 1) {
       // configure multiple queues
       this.flowProducer = new FlowProducer({ connection: app.redis });
       this.isFlow = true;
@@ -122,7 +122,7 @@ export class AyazmoPublisher {
 }
 
 export class AyazmoWorker {
-  private worker: Worker;
+  private workers: Map<string, Worker> = new Map();
   private app: AyazmoInstance;
   private config: AppConfig;
   private eventHandlers: Map<string, Set<(...args: any[]) => void>>;
@@ -131,37 +131,29 @@ export class AyazmoWorker {
     this.app = app;
     this.config = config;
     this.eventHandlers = eventHandlers;
-    const queueName = this.config.app?.emitter?.worker.queueName ?? 'eventsQueue';
 
-    // this.worker = new Worker(queueName, async (job) => {
-    //   this.app.log.debug('Worker processing job: ' + job.name);
-    //   this.app.log.debug(job.data)
-    //   const handlers = this.eventHandlers.get(job.name);
-    //   if (handlers) {
-    //     for (const handler of handlers) {
-    //       await handler(job.data);
-    //     }
-    //   }
-    // }, {
-    //   ...this.config.app?.emitter?.worker.options, // Spread worker options first
-    //   connection: this.config.app?.emitter?.worker.options?.connection || app.redis, // Use app.redis as fallback
-    // });
+    this.spawnWorkers();
+    this.setupGracefulShutdown();
+    this.setupExceptionHandlers();
+  }
 
-    this.worker = this.createWorker(queueName, async (job) => {
-      this.app.log.debug('Worker processing job: ' + job.name);
-      this.app.log.debug(job.data)
-      const handlers = this.eventHandlers.get(job.name);
-      if (handlers) {
-        for (const handler of handlers) {
-          await handler(job.data);
+  spawnWorkers() {
+    const workerConfigs = this.config.app?.emitter?.workers ?? [];
+    workerConfigs.forEach((workerConfig) => {
+      const queueName = workerConfig.queueName;
+      const worker = this.createWorker(queueName, async (job) => {
+        this.app.log.debug('Worker processing job: ' + job.name);
+        this.app.log.debug(job.data);
+        const handlers = this.eventHandlers.get(job.name);
+        if (handlers) {
+          for (const handler of handlers) {
+            await handler(job.data);
+          }
         }
-      }
-    },
-    {
-      ...this.config.app?.emitter?.worker.options, // Spread worker options first
-      // @ts-ignore
-      connection: this.config.app?.emitter?.worker.options?.connection || app.redis, // Use app.redis as fallback
-    })
+      }, workerConfig.options);
+
+      this.workers.set(queueName, worker);
+    });
   }
 
   createWorker(
@@ -239,14 +231,42 @@ export class AyazmoWorker {
     return w;
   }
 
-  getInstance(): Worker {
-    return this.worker;
+  setupGracefulShutdown() {
+    const shutdown = async () => {
+      this.app.log.info('Gracefully shutting down workers...');
+      for (const worker of this.workers.values()) {
+        await worker.close();
+      }
+      process.exit(0);
+    };
+
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  }
+
+  setupExceptionHandlers() {
+    process.on('uncaughtException', (err) => {
+      this.app.log.error(`Uncaught Exception: ${err.message}`);
+      this.app.log.error(err.stack || '');
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      this.app.log.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    });
+  }
+
+  getInstanceByQueueName(queueName: string): Worker | undefined {
+    return this.workers.get(queueName);
+  }
+
+  getAllInstances(): Map<string, Worker> {
+    return this.workers;
   }
 }
 
 export class RedisEventEmitter extends BaseEventEmitter {
   private publisher: AyazmoPublisher;
-  private worker: AyazmoWorker;
+  private workers: AyazmoWorker;
   // create a map to hold events and handlers
   private eventHandlers: Map<string, Set<(...args: any[]) => void>> = new Map();
 
@@ -254,8 +274,8 @@ export class RedisEventEmitter extends BaseEventEmitter {
     super();
     this.publisher = new AyazmoPublisher(app, config);
 
-    if (config.app?.emitter?.worker) {
-      this.worker = new AyazmoWorker(app, config, this.eventHandlers);
+    if (config.app?.emitter?.workers) {
+      this.workers = new AyazmoWorker(app, config, this.eventHandlers);
     }
   }
 
@@ -291,8 +311,12 @@ export class RedisEventEmitter extends BaseEventEmitter {
     return this.publisher.getInstance();
   }
 
-  override getWorker(): Worker {
-    return this.worker.getInstance();
+  getWorkerByQueueName(queueName: string): Worker | undefined {
+    return this.workers.getInstanceByQueueName(queueName);
+  }
+
+  getAllWorkers(): Map<string, Worker> {
+    return this.workers.getAllInstances();
   }
 
   getEventHandlers(): Map<string, Set<(...args: any[]) => void>> {

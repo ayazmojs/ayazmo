@@ -36,7 +36,7 @@ describe("core: testing the redis publisher via Queue", () => {
     await server.loadCoreServices();
     app = server.getServerInstance();
     const eventService = app.diContainer.resolve('eventService')
-    worker = eventService.getEmitter().getWorker()
+    worker = eventService.getEmitter().getAllWorkers().get('eventsQueue')
     queue = eventService.getEmitter().getPublisher().getInstance()
     await queue.waitUntilReady()
     await worker.waitUntilReady()
@@ -67,8 +67,6 @@ describe("core: testing the redis publisher via Queue", () => {
 
     const queue = publisher.getInstance();
     assert.equal(queue.constructor.name, 'Queue')
-
-    const worker = emitter.getWorker()
     assert.equal(worker.constructor.name, 'Worker')
 
     // assert that the default job options are set
@@ -93,7 +91,6 @@ describe("core: testing the redis publisher via Queue", () => {
     const eventService = app.diContainer.resolve('eventService')
     const emitter = eventService.getEmitter()
     const queue = emitter.getPublisher().getInstance()
-    const worker = emitter.getWorker()
     await queue.waitUntilReady()
     await worker.waitUntilReady()
 
