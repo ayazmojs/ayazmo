@@ -1,8 +1,6 @@
 import path from 'node:path'
 import { __dirname } from '../../__fixtures__/build-server'
 
-console.log(path.resolve(path.join(__dirname, 'plugins')))
-
 export default {
   app: {
     server: {

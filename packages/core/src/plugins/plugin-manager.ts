@@ -5,7 +5,7 @@ import path from 'node:path'
 import { asValue } from 'awilix'
 import { RequestContext, MigrationObject, AnyEntity, MikroORM } from '@ayazmo/types'
 import { merge } from '@ayazmo/utils'
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig, AyazmoContainer } from '@ayazmo/types'
+import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
 import { globby } from 'globby'
 import { FastifyInstance } from 'fastify'
 
@@ -175,8 +175,8 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   )
 }
 
-export const loadPlugins = async (app: FastifyInstance, container: AyazmoContainer): Promise<void> => {
-  const config: AppConfig = container.resolve('config')
+export const loadPlugins = async (app: FastifyInstance): Promise<void> => {
+  const config: AppConfig = app.diContainer.resolve('config')
   const entities: AnyEntity[] = []
 
   // Check if there are no plugins in the configuration
@@ -204,26 +204,28 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
 
     if (pluginPaths != null) {
-      // @ts-expect-error
-      const [entityCollection, gqlCollection, ...rest] = await Promise.all([
-        loadEntities(app, pluginPaths.entities),
-        loadGraphQL(app, pluginPaths.graphql),
-        loadServices(app, container, pluginPaths.services, registeredPlugin.settings),
-        loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),
-        loadSubscribers(app, container, pluginPaths.subscribers, registeredPlugin.settings),
-        loadAdminRoutes(app, container, pluginPaths.admin.routes, registeredPlugin.settings)
-      ])
 
-      entities.push(...entityCollection)
-
+      // load bootstrap file if it exists before any other plugin files
       if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
         const bootstrap = await import(pluginPaths.bootstrap)
 
         if (!bootstrap.default || typeof bootstrap.default !== 'function') {
           throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`)
         }
-        await bootstrap.default(app, container, registeredPlugin)
+        await bootstrap.default(app, registeredPlugin)
       }
+
+      // @ts-expect-error
+      const [entityCollection, gqlCollection, ...rest] = await Promise.all([
+        loadEntities(app, pluginPaths.entities),
+        loadGraphQL(app, pluginPaths.graphql),
+        loadServices(app, pluginPaths.services, registeredPlugin.settings),
+        loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),
+        loadSubscribers(app, pluginPaths.subscribers, registeredPlugin.settings),
+        loadAdminRoutes(app, pluginPaths.admin.routes, registeredPlugin.settings)
+      ])
+
+      entities.push(...entityCollection)
     }
   }
 
@@ -258,7 +260,7 @@ export const loadPlugins = async (app: FastifyInstance, container: AyazmoContain
       })
 
       // register the db instance in the DI container
-      container.register({
+      app.diContainer.register({
         dbService: asValue(db)
       })
 

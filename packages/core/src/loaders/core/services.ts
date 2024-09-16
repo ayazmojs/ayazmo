@@ -1,19 +1,18 @@
 import { AyazmoInstance } from '@ayazmo/types'
-import { AwilixContainer, asFunction } from 'awilix'
+import { asFunction } from 'awilix'
 import path from 'node:path'
 import { globby } from 'globby'
 import { fileURLToPath } from 'url'
 
-export async function loadCoreServices (
-  fastify: AyazmoInstance,
-  diContainer: AwilixContainer
+export async function loadCoreServices(
+  app: AyazmoInstance
 ): Promise<void> {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
   const servicesPath = path.join(__dirname, '..', '..', '..', 'dist', 'services')
   const serviceFiles = await globby(`${servicesPath}/*.js`)
 
   if (serviceFiles.length === 0) {
-    fastify.log.info(` - No services discovered in ${servicesPath}`)
+    app.log.info(` - No services discovered in ${servicesPath}`)
     return
   }
 
@@ -24,22 +23,22 @@ export async function loadCoreServices (
 
       // Check if the default export exists
       if (!serviceModule.default || typeof serviceModule.default !== 'function') {
-        fastify.log.error(` - The module ${file} does not have a valid default export.`)
+        app.log.error(` - The module ${file} does not have a valid default export.`)
         return
       }
 
       const serviceName = path.basename(file).replace(/\.(ts|js)$/, '') + 'Service'
 
       // Register the service in the DI container
-      diContainer.register({
+      app.diContainer.register({
         [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(cradle, {}, fastify)
+          (cradle) => new serviceModule.default(cradle, {}, app)
         ).singleton()
       })
 
-      fastify.log.info(` - Registered service ${serviceName}`)
+      app.log.info(` - Registered service ${serviceName}`)
     } catch (error) {
-      fastify.log.error(` - Error while loading service ${file}: ${error}`)
+      app.log.error(` - Error while loading service ${file}: ${error}`)
     }
   }
 

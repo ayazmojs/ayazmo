@@ -20,14 +20,11 @@ describe("core: testing the redis publisher via Queue", () => {
       },
       autoStart: true
     });
-    // console.log(redisServer.getInstanceInfo())
     server = buildServer(path.join(__dirname, 'emitter', 'redis-queue-ayazmo.config.js'))
     await server.loadDiContainer();
     await server.loadConfig();
     await server.maybeEnableRedis({
-      // host: '127.0.0.1', //await redisServer.getHost(),
       host: await redisServer.getHost(),
-      // port: '6380', //await redisServer.getPort(),
       port: await redisServer.getPort(),
       closeClient: true,
       maxRetriesPerRequest: null,

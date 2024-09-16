@@ -13,7 +13,7 @@ import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
-import { AppConfig, AyazmoContainer, RolesConfig, ServerOptions } from '@ayazmo/types'
+import { AppConfig, RolesConfig, ServerOptions } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
@@ -192,7 +192,7 @@ export class Server {
   }
 
   private async enableCORS() {
-    const config = diContainer.resolve('config') as AppConfig;
+    const config = this.fastify.diContainer.resolve('config') as AppConfig;
     if (config?.app?.cors) {
       // @ts-ignore
       await this.fastify.register(cors, config.app.cors)
@@ -237,7 +237,7 @@ export class Server {
   }
 
   public async loadCoreServices() {
-    await loadCoreServices(this.fastify, diContainer)
+    await loadCoreServices(this.fastify)
   }
 
   private setupGracefulShutdown() {
@@ -268,7 +268,7 @@ export class Server {
     await this.loadCoreServices()
 
     // load plugins
-    await loadPlugins(this.fastify, diContainer as AyazmoContainer)
+    await loadPlugins(this.fastify)
   }
 
   async start(): Promise<void> {
@@ -283,7 +283,7 @@ export class Server {
     this.registerAuthDirective()
     await this.enableCORS()
 
-    const config = diContainer.resolve('config') as AppConfig;
+    const config = this.fastify.diContainer.resolve('config') as AppConfig;
 
     try {
       await this.fastify.listen(config.app.server)

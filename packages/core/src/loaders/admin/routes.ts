@@ -1,11 +1,10 @@
-import { AyazmoRouteOptions, PluginSettings, PluginRoutes, AyazmoContainer, AppConfig } from '@ayazmo/types'
+import { AyazmoRouteOptions, PluginSettings, PluginRoutes, AppConfig } from '@ayazmo/types'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
 import { isValidAdminRoute, isRouteEnabled } from '../../utils/route-validator.js'
 
 export async function loadAdminRoutes(
   app: FastifyInstance,
-  container: AyazmoContainer,
   path: string,
   pluginSettings: PluginSettings): Promise<void> {
   if (!fs.existsSync(path)) {
@@ -13,7 +12,7 @@ export async function loadAdminRoutes(
     return
   }
 
-  const { admin } = container.resolve('config') as AppConfig
+  const { admin } = app.diContainer.resolve('config') as AppConfig
 
   if (!admin?.enabled) {
     app.log.info(` - Admin routes plugin is disabled via config`)
@@ -47,7 +46,7 @@ export async function loadAdminRoutes(
             const routeHooks = routeConfig[route.url]?.hooks
             let hooksResult: any = {}
             if (typeof routeHooks === 'function') {
-              hooksResult = routeHooks(app, container)
+              hooksResult = routeHooks(app, app.diContainer)
             }
 
             // extract custom route options

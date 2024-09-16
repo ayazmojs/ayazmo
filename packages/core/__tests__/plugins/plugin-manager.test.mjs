@@ -76,4 +76,15 @@ describe("core: testing the plugin manager", () => {
       content: 'test content'
     })
   })
+
+  it("tests plugin services are loaded correctly", () => {
+    const service = app.diContainer.resolve('testService')
+    assert.ok(service)
+    assert.equal(service.constructor.name, 'TestService')
+  })
+
+  it("tests Fastify decorator is added correctly during bootstrap", () => {
+    assert.ok(app.hasDecorator('utility'), 'Decorator should be available on the app instance');
+    assert.equal(app.utility(), 'This is a utility function', 'Decorator should return the correct value');
+  });
 })

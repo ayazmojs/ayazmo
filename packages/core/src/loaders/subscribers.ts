@@ -1,14 +1,13 @@
 import { AyazmoInstance, PluginSettings } from '@ayazmo/types'
-import { AwilixContainer } from 'awilix'
 import { globby } from 'globby'
+import EventService from '../services/event.js'
 
 export async function loadSubscribers(
   fastify: AyazmoInstance,
-  diContainer: AwilixContainer,
   subscribersPath: string,
   pluginSettings: PluginSettings
 ): Promise<void> {
-  const eventService = diContainer.resolve('eventService')
+  const eventService = fastify.diContainer.resolve('eventService') as EventService
 
   if (pluginSettings.subscribers) {
 
@@ -17,7 +16,7 @@ export async function loadSubscribers(
     // Load all the subscribers from the configured path
     for (const [event, handler] of Object.entries(subscribers)) {
       if (typeof handler === 'function') {
-        eventService.subscribe(event, handler)
+        eventService.subscribe(event, handler as (...args: any[]) => void)
         fastify.log.info(` - Registered ${pluginSettings.name} subscriber on ${event}`)
       }
     }
@@ -41,7 +40,7 @@ export async function loadSubscribers(
         return
       }
 
-      const { event, handler } = await module.default(diContainer, pluginSettings)
+      const { event, handler } = await module.default(fastify.diContainer, pluginSettings)
       eventService.subscribe(event, handler)
 
       fastify.log.info(` - Registered subscriber ${module.default.name} on ${event}`)

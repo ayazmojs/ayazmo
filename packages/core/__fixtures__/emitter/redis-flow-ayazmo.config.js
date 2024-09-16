@@ -33,7 +33,6 @@ export default {
           },
           publishOn: ["comment.create", "comment.delete"],
           transformer: async (payload, type, app) => {
-            console.log(payload);
             return payload;
           }
         }
