@@ -47,15 +47,18 @@ describe("core: testing the redis publisher via Flow", () => {
   })
 
   after(async () => {
-    await app.close()
-
     // close all workers if they are still running
     for (const worker of workers.values()) {
       if (worker.isRunning()) {
         await worker.close()
       }
     }
-    // await redisServer.stop();
+
+    if (await redisServer.getInstanceInfo()) {
+      await redisServer.stop();
+    }
+
+    await app.close()
   })
 
   it("test redis connection", async () => {
@@ -93,24 +96,26 @@ describe("core: testing the redis publisher via Flow", () => {
   })
 
   it("successfully publishes one job to two separate queues", async () => {
-    let completed = false;
+    let completed = 0;
     let interval;
     const data = {
       title: 'test-flow-event-1',
       id: 1,
       content: 'test-flow-event-1'
     }
-    await publisher.publish('comment.create', data)
+    
     const handler = (payload) => {
       assert.equal(payload.id, 1)
-      completed = true
+      completed += 1
     }
     const eventService = app.diContainer.resolve('eventService')
 
     await eventService.subscribe('comment.create', handler)
 
+    await publisher.publish('comment.create', data)
+
     await new Promise((resolve, reject) => {
-      if (completed) {
+      if (completed === 2) {
         resolve();
       }
 
@@ -118,6 +123,11 @@ describe("core: testing the redis publisher via Flow", () => {
 
       // set a time counter in an interval
       interval = setInterval(async () => {
+        console.log('Completed', completed);
+        if (completed === 2) {
+          clearInterval(interval);
+          resolve();
+        }
         const elapsedTime = Date.now() - startTime;
         // display the elapsed time in seconds in place instead of on new line
         console.log(`\rConsuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
@@ -129,13 +139,6 @@ describe("core: testing the redis publisher via Flow", () => {
           resolve();
         }
       }, 1000);
-
-      workers.get('eventsQueue').on('completed', async (job) => {
-        if (job.id === data.id) {
-          clearInterval(interval);
-          resolve();
-        }
-      });
     })
   })
 

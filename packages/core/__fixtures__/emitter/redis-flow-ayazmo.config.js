@@ -17,6 +17,11 @@ export default {
             }
           },
           publishOn: ["comment.create"],
+          events: {
+            'failed': (job, err) => {
+              console.log('Job error', job, err);
+            }
+          }
         },
         {
           name: 'comments',
@@ -34,6 +39,11 @@ export default {
           publishOn: ["comment.create", "comment.delete"],
           transformer: async (payload, type, app) => {
             return payload;
+          },
+          events: {
+            'stalled': (job) => {
+              console.log('Job stalled', job);
+            }
           }
         }
       ],
@@ -44,6 +54,11 @@ export default {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
             concurrency: 1,
+          },
+          events: {
+            'error': (err) => {
+              console.log('eventsQueue Worker error', err.message);
+            }
           }
         },
         {
@@ -52,6 +67,11 @@ export default {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
             concurrency: 1,
+          },
+          events: {
+            'error': (err) => {
+              console.log('comments Worker error', err.message);
+            }
           }
         }
       ]

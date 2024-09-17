@@ -35,17 +35,25 @@ export type AyazmoQueue = {
   options?: QueueOptions;
   publishOn: string[];
   transformer?: (payload: any, type: string, app: AyazmoInstance) => Promise<any>;
+  events?: {
+    [key: string]: (...args: any[]) => void;
+  };
 };
+
+export type AyazmoWorker = {
+  queueName: string,
+  options: WorkerOptions
+  events?: {
+    [key: string]: (...args: any[]) => void;
+  };
+}
 
 export interface AyazmoAppConfig {
   server: FastifyListenOptions,
   emitter: {
     type: 'memory' | 'redis',
     queues?: AyazmoQueue[]
-    workers: [{
-      queueName: string,
-      options: WorkerOptions
-    }]
+    workers?: AyazmoWorker[]
   },
   redis: any,
   cors: FastifyCorsOptions,

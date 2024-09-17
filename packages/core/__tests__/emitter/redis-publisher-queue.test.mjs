@@ -43,6 +43,8 @@ describe("core: testing the redis publisher via Queue", () => {
   })
 
   after(async () => {
+    await queue.drain()
+    await worker.close()
     await app.close()
     await redisServer.stop();
   })

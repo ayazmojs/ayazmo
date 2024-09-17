@@ -1,6 +1,31 @@
-import { Queue, Worker, FlowProducer, QueueOptions, FlowJob, WorkerOptions } from 'bullmq';
+import { Queue, Worker, FlowProducer, FlowJob } from 'bullmq';
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js';
-import { AppConfig, AyazmoContainer, AyazmoInstance, AyazmoQueue } from '@ayazmo/types';
+import { AppConfig, AyazmoContainer, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType } from '@ayazmo/types';
+
+const allQueueEvents = [
+  'cleaned',
+  'error',
+  'paused',
+  'progress',
+  'removed',
+  'resumed',
+  'waiting'
+]
+
+const allWorkerEvents = [
+  'active',
+  'closing',
+  'closed',
+  'completed',
+  'drained',
+  'error',
+  'failed',
+  'paused',
+  'progress',
+  'ready',
+  'resumed',
+  'stalled'
+]
 
 export class AyazmoPublisher {
   private publisher: Queue;
@@ -18,16 +43,24 @@ export class AyazmoPublisher {
     this.setEventQueueMap(queues);
 
     if (this.getEventQueueMap().size > 1) {
-      // configure multiple queues
       this.flowProducer = new FlowProducer({ connection: app.redis });
       this.isFlow = true;
     } else {
-      this.publisher = this.createQueue(queues[0]?.name, queues[0]?.options);
+      this.publisher = this.createQueue(queues[0]?.name, queues[0]);
     }
   }
 
-  createQueue(name: string = 'eventsQueue', opts?: QueueOptions): Queue {
-    const options = opts ?? {};
+  setupEventHandlers(queue: Queue, config?: AyazmoQueue) {
+    allQueueEvents.forEach((event) => {
+      if (config?.events && config.events[event]) {
+        // Use the configured event handler
+        queue.on(event as any, config.events[event]);
+      }
+    });
+  }
+
+  createQueue(name: string = 'eventsQueue', queueConfig?: AyazmoQueue): Queue {
+    const options = queueConfig?.options ?? {};
     const q = new Queue(name, {
       connection: this.app.redis,
       defaultJobOptions: {
@@ -37,17 +70,7 @@ export class AyazmoPublisher {
       ...options,
     });
 
-    q.on('removed', (job) => {
-      this.app.log.debug(`Job removed with result ${job.name}`);
-    });
-
-    q.on('error', (err) => {
-      this.app.log.error(`Job failed: ${err.message}`);
-    });
-
-    q.on('progress', (job) => {
-      console.log(`Job progress: ${job.name}`);
-    });
+    this.setupEventHandlers(q, queueConfig);
 
     return q;
   }
@@ -90,7 +113,7 @@ export class AyazmoPublisher {
         return;
       }
 
-      const jobs = queueOptions.map((queueOptions: AyazmoQueue) => {
+      const jobPromises = queueOptions.map(async (queueOptions: AyazmoQueue) => {
         // Define default job options
         const defaultOpts = {
           defaultJobOptions: {
@@ -104,7 +127,7 @@ export class AyazmoPublisher {
           ...(queueOptions.options ?? {}), // Override with custom defaultJobOptions if provided
         };
 
-        const transformedData = queueOptions.transformer ? queueOptions.transformer(data, event, this.app) : data;
+        const transformedData = queueOptions.transformer ? await queueOptions.transformer(data, event, this.app) : data;
 
         return {
           name: event,
@@ -113,6 +136,8 @@ export class AyazmoPublisher {
           opts: opts,
         };
       });
+
+      const jobs = await Promise.all(jobPromises);
 
       await this.flowProducer.addBulk(jobs as FlowJob[]);
     } else {
@@ -150,83 +175,96 @@ export class AyazmoWorker {
             await handler(job.data);
           }
         }
-      }, workerConfig.options);
+      }, workerConfig);
 
       this.workers.set(queueName, worker);
+    });
+  }
+
+  setupEventHandlers(worker: Worker, config: AyazmoWorkerType) {
+    allWorkerEvents.forEach((event) => {
+      if (config.events && config.events[event]) {
+        // Use the configured event handler
+        worker.on(event as any, config.events[event]);
+      }
     });
   }
 
   createWorker(
     queueName: string = 'eventsQueue',
     handler: any,
-    opts?: WorkerOptions
+    workerConfig: AyazmoWorkerType
   ): Worker {
-    const options = opts ?? {};
+    const options = workerConfig?.options ?? {};
+    
     const w = new Worker(queueName, handler, {
+      // @ts-ignore
       connection: this.app.redis,
       ...options,
     });
 
+    this.setupEventHandlers(w, workerConfig);
+
     // Worker event listeners
-    w.on('active', (job, prev) => {
-      this.app.log.debug(`Worker active job ${job.id}`);
-      console.log(`Worker active job ${job.id}`);
-    });
+    // w.on('active', (job, prev) => {
+    //   this.app.log.debug(`Worker active job ${job.id}`);
+    //   console.log(`Worker active job ${job.id}`);
+    // });
 
-    w.on('closing', () => {
-      this.app.log.debug(`Worker is closing`);
-      console.log(`Worker is closing`);
-    });
+    // w.on('closing', () => {
+    //   this.app.log.debug(`Worker is closing`);
+    //   console.log(`Worker is closing`);
+    // });
 
-    w.on('closed', () => {
-      this.app.log.debug(`Worker is closed`);
-      console.log(`Worker is closed`);
-    });
+    // w.on('closed', () => {
+    //   this.app.log.debug(`Worker is closed`);
+    //   console.log(`Worker is closed`);
+    // });
 
-    w.on('progress', (job, progress) => {
-      this.app.log.debug(`Worker is in progress ${job.id}`);
-      console.log(`Worker is in progress ${job.id}`);
-    });
+    // w.on('progress', (job, progress) => {
+    //   this.app.log.debug(`Worker is in progress ${job.id}`);
+    //   console.log(`Worker is in progress ${job.id}`);
+    // });
 
-    w.on('ready', () => {
-      this.app.log.debug(`Worker is in ready status`);
-      console.log(`Worker is in ready status`);
-    });
+    // w.on('ready', () => {
+    //   this.app.log.debug(`Worker is in ready status`);
+    //   console.log(`Worker is in ready status`);
+    // });
 
-    w.on('paused', () => {
-      this.app.log.debug(`Worker is paused`);
-      console.log(`Worker is paused`);
-    });
+    // w.on('paused', () => {
+    //   this.app.log.debug(`Worker is paused`);
+    //   console.log(`Worker is paused`);
+    // });
 
-    w.on('drained', () => {
-      this.app.log.debug(`Worker is drained`);
-      console.log(`Worker is drained`);
-    });
+    // w.on('drained', () => {
+    //   this.app.log.debug(`Worker is drained`);
+    //   console.log(`Worker is drained`);
+    // });
 
-    w.on('resumed', () => {
-      this.app.log.debug(`Worker is resumed`);
-      console.log(`Worker is resumed`);
-    });
+    // w.on('resumed', () => {
+    //   this.app.log.debug(`Worker is resumed`);
+    //   console.log(`Worker is resumed`);
+    // });
 
-    w.on('stalled', (jobId, prev) => {
-      this.app.log.debug(`Worker job ${jobId} is stalled`);
-      console.log(`Worker job ${jobId} is stalled`);
-    });
+    // w.on('stalled', (jobId, prev) => {
+    //   this.app.log.debug(`Worker job ${jobId} is stalled`);
+    //   console.log(`Worker job ${jobId} is stalled`);
+    // });
 
-    w.on('completed', (job) => {
-      this.app.log.debug(`Worker completed job ${job.id}`);
-      console.log(`Worker completed job ${job.id}`);
-    });
+    // w.on('completed', (job) => {
+    //   this.app.log.debug(`Worker completed job ${job.id}`);
+    //   console.log(`Worker completed job ${job.id}`);
+    // });
 
-    w.on('failed', (job, err) => {
-      this.app.log.error(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
-      console.log(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
-    });
+    // w.on('failed', (job, err) => {
+    //   this.app.log.error(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
+    //   console.log(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
+    // });
 
-    w.on('error', (err) => {
-      this.app.log.error(`Worker error: ${err.message}`);
-      console.log(`Worker error: ${err.message}`);
-    });
+    // w.on('error', (err) => {
+    //   this.app.log.error(`Worker error: ${err.message}`);
+    //   console.log(`Worker error: ${err.message}`);
+    // });
 
     return w;
   }
