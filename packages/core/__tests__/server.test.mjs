@@ -92,6 +92,7 @@ describe("core: testing the server", () => {
     });
 
     const config = fastifyInstance.diContainer.resolve('config');
+    server.initializeHealthRoute();
 
     await fastifyInstance.listen(config.app.server);
     await fastifyInstance.ready();

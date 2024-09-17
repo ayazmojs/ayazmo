@@ -27,8 +27,6 @@ export class Server {
   constructor(options: ServerOptions = {}) {
     this.fastify = fastify(options)
     this.fastify.decorate('configPath', options?.configPath ?? configDir)
-    // this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
-    this.initializeRoutes()
     this.registerGQL()
     this.setupGracefulShutdown()
     this.setDefaultErrorHandler()
@@ -149,11 +147,15 @@ export class Server {
     })
   }
 
-  private initializeRoutes(): void {
-    // Define core routes here
-    this.fastify.get('/health', async (request, reply) => {
-      reply.code(200).send({ status: 'ok' })
-    })
+  public initializeHealthRoute(): void {
+    if (!this.fastify.hasRoute({
+      method: 'GET',
+      url: '/health'
+    })) {
+      this.fastify.get('/health', async (request, reply) => {
+        reply.code(200).send({ status: 'ok' })
+      })
+    }
   }
 
   private async shutdownServer() {
@@ -282,6 +284,7 @@ export class Server {
     await this.enableAuthProviders()
     this.registerAuthDirective()
     await this.enableCORS()
+    this.initializeHealthRoute()
 
     const config = this.fastify.diContainer.resolve('config') as AppConfig;
 
