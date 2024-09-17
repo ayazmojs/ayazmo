@@ -105,7 +105,7 @@ describe("core: testing the redis publisher via Flow", () => {
     }
     
     const handler = (job) => {
-      console.log(job.name)
+      console.log(job)
       assert.equal(job.data.id, 1)
       completed += 1
     }
