@@ -1,15 +1,15 @@
 // create a cache service on top of async-cache-dedupe by abstracting all possible cache operations using a single interface
 import { Cache, createCache } from 'async-cache-dedupe'
-import { AyazmoContainer, AppConfig, AyazmoInstance } from '@ayazmo/types'
-// import { asFunction } from 'awilix'
+import { AppConfig, AyazmoInstance } from '@ayazmo/types'
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js'
 
 export default class CacheService extends AyazmoCoreService {
   private cache: Cache
 
-  constructor(container: AyazmoContainer, appConfig: AppConfig, app: AyazmoInstance) {
-    super(container, appConfig, app)
-    const appCacheConfig = container.config.app.cache
+  constructor(app: AyazmoInstance, appConfig: AppConfig) {
+    super(app, appConfig)
+    const config = app.diContainer.resolve('config') as AppConfig
+    const appCacheConfig = config.app.cache
     if (appCacheConfig && appCacheConfig.storage.type === 'redis') {
       appCacheConfig.storage.options.client = app.redis;
     }

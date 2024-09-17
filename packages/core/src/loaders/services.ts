@@ -40,7 +40,7 @@ async function importAndLoadModule(
       // Register the service in the DI container
       fastify.diContainer.register({
         [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(cradle, pluginSettings, fastify)
+          (cradle) => new serviceModule.default(fastify, pluginSettings)
         ).singleton()
       });
 

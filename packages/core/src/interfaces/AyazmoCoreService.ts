@@ -5,16 +5,16 @@ export abstract class AyazmoCoreService {
   pluginConfig: AppConfig
   app: AyazmoInstance
 
-  constructor (container: AyazmoContainer, pluginConfig: AppConfig, app: AyazmoInstance) {
+  constructor (app: AyazmoInstance, pluginConfig: AppConfig) {
     if (new.target === AyazmoCoreService) {
       throw new Error('AyazmoCoreService is an abstract class and cannot be instantiated directly.')
     }
-    this.container = container
+    this.container = app.diContainer as AyazmoContainer
     this.pluginConfig = pluginConfig
     this.app = app
   }
 
   getGlobalConfig (): AppConfig {
-    return this.container.config
+    return this.container.resolve('config') as AppConfig
   }
 }

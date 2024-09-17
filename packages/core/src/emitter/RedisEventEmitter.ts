@@ -1,6 +1,6 @@
 import { Queue, Worker, FlowProducer, FlowJob } from 'bullmq';
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js';
-import { AppConfig, AyazmoContainer, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType } from '@ayazmo/types';
+import { AppConfig, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType } from '@ayazmo/types';
 
 const allQueueEvents = [
   'cleaned',
@@ -308,7 +308,7 @@ export class RedisEventEmitter extends BaseEventEmitter {
   // create a map to hold events and handlers
   private eventHandlers: Map<string, Set<(...args: any[]) => void>> = new Map();
 
-  constructor(container: AyazmoContainer, config: AppConfig, app: AyazmoInstance) {
+  constructor(app: AyazmoInstance, config: AppConfig) {
     super();
     this.publisher = new AyazmoPublisher(app, config);
 

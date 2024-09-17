@@ -1,4 +1,4 @@
-import { AppConfig, AyazmoContainer, AyazmoInstance } from '@ayazmo/types'
+import { AppConfig, AyazmoInstance } from '@ayazmo/types'
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js'
 import { InMemoryEventEmitter } from '../emitter/InMemoryEventEmitter.js'
 import { RedisEventEmitter } from '../emitter/RedisEventEmitter.js'
@@ -9,12 +9,12 @@ class EventService extends AyazmoCoreService {
     listSubscribers: (event: string) => any[]
   }
 
-  constructor(container: AyazmoContainer, config: AppConfig, app: AyazmoInstance) {
-    super(container, config, app)
+  constructor(app: AyazmoInstance, config: AppConfig) {
+    super(app, config)
     const configModule = this.getGlobalConfig()
     switch (configModule?.app?.emitter?.type) {
       case 'redis':
-        this.eventEmitter = new RedisEventEmitter(container, configModule, app);
+        this.eventEmitter = new RedisEventEmitter(app, configModule);
         break;
       // Add other cases for different event emitter types
       default: this.eventEmitter = new InMemoryEventEmitter()
