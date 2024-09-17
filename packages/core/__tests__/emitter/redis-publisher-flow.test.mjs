@@ -119,9 +119,6 @@ describe("core: testing the redis publisher via Flow", () => {
     await publisher.publish('comment.create', data)
 
     await new Promise((resolve, reject) => {
-      // const startTime = Date.now();
-
-      // set a time counter in an interval
       const checkInterval = setInterval(async () => {
         if (workerCommentsProcessed && workerEventsProcessed) {
           clearInterval(checkInterval);
