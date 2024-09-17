@@ -104,8 +104,9 @@ describe("core: testing the redis publisher via Flow", () => {
       content: 'test-flow-event-1'
     }
     
-    const handler = (payload) => {
-      assert.equal(payload.id, 1)
+    const handler = (job) => {
+      console.log(job.name)
+      assert.equal(job.data.id, 1)
       completed += 1
     }
     const eventService = app.diContainer.resolve('eventService')

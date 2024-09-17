@@ -100,8 +100,8 @@ describe("core: testing the redis publisher via Queue", () => {
     });
 
     await eventService.publish('test-queue-event', { key: 'value' })
-    const handler = async (payload) => {
-      assert.deepStrictEqual(payload, { key: 'value' })
+    const handler = async (job) => {
+      assert.deepStrictEqual(job.data, { key: 'value' })
     }
 
     await eventService.subscribe('test-queue-event', handler)
@@ -119,7 +119,7 @@ describe("core: testing the redis publisher via Queue", () => {
       interval = setInterval(async () => {
         const elapsedTime = Date.now() - startTime;
         // display the elapsed time in seconds in place instead of on new line
-        console.log(`\rConsuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
+        console.log(`\rWorker consuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
         if (elapsedTime > 20000) {
           clearInterval(interval);
           reject(new Error('Timeout after 20 seconds'));

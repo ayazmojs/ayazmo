@@ -1,4 +1,4 @@
-import { Queue, Worker, FlowProducer, FlowJob } from 'bullmq';
+import { Queue, Worker, FlowProducer, FlowJob, Job } from 'bullmq';
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js';
 import { AppConfig, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType } from '@ayazmo/types';
 
@@ -166,13 +166,13 @@ export class AyazmoWorker {
     const workerConfigs = this.config.app?.emitter?.workers ?? [];
     workerConfigs.forEach((workerConfig) => {
       const queueName = workerConfig.queueName;
-      const worker = this.createWorker(queueName, async (job) => {
+      const worker = this.createWorker(queueName, async (job: Job) => {
         this.app.log.debug('Worker processing job: ' + job.name);
         this.app.log.debug(job.data);
         const handlers = this.eventHandlers.get(job.name);
         if (handlers) {
           for (const handler of handlers) {
-            await handler(job.data);
+            await handler(job);
           }
         }
       }, workerConfig);
