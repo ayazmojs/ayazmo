@@ -1,5 +1,17 @@
 # @ayazmo/core
 
+## 0.2.0
+
+### Minor Changes
+
+- reworked services & events. Added tests
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ayazmo/types@0.2.0
+  - @ayazmo/utils@0.2.0
+
 ## 0.1.32
 
 ### Patch Changes
