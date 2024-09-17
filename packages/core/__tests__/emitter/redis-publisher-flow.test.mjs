@@ -96,18 +96,21 @@ describe("core: testing the redis publisher via Flow", () => {
   })
 
   it("successfully publishes one job to two separate queues", async () => {
-    let completed = 0;
-    let interval;
+    let workerCommentsProcessed = false;
+    let workerEventsProcessed = false;
     const data = {
       title: 'test-flow-event-1',
       id: 1,
       content: 'test-flow-event-1'
     }
-    
+
     const handler = (job) => {
-      console.log(job)
       assert.equal(job.data.id, 1)
-      completed += 1
+      if (job.queue.name === 'comments') {
+        workerCommentsProcessed = true
+      } else {
+        workerEventsProcessed = true
+      }
     }
     const eventService = app.diContainer.resolve('eventService')
 
@@ -116,31 +119,24 @@ describe("core: testing the redis publisher via Flow", () => {
     await publisher.publish('comment.create', data)
 
     await new Promise((resolve, reject) => {
-      if (completed === 2) {
-        resolve();
-      }
-
-      const startTime = Date.now();
+      // const startTime = Date.now();
 
       // set a time counter in an interval
-      interval = setInterval(async () => {
-        console.log('Completed', completed);
-        if (completed === 2) {
-          clearInterval(interval);
+      const checkInterval = setInterval(async () => {
+        if (workerCommentsProcessed && workerEventsProcessed) {
+          clearInterval(checkInterval);
           resolve();
         }
-        const elapsedTime = Date.now() - startTime;
-        // display the elapsed time in seconds in place instead of on new line
-        console.log(`\rConsuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
-        if (elapsedTime > 20000) {
-          clearInterval(interval);
-          reject(new Error('Timeout after 20 seconds'));
-        } else if (completed) {
-          clearInterval(interval);
-          resolve();
-        }
-      }, 1000);
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error('Workers did not process the messages in 10 seconds'));
+      }, 10000);
     })
+
+    assert.ok(workerCommentsProcessed, "worker comments did process")
+    assert.ok(workerEventsProcessed, "worker events did process")
   })
 
   it("successfully creates multiple workers", async () => {

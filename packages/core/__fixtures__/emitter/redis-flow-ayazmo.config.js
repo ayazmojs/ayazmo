@@ -54,6 +54,7 @@ export default {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
             concurrency: 1,
+            lockDuration: 60000
           },
           events: {
             'error': (err) => {
@@ -67,6 +68,7 @@ export default {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
             concurrency: 1,
+            lockDuration: 60000
           },
           events: {
             'error': (err) => {
