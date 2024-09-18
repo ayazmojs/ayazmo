@@ -197,6 +197,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
       pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath)
     } else {
       app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`)
+      continue
     }
 
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
