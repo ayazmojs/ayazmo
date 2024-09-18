@@ -1,5 +1,15 @@
 # @ayazmo/core
 
+## 0.2.1
+
+### Patch Changes
+
+- changed plugin service paramenters
+
+- Updated dependencies []:
+  - @ayazmo/types@0.2.1
+  - @ayazmo/utils@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

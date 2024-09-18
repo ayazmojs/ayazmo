@@ -87,4 +87,16 @@ describe("core: testing the plugin manager", () => {
     assert.ok(app.hasDecorator('utility'), 'Decorator should be available on the app instance');
     assert.equal(app.utility(), 'This is a utility function', 'Decorator should return the correct value');
   });
+
+  it("should resolve the app", () => {
+    const service = app.diContainer.resolve('testService')
+    assert.ok(service.app)
+    assert.ok(service.app.diContainer)
+  })
+
+  it("should resolve the pluginSettings", () => {
+    const service = app.diContainer.resolve('testService')
+    assert.ok(service.pluginSettings)
+    assert.ok(service.pluginSettings.private === true)
+  })
 })

@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.1
+
+### Patch Changes
+
+- changed plugin service paramenters
+
 ## 0.2.0
 
 ### Minor Changes

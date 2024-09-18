@@ -6,11 +6,11 @@ export abstract class BasePluginService {
   private _em: EntityManager | undefined
   app: AyazmoInstance
 
-  constructor (container: AyazmoContainer, pluginSettings: PluginSettings, app: AyazmoInstance) {
+  constructor (app: AyazmoInstance, pluginSettings: PluginSettings) {
     if (new.target === BasePluginService) {
       throw new Error('BaseService is an abstract class and cannot be instantiated directly.')
     }
-    this.container = container
+    this.container = app.diContainer as AyazmoContainer
     this.pluginSettings = pluginSettings
     this.app = app
   }
