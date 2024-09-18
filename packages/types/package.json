@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/types",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Core interfaces for Ayazmo",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -21,10 +21,10 @@
   },
   "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7",
   "dependencies": {
-    "@mikro-orm/core": "^6.3.7",
-    "@mikro-orm/migrations": "^6.3.7",
-    "@mikro-orm/postgresql": "^6.3.7",
-    "awilix": "^10.0.2",
+    "@mikro-orm/core": "^6.3.10",
+    "@mikro-orm/migrations": "^6.3.10",
+    "@mikro-orm/postgresql": "^6.3.10",
+    "awilix": "^11.0.0",
     "fastify": "^4.26.2"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import { FastifyAuthFunction, fastifyAuth } from '@fastify/auth'
 import cors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
@@ -13,7 +13,7 @@ import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
-import { AppConfig, RolesConfig, ServerOptions } from '@ayazmo/types'
+import { AppConfig, RolesConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
@@ -22,9 +22,10 @@ const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
 const rootDir = process.env.AYAZMO_ROOT_DIR ?? process.cwd()
 const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
-  private readonly fastify: FastifyInstance
+  private readonly fastify: AyazmoInstance
 
   constructor(options: ServerOptions = {}) {
+    // @ts-ignore
     this.fastify = fastify(options)
     this.fastify.decorate('configPath', options?.configPath ?? configDir)
     this.registerGQL()
