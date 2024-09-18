@@ -17,9 +17,9 @@ export abstract class BasePluginService {
 
   public get em(): EntityManager {
     if (!this._em) {
-      this._em = this.container.dbService.em
+      this._em = this.container.resolve('dbService').em
     }
-    return this._em
+    return this._em!
   }
 
   public getRepository (entityName: string): EntityRepository<any> {
@@ -27,6 +27,11 @@ export abstract class BasePluginService {
   }
 
   public getService (serviceName: string) {
+    if (!this.container.hasRegistration(serviceName)) {
+      this.app.log.error(`Service ${serviceName} is not registered in the container.`)
+      this.app.log.debug("Registered services:")
+      this.app.log.debug(this.container.registrations)
+    }
     return this.container.resolve(serviceName)
   }
 
