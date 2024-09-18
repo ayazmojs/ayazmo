@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.2.3
+
+### Patch Changes
+
+- fixed base service
+
+- Updated dependencies []:
+  - @ayazmo/core@0.2.3
+  - @ayazmo/types@0.2.3
+  - @ayazmo/utils@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes

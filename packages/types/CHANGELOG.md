@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.3
+
+### Patch Changes
+
+- fixed base service
+
 ## 0.2.2
 
 ### Patch Changes
