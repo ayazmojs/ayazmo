@@ -19,8 +19,9 @@ describe("core: testing the plugin manager", () => {
   before(async () => {
     server = buildServer(path.join(__dirname, 'plugins', 'ayazmo.config.js'))
     await server.loadDiContainer();
-    await server.loadConfig();
+    await server.loadConfig()
     await server.loadPlugins()
+    await server.enableAuthProviders()
     app = server.getServerInstance()
     const config = app.diContainer.resolve('config');
     await app.listen(config.app.server);
@@ -75,6 +76,50 @@ describe("core: testing the plugin manager", () => {
       name: 'test',
       content: 'test content'
     })
+  })
+
+  it("tests auth providers are enabled correctly in routes", async () => {
+    const hasRoute = app.hasRoute({
+      method: 'POST',
+      url: '/v1/test',
+    });
+
+    assert(hasRoute, 'Routes should include POST /v1/test');
+
+    const response = await fetch(path.join(host, 'v1/test'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: 'test content'
+      })
+    });
+
+    assert.equal(response.status, 401)
+
+    const response2 = await fetch(path.join(host, 'v1/test'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'token': '123456'
+      },
+      body: JSON.stringify({
+        content: 'test content'
+      })
+    });
+
+    assert.equal(response2.status, 200)
+    const body = await response2.json()
+    assert.deepEqual(body.content, "test content")
+  })
+
+  it("tests alwaysFailAuth is enabled correctly in routes", async () => {
+    const response = await fetch(path.join(host, 'v1/always-fail'), {
+      method: 'POST',
+    });
+
+    assert.equal(response.status, 401)
   })
 
   it("tests plugin services are loaded correctly", () => {

@@ -7,6 +7,9 @@ export default {
       port: process.env.PORT || 0,
       host: process.env.HOST || "0.0.0.0",
     },
+    enabledAuthProviders: [
+      'SSO'
+    ],
     emitter: {
       type: 'memory',
     }

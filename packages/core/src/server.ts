@@ -25,9 +25,12 @@ export class Server {
   private readonly fastify: AyazmoInstance
 
   constructor(options: ServerOptions = {}) {
+    const { configPath, ...restOptions } = options
     // @ts-ignore
-    this.fastify = fastify(options)
+    this.fastify = fastify(restOptions)
     this.fastify.decorate('configPath', options?.configPath ?? configDir)
+    this.fastify.decorate('anonymousStrategy', anonymousStrategy)
+      .register(fastifyAuth);
     this.registerGQL()
     this.setupGracefulShutdown()
     this.setDefaultErrorHandler()
@@ -218,9 +221,11 @@ export class Server {
   }
 
   public async enableAuthProviders() {
+    if (!this.fastify.hasDecorator('auth')) {
+      this.fastify.log.warn('app auth decorator not found, skipping auth providers')
+      return
+    }
     const config = this.fastify.diContainer.resolve('config') as AppConfig;
-    await this.fastify.decorate('anonymousStrategy', anonymousStrategy)
-      .register(fastifyAuth);
     // @ts-ignore
     this.fastify
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
