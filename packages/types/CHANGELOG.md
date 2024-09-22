@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.4
+
+### Patch Changes
+
+- fixed creating migrations and loading core auth decorators
+
 ## 0.2.3
 
 ### Patch Changes
