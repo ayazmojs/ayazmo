@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { importGlobalConfig, initDatabase } from '@ayazmo/utils'
+import fs from 'node:fs/promises'
+import { importGlobalConfig, initDatabase, loadEnvironmentVariables } from '@ayazmo/utils'
 import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt, Migrator, PluginConfig } from '@ayazmo/types'
 import { getPluginRoot } from '@ayazmo/core'
 import {
@@ -9,17 +10,47 @@ import {
 } from './prompts.js'
 import CliLogger from './cli-logger.js'
 
+// Helper function to get entity files from a directory
+async function getEntityFiles(directory: string): Promise<string[]> {
+  try {
+    const files = await fs.readdir(directory)
+    return files.filter(file => file.endsWith('.ts') || file.endsWith('.js')).map(file => path.join(directory, file))
+  } catch (error) {
+    CliLogger.warn(`Failed to read directory ${directory}: ${error.message}`)
+    return []
+  }
+}
+
+// Helper function to dynamically import entity files
+async function importEntityFiles(files: string[]): Promise<any[]> {
+  const imports: any[] = []
+  for (const file of files) {
+    try {
+      const module = await import(file)
+      if (module.default) {
+        imports.push(module.default)
+      } else {
+        imports.push(module)
+      }
+    } catch (error) {
+      CliLogger.warn(`Failed to import file ${file}: ${error.message}`)
+    }
+  }
+  return imports
+}
+
 export async function createMigration(): Promise<void> {
+  loadEnvironmentVariables()
   let orm: any
   let migrationPath: string
   let entitiesPath: string[] = []
-  let availablePlugins: string[]
+  let availablePlugins: string[] = []
   let selectPluginPrompt: IPluginPrompt = { selectedPlugin: '' }
   let migrationTypePrompt: ITypePrompt = { type: 'entities' }
   let migrationNamePrompt: INamePrompt = { filename: '' }
   const cwd = process.cwd()
   const ormConfig: IBaseOrmConfig = {
-    entities: entitiesPath,
+    entities: [],
     entitiesTs: ['./src/plugins/*/src/entities'],
     baseDir: cwd,
     migrations: {
@@ -31,6 +62,10 @@ export async function createMigration(): Promise<void> {
 
   try {
     const globalConfig = await importGlobalConfig()
+    if (!globalConfig || !globalConfig.plugins) {
+      throw new Error('Global configuration or plugins are not defined.')
+    }
+
     migrationTypePrompt = await askUserForTypeOfMigration()
 
     if (migrationTypePrompt.type === 'empty') {
@@ -73,7 +108,15 @@ export async function createMigration(): Promise<void> {
     }
 
     ormConfig.migrations.path = migrationPath
-    ormConfig.entities = entitiesPath
+
+    // Populate ormConfig.entities with imported entity files
+    for (const dir of entitiesPath) {
+      const entityFiles = await getEntityFiles(dir)
+      if (entityFiles.length > 0) {
+        const importedEntities = await importEntityFiles(entityFiles)
+        ormConfig.entities.push(...importedEntities)
+      }
+    }
 
     // @ts-ignore
     orm = await initDatabase({
