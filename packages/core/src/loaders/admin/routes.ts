@@ -78,12 +78,12 @@ export async function loadAdminRoutes(
 
         // extract custom route options
         const { enabled, ...routeOptions } = tmpRoute
+        routeOptions.url = `${admin.opts.prefix}${tmpRoute.url}`
 
         app.route({
           ...routeOptions,
-          url: `${admin.opts.prefix}${tmpRoute.url}`
         })
-        app.log.info(` - Registered admin route ${tmpRoute.method} ${tmpRoute.url}`)
+        app.log.info(` - Registered admin route ${routeOptions.method} ${routeOptions.url}`)
       })
     })
 }

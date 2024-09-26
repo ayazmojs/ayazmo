@@ -194,7 +194,7 @@ export class Server {
     }
   }
 
-  private async enableCORS() {
+  private async enableCORS(): Promise<void> {
     const config = this.fastify.diContainer.resolve('config') as AppConfig;
     if (config?.app?.cors) {
       // @ts-ignore
@@ -202,14 +202,14 @@ export class Server {
     }
   }
 
-  private enableCookies() {
+  private enableCookies(): void {
     // @ts-ignore
     this.fastify.register(fastifyCookie, {
       hook: 'preParsing'
     })
   }
 
-  public async maybeEnableRedis(opts?: null | any) {
+  public async maybeEnableRedis(opts?: null | any): Promise<void> {
     const config = this.fastify.diContainer.resolve('config') as AppConfig;
     if (config?.app?.redis || opts) {
       // @ts-ignore
@@ -217,7 +217,7 @@ export class Server {
     }
   }
 
-  public async enableUserAuthChain() {
+  public async enableUserAuthChain(): Promise<void> {
     if (!this.fastify.hasDecorator('auth')) {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
       return
@@ -228,19 +228,19 @@ export class Server {
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
   }
 
-  public async loadConfig() {
+  public async loadConfig(): Promise<void> {
     if (!this.fastify.diContainer.hasRegistration('config')) {
       await loadConfig(this.fastify)
     }
   }
 
-  public async loadDiContainer() {
+  public async loadDiContainer(): Promise<void> {
     if (!this.fastify.hasDecorator('diContainer')) {
       await this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     }
   }
 
-  public async loadCoreServices() {
+  public async loadCoreServices(): Promise<void> {
     await loadCoreServices(this.fastify)
   }
 
