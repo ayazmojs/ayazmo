@@ -1,7 +1,6 @@
 import { FastifyInstance, RouteOptions, preHandlerHookHandler, FastifyServerOptions } from 'fastify';
 import { AwilixContainer } from 'awilix';
 import http from 'http';
-import { AyazmoContainer } from './app.js';
 
 export interface AyazmoRouteOptions extends RouteOptions {
   
@@ -38,13 +37,6 @@ declare module 'fastify' {
   }
 }
 
-// export type AyazmoInstance = FastifyInstance<
-//   http.Server,
-//   http.IncomingMessage,
-//   http.ServerResponse,
-//   any
-// >;
-
 export interface AyazmoInstance extends FastifyInstance<http.Server, http.IncomingMessage, http.ServerResponse> {
-  diContainer: AyazmoContainer;
+  diContainer: AwilixContainer;
 }

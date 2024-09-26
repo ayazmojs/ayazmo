@@ -2,21 +2,14 @@
 import { Options, MikroORM } from "@mikro-orm/core";
 import { FastifyCorsOptions } from "@fastify/cors";
 import { AwilixContainer } from 'awilix';
-import { FastifyListenOptions } from "fastify";
+import { FastifyListenOptions, RegisterOptions } from "fastify";
 import { QueueOptions, WorkerOptions } from 'bullmq';
-import { AyazmoInstance } from "./server";
+import { AyazmoInstance, AyazmoRouteOptions } from "./server";
 
-export interface PluginRoutesCustom {
+export type PluginRoutes = {
   enabled?: boolean;
+  routes?: AyazmoRouteOptions[] | ((app: AyazmoInstance) => AyazmoRouteOptions[]);
 }
-
-export interface PluginRoutesHooks {
-  [key: string]: {
-    hooks?: (...args: any[]) => any;
-  };
-}
-
-export type PluginRoutes = PluginRoutesCustom & PluginRoutesHooks;
 
 export interface PluginSettings {
   private?: boolean;
@@ -76,6 +69,7 @@ export interface AyazmoAdminConfig {
   enabledAuthProviders: string[];
   roles: RolesConfig
   routes: RouteRolesConfig
+  opts: RegisterOptions
 }
 
 export interface AppConfig {

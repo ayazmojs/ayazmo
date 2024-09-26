@@ -11,13 +11,12 @@ import { loadPlugins } from './plugins/plugin-manager.js'
 import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
-import adminAuthChain from './admin/auth/adminAuthChain.js'
 import os from 'os'
 import { AppConfig, RolesConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
-const SHUTDOWN_TIMEOUT = 5 * 1000 // 5 seconds, for example
+const SHUTDOWN_TIMEOUT = 5 * 1000
 
 const rootDir = process.env.AYAZMO_ROOT_DIR ?? process.cwd()
 const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
@@ -44,7 +43,7 @@ export class Server {
       Object.entries(adminRoles).forEach(([roleName, checkUserRole]) => {
         this.fastify.decorate(roleName, (request: FastifyRequest, reply: FastifyReply, done: any) => {
           // @ts-ignore
-          const roleIsAllowed: boolean = checkUserRole(this.fastify.admin)
+          const roleIsAllowed: boolean = checkUserRole(request.admin)
 
           if (roleIsAllowed) {
             done()
@@ -64,7 +63,6 @@ export class Server {
     return this.fastify
   }
 
-  // Method to set the default error handler
   private setDefaultErrorHandler() {
     this.fastify.setErrorHandler((error, request, reply) => {
       // Default error handling logic
@@ -83,7 +81,6 @@ export class Server {
     })
   }
 
-  // Public method to allow custom error handler to be set
   public setErrorHandler(customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
     this.fastify.setErrorHandler(customErrorHandler)
   }
@@ -140,7 +137,7 @@ export class Server {
 
         if (shouldThrow) {
           const authError = new mercurius.ErrorWithProps('UNAUTHORIZED')
-          authError.statusCode = 401 // Use the appropriate status code for unauthorized
+          authError.statusCode = 401
           throw authError
         }
 
@@ -220,7 +217,7 @@ export class Server {
     }
   }
 
-  public async enableAuthProviders() {
+  public async enableUserAuthChain() {
     if (!this.fastify.hasDecorator('auth')) {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
       return
@@ -229,7 +226,6 @@ export class Server {
     // @ts-ignore
     this.fastify
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
-      .decorate('adminAuthChain', adminAuthChain(this.fastify, config))
   }
 
   public async loadConfig() {
@@ -280,22 +276,22 @@ export class Server {
   }
 
   async start(): Promise<void> {
-    this.enableCookies()
-    await this.loadDiContainer()
-    await this.loadConfig()
-    this.registerAdminRoles()
-    await this.maybeEnableRedis()
-    await this.loadPlugins()
-    // load auth providers after loading plugins
-    await this.enableAuthProviders()
-    this.registerAuthDirective()
-    await this.enableCORS()
-    this.initializeHealthRoute()
-
-    const config = this.fastify.diContainer.resolve('config') as AppConfig;
-
     try {
+      this.enableCookies()
+      await this.loadDiContainer()
+      await this.loadConfig()
+      const config = this.fastify.diContainer.resolve('config') as AppConfig;
+      await this.registerAdminRoles()
+      await this.maybeEnableRedis()
+      await this.loadPlugins()
+      // load auth providers after loading plugins
+      this.enableUserAuthChain()
+      this.registerAuthDirective()
+      await this.enableCORS()
+      this.initializeHealthRoute()
+
       await this.fastify.listen(config.app.server)
+      await this.fastify.ready()
     } catch (err) {
       this.fastify.log.error(err)
       process.exit(1)

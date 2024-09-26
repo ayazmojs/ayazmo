@@ -1,6 +1,7 @@
 import assert from "node:assert";
+import path from "node:path";
 import { describe, it, after, before } from "node:test";
-import buildServer from "../__fixtures__/build-server.js";
+import buildServer, { __dirname } from "../__fixtures__/build-server.js";
 import { getTestHost } from "../__fixtures__/helpers/get-test-host.js";
 
 let server;
@@ -9,18 +10,9 @@ let host;
 
 describe("core: testing the server", () => {
   before(async () => {
-    server = buildServer();
-    await server.loadDiContainer();
-    await server.loadConfig();
-    await server.enableAuthProviders();
-    await server.loadCoreServices();
+    server = buildServer(path.join(__dirname, 'plugins', 'ayazmo.config.js'));
+    await server.start();
     fastifyInstance = server.getServerInstance();
-
-    const config = fastifyInstance.diContainer.resolve('config');
-    server.initializeHealthRoute();
-
-    await fastifyInstance.listen(config.app.server);
-    await fastifyInstance.ready();
     host = getTestHost(fastifyInstance);
   });
 
@@ -80,9 +72,6 @@ describe("core: testing the server", () => {
 
     const hasUserAuthProvider = fastifyInstance.hasDecorator('userAuthChain');
     assert(hasUserAuthProvider, 'User auth chain should be registered');
-
-    const hasAdminAuthProvider = fastifyInstance.hasDecorator('adminAuthChain');
-    assert(hasAdminAuthProvider, 'Admin auth chain should be registered');
   });
 
   // test dicontainer is correctly registered

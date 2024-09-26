@@ -18,14 +18,8 @@ describe("core: testing the plugin manager", () => {
 
   before(async () => {
     server = buildServer(path.join(__dirname, 'plugins', 'ayazmo.config.js'))
-    await server.loadDiContainer();
-    await server.loadConfig()
-    await server.loadPlugins()
-    await server.enableAuthProviders()
+    await server.start()
     app = server.getServerInstance()
-    const config = app.diContainer.resolve('config');
-    await app.listen(config.app.server);
-    await app.ready();
     host = getTestHost(app)
   })
 
@@ -143,5 +137,92 @@ describe("core: testing the plugin manager", () => {
     const service = app.diContainer.resolve('testService')
     assert.ok(service.pluginSettings)
     assert.ok(service.pluginSettings.private === true)
+  })
+
+  // ---- Test plugin admin routes
+
+  it("should register admin routes correctly", () => {
+    const hasRoute = app.hasRoute({
+      method: 'POST',
+      url: '/admin/v1/test-success'
+    });
+    assert(hasRoute, 'Routes should include /admin/v1/test-success');
+  })
+
+  it("should call the admin routes correctly with token", async () => {
+    const response = await fetch(path.join(host, 'admin/v1/test-success'), {
+      method: 'POST',
+      body: JSON.stringify({
+        content: 'test content'
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        token: '123456'
+      }
+    });
+
+    assert.equal(response.status, 200)
+    const body = await response.json()
+    assert.deepEqual(body, { content: 'test content' })
+  })
+
+  it("should fail auth even with correct token", async () => {
+    const response = await fetch(path.join(host, 'admin/v1/always-fail'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        token: '123456'
+      }
+    });
+
+    assert.equal(response.status, 401)
+  })
+
+  it("should override admin routes correctly", async () => {
+    const response = await fetch(path.join(host, 'admin/v1/override-success'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        token: '123456'
+      }
+    });
+
+    assert.equal(response.status, 200)
+    const body = await response.json()
+    assert.deepEqual(body, { content: 'override-success' })
+  })
+
+  it("should not register route without preHandler auth in admin", () => {
+    const hasRoute = app.hasRoute({
+      method: 'GET',
+      url: '/admin/v1/test-no-auth'
+    });
+    assert(!hasRoute, 'Routes should not include /admin/v1/test-no-auth');
+  })
+
+  it("should be able to access admin route with admin role", async () => {
+    const response = await fetch(path.join(host, 'admin/v1/role-access-success'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        token: '123456',
+        role: 'admin'
+      }
+    });
+
+    assert.equal(response.status, 200)
+  })
+
+  it("should be not able to access admin route with editor role", async () => {
+    const response = await fetch(path.join(host, 'admin/v1/role-access-success'), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        token: '123456',
+        role: 'editor'
+      }
+    });
+
+    assert.equal(response.status, 403)
   })
 })

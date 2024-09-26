@@ -6,6 +6,12 @@ import { asValue } from 'awilix'
 export const loadConfig = async (app: AyazmoInstance): Promise<AppConfig> => {
   const defaultConfig: any = {
     // Define your default configurations here
+    admin: {
+      enabled: true,
+      opts: {
+        prefix: '/admin'
+      }
+    },
     plugins: []
   }
 

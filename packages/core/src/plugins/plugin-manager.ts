@@ -13,6 +13,7 @@ import { loadServices } from '../loaders/services.js'
 import { loadGraphQL } from '../loaders/graphql.js'
 import { loadSubscribers } from '../loaders/subscribers.js'
 import { loadAdminRoutes } from '../loaders/admin/routes.js'
+import adminAuthChain from '../admin/auth/adminAuthChain.js'
 
 const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins')
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
@@ -173,6 +174,37 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   )
 }
 
+export async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]): Promise<void> {
+  for (const registeredPlugin of plugins) {
+    const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name)
+    const publicPluginPath: string = path.join(nodeModulesPath, registeredPlugin.name)
+
+    let pluginPaths: PluginPaths | null = null
+
+    if (registeredPlugin?.path) {
+      pluginPaths = constructPaths(registeredPlugin.name, registeredPlugin.path)
+    } else if (fs.existsSync(privatePluginPath)) {
+      pluginPaths = constructPaths(registeredPlugin.name, pluginsRoot)
+    } else if (fs.existsSync(publicPluginPath)) {
+      pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath)
+    } else {
+      app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`)
+      continue
+    }
+
+    if (pluginPaths != null) {
+      if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
+        const bootstrap = await import(pluginPaths.bootstrap)
+
+        if (!bootstrap.default || typeof bootstrap.default !== 'function') {
+          throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`)
+        }
+        await bootstrap.default(app, registeredPlugin)
+      }
+    }
+  }
+}
+
 export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   const config: AppConfig = app.diContainer.resolve('config')
   const entities: AnyEntity[] = []
@@ -182,6 +214,10 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     app.log.warn('No plugins enabled in ayazmo.config.js file.')
     return
   }
+
+  await bootstrapPlugins(app, config.plugins)
+
+  app.decorate('adminAuthChain', adminAuthChain(app, config))
 
   for (const registeredPlugin of config.plugins) {
     const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name)
@@ -203,17 +239,6 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
 
     if (pluginPaths != null) {
-
-      // load bootstrap file if it exists before any other plugin files
-      if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
-        const bootstrap = await import(pluginPaths.bootstrap)
-
-        if (!bootstrap.default || typeof bootstrap.default !== 'function') {
-          throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`)
-        }
-        await bootstrap.default(app, registeredPlugin)
-      }
-
       // @ts-expect-error
       const [entityCollection, gqlCollection, ...rest] = await Promise.all([
         loadEntities(app, pluginPaths.entities),
@@ -238,11 +263,9 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     }, config.database)
 
     try {
-      // Initialize the database connection
       const db = await MikroORM.init(dbConfig)
       app.log.info('- Database connection established')
 
-      // check connection
       const isConnected = await db.isConnected()
       if (!isConnected) {
         app.log.error('- Database connection failed')

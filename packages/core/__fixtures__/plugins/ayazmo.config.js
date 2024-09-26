@@ -14,13 +14,45 @@ export default {
       type: 'memory',
     }
   },
+  admin: {
+    enabledAuthProviders: [
+      'adminSSO'
+    ],
+    roles: {
+      admin: (admin) => {
+        return admin.role === 'admin'
+      },
+      editor: (admin) => {
+        return admin.role === 'editor'
+      }
+    }
+  },
   plugins: [
     {
       "name": "ayazmo-plugin-test",
       path: path.resolve(path.join(__dirname, 'plugins')),
       "settings": {
-        "private": true
-      }
+        "private": true,
+        admin: {
+          routes: [
+            {
+              method: 'GET',
+              url: '/v1/override-success',
+              handler: async (request, reply) => {
+                reply.code(200).send({ content: "override-success" });
+              }
+            },
+            {
+              method: 'GET',
+              url: '/v1/role-access-success',
+              preHandler: [['adminSSO', 'admin']],
+              handler: async (request, reply) => {
+                reply.code(200).send({ content: "override-success" });
+              }
+            },
+          ]
+        }
+      },
     }
   ]
 }
