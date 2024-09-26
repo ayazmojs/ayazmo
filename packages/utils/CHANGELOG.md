@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.2.5
+
+### Patch Changes
+
+- admin route registration
+
+- Updated dependencies []:
+  - @ayazmo/types@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes

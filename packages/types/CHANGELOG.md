@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.5
+
+### Patch Changes
+
+- admin route registration
+
 ## 0.2.4
 
 ### Patch Changes
