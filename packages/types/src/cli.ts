@@ -1,30 +1,30 @@
 export interface IBaseOrmConfig {
-  entities: string[];
-  entitiesTs: string[];
-  baseDir: string;
+  entities: string[]
+  entitiesTs: string[]
+  baseDir: string
   migrations: {
-    snapshot: boolean;
-    path: string;
-    emit: string;
-    safe?: boolean;
-    dropTables?: boolean;
-    snapshotPath?: string;
-  };
+    snapshot: boolean
+    path: string
+    emit: string
+    safe?: boolean
+    dropTables?: boolean
+    snapshotPath?: string
+  }
   discovery?: {
-    warnWhenNoEntities: boolean;
-    requireEntitiesArray: boolean;
-    disableDynamicFileAccess: boolean;
-  };
+    warnWhenNoEntities: boolean
+    requireEntitiesArray: boolean
+    disableDynamicFileAccess: boolean
+  }
 }
 
 export interface IPluginPrompt {
-  selectedPlugin: string;
+  selectedPlugin: string
 }
 
 export interface ITypePrompt {
-  type: 'entities' | 'empty';
+  type: 'entities' | 'empty'
 }
 
 export interface INamePrompt {
-  filename: string;
+  filename: string
 }
