@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.6
+
+### Patch Changes
+
+- events fixes and cli tests and deps upgrade
+
 ## 0.2.5
 
 ### Patch Changes

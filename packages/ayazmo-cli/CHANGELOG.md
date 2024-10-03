@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.2.6
+
+### Patch Changes
+
+- events fixes and cli tests and deps upgrade
+
+- Updated dependencies []:
+  - @ayazmo/core@0.2.6
+  - @ayazmo/types@0.2.6
+  - @ayazmo/utils@0.2.6
+
 ## 0.2.5
 
 ### Patch Changes
