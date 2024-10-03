@@ -37,7 +37,8 @@
     "build": "rimraf dist && tsc --build",
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
     "lint": "ts-standard src/*",
-    "lint-fix": "ts-standard --fix src/*"
+    "lint-fix": "ts-standard --fix src/*",
+    "test": "find . -name \"*.test.mjs\" -exec node --test {} ';'"
   },
   "files": [
     "dist",
