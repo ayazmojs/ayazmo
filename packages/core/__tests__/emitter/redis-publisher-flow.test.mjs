@@ -67,16 +67,16 @@ describe("core: testing the redis publisher via Flow", () => {
     assert.equal(redis.status, 'ready')
   })
 
-  it("successfully builds a queue map", async () => {
+  it("successfully builds a publisher map", async () => {
     const eventService = app.diContainer.resolve('eventService')
     const emitter = eventService.getEmitter()
     const publisher = emitter.getPublisher()
-    const qm = publisher.getEventQueueMap()
+    const pm = publisher.getEventPublishersMap()
 
-    assert.ok(qm)
-    assert.equal(qm.size, 2)
-    assert.equal(qm.get('comment.create').length, 2)
-    assert.equal(qm.get('comment.delete').length, 1)
+    assert.ok(pm)
+    assert.equal(pm.size, 2)
+    assert.equal(pm.get('comment.create').length, 2)
+    assert.equal(pm.get('comment.delete').length, 1)
   })
 
   it("successfully loads the redis publisher config with default flow options", () => {
@@ -101,7 +101,8 @@ describe("core: testing the redis publisher via Flow", () => {
     const data = {
       title: 'test-flow-event-1',
       id: 1,
-      content: 'test-flow-event-1'
+      content: 'test-flow-event-1',
+      name: 'comment.create'
     }
 
     const handler = (job) => {

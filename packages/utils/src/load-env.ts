@@ -9,7 +9,6 @@ export function loadEnvironmentVariables() {
   // Determine the environment and construct the filename
   const environment = process.env.NODE_ENV || "development";
   const envPath = path.resolve(process.cwd(), `.env.${environment}`);
-  console.log("envPath: ", envPath)
 
   // Check if the environment-specific file exists
   if (fs.existsSync(envPath)) {

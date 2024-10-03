@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "turbo run build --no-daemon",
-    "test": "turbo run test",
+    "test": "NODE_ENV=test turbo run test",
     "publish": "changeset publish",
     "version": "changeset version"
   },

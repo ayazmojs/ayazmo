@@ -33,16 +33,16 @@ export class AyazmoPublisher {
   public isFlow: boolean = false;
   private app: AyazmoInstance;
   private config: AppConfig;
-  private eventQueueMap = new Map<string, AyazmoQueue[]>();
+  private eventPublishersMap = new Map<string, AyazmoQueue[]>();
 
   constructor(app: AyazmoInstance, config: AppConfig) {
     this.app = app;
     this.config = config;
     const queues: AyazmoQueue[] = this.config.app?.emitter?.queues ?? [];
 
-    this.setEventQueueMap(queues);
+    this.setEventPublishersMap(queues);
 
-    if (this.getEventQueueMap().size > 1) {
+    if (queues.length > 1) {
       this.flowProducer = new FlowProducer({ connection: app.redis });
       this.isFlow = true;
     } else {
@@ -75,23 +75,23 @@ export class AyazmoPublisher {
     return q;
   }
 
-  setEventQueueMap(queues: AyazmoQueue[] = []) {
-    queues.forEach((queue) => {
-      if (Array.isArray(queue.publishOn) && queue.publishOn.length > 0) {
-        queue.publishOn.forEach((event) => {
-          // Check if the event already has a queue array, if not, initialize it
-          const existingQueues = this.eventQueueMap.get(event) || [];
-          // Add the new queue to the array
-          existingQueues.push(queue);
+  setEventPublishersMap(publishers: AyazmoQueue[] = []) {
+    publishers.forEach((publisher) => {
+      if (Array.isArray(publisher.publishOn) && publisher.publishOn.length > 0) {
+        publisher.publishOn.forEach((event) => {
+          // Check if the event already has a publishers array, if not, initialize it
+          const existingPublishers = this.eventPublishersMap.get(event) || [];
+          // Add the new publisher to the array
+          existingPublishers.push(publisher);
           // Set the updated array back to the map
-          this.eventQueueMap.set(event, existingQueues);
+          this.eventPublishersMap.set(event, existingPublishers);
         });
       }
     });
   }
 
-  getEventQueueMap(): Map<string, AyazmoQueue[]> {
-    return this.eventQueueMap;
+  getEventPublishersMap(): Map<string, AyazmoQueue[]> {
+    return this.eventPublishersMap;
   }
 
   getInstance(): Queue | FlowProducer {
@@ -100,20 +100,19 @@ export class AyazmoPublisher {
 
   async publish(event: string, data: any | any[]): Promise<void> {
     if (!event || !data) {
-      this.app.log.error('Event or data is missing, cannot publish.');
+      this.app.log.error('Event or data is missing, skip publishing.');
+      return;
+    }
+
+    const publishers = this.eventPublishersMap.get(event);
+
+    if (!publishers || publishers.length === 0) {
+      this.app.log.info(`Event ${event} not allowed in the queues configuration for publishing`);
       return;
     }
 
     if (this.isFlow && this.flowProducer) {
-
-      const queueOptions = this.eventQueueMap.get(event);
-
-      if (!queueOptions) {
-        this.app.log.info(`Event ${event} not found in the queues configuration`);
-        return;
-      }
-
-      const jobPromises = queueOptions.map(async (queueOptions: AyazmoQueue) => {
+      const jobPromises = publishers.map(async (publisher: AyazmoQueue) => {
         // Define default job options
         const defaultOpts = {
           defaultJobOptions: {
@@ -124,14 +123,14 @@ export class AyazmoPublisher {
 
         const opts = {
           ...defaultOpts,
-          ...(queueOptions.options ?? {}), // Override with custom defaultJobOptions if provided
+          ...(publisher.options ?? {}),
         };
 
-        const transformedData = queueOptions.transformer ? await queueOptions.transformer(data, event, this.app) : data;
+        const transformedData = publisher.transformer ? await publisher.transformer(data, event, this.app) : data;
 
         return {
           name: event,
-          queueName: queueOptions.name,
+          queueName: publisher.name,
           data: transformedData,
           opts: opts,
         };
@@ -174,6 +173,10 @@ export class AyazmoWorker {
           for (const handler of handlers) {
             await handler(job);
           }
+        } else {
+          // throw to indicate this worker doesn't know how to handle this message.
+          // Msg will be requeued. Check job attempts and backoff settings to know when msg will fail.
+          throw new Error(`No handlers found for event: ${job.name}`);
         }
       }, workerConfig);
 
@@ -196,7 +199,7 @@ export class AyazmoWorker {
     workerConfig: AyazmoWorkerType
   ): Worker {
     const options = workerConfig?.options ?? {};
-    
+
     const w = new Worker(queueName, handler, {
       // @ts-ignore
       connection: this.app.redis,
@@ -275,7 +278,6 @@ export class AyazmoWorker {
       for (const worker of this.workers.values()) {
         await worker.close();
       }
-      process.exit(0);
     };
 
     process.on('SIGINT', shutdown);

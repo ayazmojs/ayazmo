@@ -15,7 +15,8 @@ export default {
                 delay: 1000,
               },
             }
-          }
+          },
+          publishOn: ['comment.create']
         }
       ],
       workers: [{

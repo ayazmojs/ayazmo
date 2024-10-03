@@ -20,3 +20,4 @@ export { amendConfigFile } from './amend-config-file.js';
 export * from './auth.js';
 export * from './load-env.js';
 export * from './test-utils.js';
+export * from './query-utils.js';

@@ -37,12 +37,20 @@ async function importAndLoadModule(
       // If no loader function, proceed with default behavior
       const serviceName = path.basename(file).replace(/\.(ts|js|mjs)$/, '') + 'Service';
 
-      // Register the service in the DI container
-      fastify.diContainer.register({
-        [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(fastify, pluginSettings)
-        ).singleton()
-      });
+      // Check if service override is allowed and the service is already registered
+      const canOverride = pluginSettings?.allowServiceOverride && fastify.diContainer.hasRegistration(serviceName);
+
+      if (canOverride || !fastify.diContainer.hasRegistration(serviceName)) {
+        fastify.diContainer.register({
+          [serviceName]: asFunction(
+            (cradle) => new serviceModule.default(fastify, pluginSettings)
+          ).singleton()
+        });
+
+        fastify.log.info(` - ${canOverride ? 'Overridden' : 'Registered'} service ${serviceName}`);
+      } else {
+        fastify.log.info(` - Skipped registering service ${serviceName} (already exists and override not allowed)`);
+      }
 
       fastify.log.info(` - Registered service ${serviceName}`);
     } else {

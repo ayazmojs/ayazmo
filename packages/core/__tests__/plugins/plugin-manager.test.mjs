@@ -48,9 +48,15 @@ describe("core: testing the plugin manager", () => {
     assert.equal(getPluginRoot(plugins[0].name, plugins[0].settings), path.join(process.cwd(), 'src', 'plugins', plugins[0].name))
   })
 
+  it("tests services are loaded correctly", () => {
+    const service = app.diContainer.resolve('testService')
+    assert.ok(service)
+    assert.deepEqual(service.getPayload(), { test: 'test override' })
+  })
+
   it("tests plugin routes are loaded correctly", async () => {
     const config = app.diContainer.resolve('config')
-    assert.equal(config.plugins.length, 1)
+    assert.equal(config.plugins.length, 2)
     assert.ok(config.plugins[0].path)
 
     const hasRoute = app.hasRoute({
@@ -120,6 +126,16 @@ describe("core: testing the plugin manager", () => {
     const service = app.diContainer.resolve('testService')
     assert.ok(service)
     assert.equal(service.constructor.name, 'TestService')
+    assert.ok(service.pluginSettings)
+    assert.ok(service.pluginSettings.private === true)
+    assert.deepEqual(service.getQueryFilter('fetchAllActive'), {
+      status: 'active'
+    })
+
+    assert.deepEqual(service.getQueryFilterOverride(), {
+      id: '1',
+      status: 'rejected'
+    })
   })
 
   it("tests Fastify decorator is added correctly during bootstrap", () => {
@@ -131,12 +147,6 @@ describe("core: testing the plugin manager", () => {
     const service = app.diContainer.resolve('testService')
     assert.ok(service.app)
     assert.ok(service.app.diContainer)
-  })
-
-  it("should resolve the pluginSettings", () => {
-    const service = app.diContainer.resolve('testService')
-    assert.ok(service.pluginSettings)
-    assert.ok(service.pluginSettings.private === true)
   })
 
   // ---- Test plugin admin routes

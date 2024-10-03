@@ -99,15 +99,15 @@ describe("core: testing the redis publisher via Queue", () => {
       jobId = job.id;
     });
 
-    await eventService.publish('test-queue-event', { key: 'value' })
+    await eventService.publish('comment.create', { key: 'value' })
     const handler = async (job) => {
       assert.deepStrictEqual(job.data, { key: 'value' })
     }
 
-    await eventService.subscribe('test-queue-event', handler)
+    await eventService.subscribe('comment.create', handler)
     assert.equal(emitter.getEventHandlers().size, 1)
 
-    // wait until the job has been consumed but timeout after 10 seconds
+    // wait until the job has been consumed but timeout after 20 seconds
     await new Promise((resolve, reject) => {
       if (completed) {
         resolve();
@@ -134,7 +134,7 @@ describe("core: testing the redis publisher via Queue", () => {
       });
     })
 
-    await eventService.unsubscribe('test-queue-event', handler)
+    await eventService.unsubscribe('comment.create', handler)
     assert.equal(emitter.getEventHandlers().size, 0)
     await worker.close()
   })

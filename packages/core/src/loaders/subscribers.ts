@@ -9,7 +9,7 @@ export async function loadSubscribers(
 ): Promise<void> {
   const eventService = fastify.diContainer.resolve('eventService') as EventService
 
-  if (pluginSettings.subscribers) {
+  if (pluginSettings?.subscribers) {
 
     const subscribers = pluginSettings.subscribers ?? {}
 
@@ -40,8 +40,13 @@ export async function loadSubscribers(
         return
       }
 
-      const { event, handler } = await module.default(fastify.diContainer, pluginSettings)
-      eventService.subscribe(event, handler)
+      const subscriber = await module.default(fastify, pluginSettings)
+      if (typeof subscriber.event === 'string' && typeof subscriber.handler === 'function') {
+        eventService.subscribe(subscriber.event, subscriber.handler)
+        fastify.log.info(` - Registered subscriber ${module.default.name} on ${subscriber.event}`)
+      } else {
+        fastify.log.warn(` - Invalid event or handler in ${file}. Event must be a string and handler must be a function.`)
+      }
 
       fastify.log.info(` - Registered subscriber ${module.default.name} on ${event}`)
     } catch (error) {

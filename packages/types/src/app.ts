@@ -5,6 +5,7 @@ import { AwilixContainer } from 'awilix';
 import { FastifyListenOptions, RegisterOptions } from "fastify";
 import { QueueOptions, WorkerOptions } from 'bullmq';
 import { AyazmoInstance, AyazmoRouteOptions } from "./server";
+import { Dictionary, FilterQuery, AnyEntity } from '@mikro-orm/core';
 
 export type PluginRoutes = {
   enabled?: boolean;
@@ -14,6 +15,9 @@ export type PluginRoutes = {
 export interface PluginSettings {
   private?: boolean;
   routes?: PluginRoutes;
+  filters?: {
+    [key: string]: Dictionary | ((args: Dictionary) => Promise<FilterQuery<AnyEntity>> | FilterQuery<AnyEntity>);
+  };
   [key: string]: any;
 }
 

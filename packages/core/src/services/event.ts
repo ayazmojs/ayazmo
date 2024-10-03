@@ -16,7 +16,6 @@ class EventService extends AyazmoCoreService {
       case 'redis':
         this.eventEmitter = new RedisEventEmitter(app, configModule);
         break;
-      // Add other cases for different event emitter types
       default: this.eventEmitter = new InMemoryEventEmitter()
     }
   }

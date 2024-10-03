@@ -53,6 +53,22 @@ export default {
           ]
         }
       },
+    },
+    {
+      name: 'ayazmo-plugin-service-override',
+      path: path.resolve(path.join(__dirname, 'plugins')),
+      settings: {
+        "private": true,
+        allowServiceOverride: true,
+        queryFilters: {
+          fetchById: args => {
+            return {
+              id: '1',
+              status: 'rejected'
+            }
+          }
+        }
+      }
     }
   ]
 }
