@@ -24,7 +24,7 @@
     "@mikro-orm/core": "^6.3.12",
     "@mikro-orm/migrations": "^6.3.12",
     "@mikro-orm/postgresql": "^6.3.12",
-    "awilix": "^11.0.0",
+    "awilix": "^11.0.1",
     "fastify": "4.28.1"
   },
   "devDependencies": {
