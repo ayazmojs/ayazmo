@@ -6,7 +6,7 @@ import { askUserForPluginName, askUserForPackageManager } from './prompts.js'
 import CliLogger from './cli-logger.js'
 import PackagetJson from '@npmcli/package-json'
 import { isAyazmoProject } from './is-ayazmo-project.js'
-import { execa } from 'execa';
+import { execa } from 'execa'
 
 export async function createPlugin (): Promise<void> {
   CliLogger.info('Checking environment...')

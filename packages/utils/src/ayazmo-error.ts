@@ -1,13 +1,14 @@
-import createError from "@fastify/error";
+import createError from '@fastify/error'
 
-type ErrorOptions = {
-  statusCode: number;
-  message: string;
-  code?: string;
-};
+interface ErrorOptions {
+  statusCode: number
+  message: string
+  code?: string
+}
 
 // Error factory function
-export default function AyazmoError({ statusCode, message, code }: ErrorOptions) {
-  const error = createError(code || 'AYAZMO_ERROR', message, statusCode);
-  return new error();
+export default function AyazmoError ({ statusCode, message, code }: ErrorOptions): Error {
+  const errorCode = code ?? 'AYAZMO_ERROR'
+  const ErrorConstructor = createError(errorCode, message, statusCode)
+  return new ErrorConstructor()
 }

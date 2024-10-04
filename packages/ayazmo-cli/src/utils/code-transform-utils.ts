@@ -1,52 +1,52 @@
-import jscodeshift from 'jscodeshift';
+import jscodeshift from 'jscodeshift'
 
-export const withParser = (parser: string) => jscodeshift.withParser(parser);
+export const withParser = (parser: string): ReturnType<typeof jscodeshift.withParser> => jscodeshift.withParser(parser)
 
 export const removePluginFromConfig = (configFileSource: string, pluginName: string): string => {
-  const j = withParser('babel');
+  const j = withParser('babel')
 
   return j(configFileSource)
     .find(j.Property, {
       key: {
         type: 'Identifier',
-        name: 'plugins',
-      },
+        name: 'plugins'
+      }
     })
     .forEach((path) => {
-      const pluginsArray = path.node.value;
+      const pluginsArray = path.node.value
       if (pluginsArray.type === 'ArrayExpression') {
         pluginsArray.elements = pluginsArray.elements.filter((pluginNode) => {
-          if (pluginNode && pluginNode.type === 'ObjectExpression') {
-            const properties = pluginNode.properties;
+          if ((pluginNode != null) && pluginNode.type === 'ObjectExpression') {
+            const properties = pluginNode.properties
             const pluginNameProperty = properties.find((property) =>
               (property.type === 'ObjectProperty' || property.type === 'Property') &&
               property.key.type === 'Identifier' && property.key.name === 'name'
-            );
-            // @ts-ignore
-            return pluginNameProperty && pluginNameProperty.value.value !== pluginName;
+            )
+            // @ts-expect-error
+            return (pluginNameProperty != null) && pluginNameProperty.value.value !== pluginName
           }
-          return false;
-        });
+          return false
+        })
       }
     })
     .toSource({
-      reuseWhitespace: true,
-    });
-};
+      reuseWhitespace: true
+    })
+}
 
 // add plugin to config file
 export const addPluginToConfig = (configFileSource: string, pluginName: string): string => {
-  const j = withParser('babel');
+  const j = withParser('babel')
 
   return j(configFileSource)
     .find(j.Property, {
       key: {
         type: 'Identifier',
-        name: 'plugins',
-      },
+        name: 'plugins'
+      }
     })
     .forEach((path) => {
-      const pluginsArray = path.node.value;
+      const pluginsArray = path.node.value
       if (pluginsArray.type === 'ArrayExpression') {
         pluginsArray.elements.push({
           type: 'ObjectExpression',
@@ -55,18 +55,18 @@ export const addPluginToConfig = (configFileSource: string, pluginName: string):
               type: 'ObjectProperty',
               key: {
                 type: 'Identifier',
-                name: 'name',
+                name: 'name'
               },
               value: {
                 type: 'StringLiteral',
-                value: pluginName,
-              },
+                value: pluginName
+              }
             },
             {
               type: 'ObjectProperty',
               key: {
                 type: 'Identifier',
-                name: 'settings',
+                name: 'settings'
               },
               value: {
                 type: 'ObjectExpression',
@@ -76,19 +76,19 @@ export const addPluginToConfig = (configFileSource: string, pluginName: string):
                     type: 'ObjectProperty',
                     key: {
                       type: 'Identifier',
-                      name: 'private',
+                      name: 'private'
                     },
                     value: {
                       type: 'BooleanLiteral',
-                      value: false,
-                    },
+                      value: false
+                    }
                   }
-                ],
-              },
-            },
-          ],
-        });
+                ]
+              }
+            }
+          ]
+        })
       }
     })
-    .toSource();
-};
+    .toSource()
+}

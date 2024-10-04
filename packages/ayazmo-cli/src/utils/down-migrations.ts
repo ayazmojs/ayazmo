@@ -12,21 +12,22 @@ import {
   Migrator,
   MigrationObject,
   MigrateOptions,
-  UmzugMigration
+  UmzugMigration,
+  MikroORM
 } from '@ayazmo/types'
 import {
   discoverMigrationFiles,
-  discoverPublicPaths,
+  discoverPublicPaths
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
 
-export async function downMigrations(options?: string | string[] | MigrateOptions): Promise<UmzugMigration[]> {
-  let orm: any
+export async function downMigrations (options?: string | string[] | MigrateOptions): Promise<UmzugMigration[]> {
+  let orm: MikroORM | null = null
 
   try {
     const globalConfig = await importGlobalConfig()
 
-    if (!globalConfig.plugins.length) {
+    if (!Array.isArray(globalConfig.plugins) || globalConfig.plugins.length === 0) {
       throw new Error('No plugins enabled!')
     }
 
@@ -35,13 +36,13 @@ export async function downMigrations(options?: string | string[] | MigrateOption
 
     const entities = [ENTITIES_JS_PATH]
 
-    if (!entities.length) {
-      throw new Error("No database entities found.")
+    if (entities.length === 0) {
+      throw new Error('No database entities found.')
     }
 
     orm = await initDatabase({
       ...{
-        entities: entities,
+        entities,
         entitiesTs: [ENTITIES_TS_PATH],
         baseDir: process.cwd(),
         migrations: {
@@ -55,15 +56,15 @@ export async function downMigrations(options?: string | string[] | MigrateOption
 
     const migrator: Migrator = orm.getMigrator()
 
-    if (options) {
+    if (options != null) {
       return await migrator.down(options)
     } else {
       return await migrator.down()
     }
   } catch (error) {
     CliLogger.error(error)
-    throw error;
+    throw error
   } finally {
-    if (orm) await orm.close()
+    if (orm != null) await orm.close()
   }
 }

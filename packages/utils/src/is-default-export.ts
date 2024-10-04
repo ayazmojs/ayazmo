@@ -1,3 +1,5 @@
-export default function isDefaultExport(node: any): boolean {
-  return !!node.default
+import { Module } from 'module'
+
+export default function isDefaultExport (node: typeof Module): boolean {
+  return 'default' in node
 }

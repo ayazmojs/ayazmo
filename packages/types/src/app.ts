@@ -109,9 +109,9 @@ export interface IEventEmitter {
   unsubscribe: (event: string, handler: (...args: any[]) => void) => void
 }
 
-export type AyazmoContainer = AwilixContainer & {
+export interface AyazmoContainer extends AwilixContainer {
   eventService: IEventEmitter
   config: AppConfig
   dbService: MikroORM
-  resolve: <T = unknown>(key: string) => T
+  resolve: <T = any>(key: string) => T
 }

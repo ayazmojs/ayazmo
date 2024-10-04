@@ -1,34 +1,34 @@
 export class QueryFilterManager {
-  private filters: Map<string, object> = new Map();
+  private readonly filters: Map<string, object> = new Map()
 
-  constructor(defaultFilters: object) {
+  constructor (defaultFilters: object) {
     this.setDefaultFilters(defaultFilters)
   }
 
-  public setConfigurableFilters(filters: object) {
+  public setConfigurableFilters (filters: object): void {
     Object.entries(filters).forEach(([key, filter]) => {
-      this.filters.set(key, filter);
-    });
+      this.filters.set(key, filter)
+    })
   }
 
-  public setDefaultFilters(filters: object) {
+  public setDefaultFilters (filters: object): void {
     Object.entries(filters).forEach(([key, filter]) => {
-      this.setDefaultFilter(key, filter);
-    });
+      this.setDefaultFilter(key, filter)
+    })
   }
 
-  public setDefaultFilter(name: string, filter: object) {
+  public setDefaultFilter (name: string, filter: object): void {
     if (!this.filters.has(name)) {
-      this.filters.set(name, filter);
+      this.filters.set(name, filter)
     }
   }
 
-  public getFilter(name: string, args: any): object {
+  public getFilter (name: string, args: any): object {
     const filter = this.filters.get(name) ?? {}
     if (typeof filter === 'function') {
-      return filter(args);
+      return filter(args)
     }
 
-    return filter;
+    return filter
   }
 }

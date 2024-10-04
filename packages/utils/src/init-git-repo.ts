@@ -1,22 +1,22 @@
-import { execa } from 'execa';
+import { execa } from 'execa'
 
-async function tryGitInit(directory: string, command: string): Promise<boolean> {
+async function tryGitInit (directory: string, command: string): Promise<boolean> {
   try {
-    await execa(command, ['init'], { cwd: directory, stdio: 'inherit' });
-    return true;
+    await execa(command, ['init'], { cwd: directory, stdio: 'inherit' })
+    return true
   } catch {
-    return false;
+    return false
   }
 }
 
-export default async function initializeGitRepo(directory: string): Promise<void> {
-  const gitCommands = ['git', '/usr/bin/git'];
+export default async function initializeGitRepo (directory: string): Promise<void> {
+  const gitCommands = ['git', '/usr/bin/git']
   for (const command of gitCommands) {
-    const success = await tryGitInit(directory, command);
+    const success = await tryGitInit(directory, command)
     if (success) {
-      return;
+      return
     }
   }
 
-  throw new Error('Failed to initialize Git repository. Ensure that Git is installed and in your PATH.');
+  throw new Error('Failed to initialize Git repository. Ensure that Git is installed and in your PATH.')
 }

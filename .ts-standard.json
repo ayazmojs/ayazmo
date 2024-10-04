@@ -1,0 +1,15 @@
+{
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/__tests__/**",
+    "**/__fixtures__/**"
+  ],
+  "parserOptions": {
+    "project": [
+      "./packages/*/tsconfig.json"
+    ]
+  }
+}

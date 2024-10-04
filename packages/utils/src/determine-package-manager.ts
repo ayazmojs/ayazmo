@@ -1,10 +1,10 @@
-import checkCommandExists from "./check-command-exists.js";
+import checkCommandExists from './check-command-exists.js'
 
-export default async function determinePackageManager(): Promise<{
-  hasYarn: boolean;
-  hasNpm: boolean;
+export default async function determinePackageManager (): Promise<{
+  hasYarn: boolean
+  hasNpm: boolean
 }> {
-  const [hasYarn, hasNpm] = await Promise.all([checkCommandExists('yarn'), checkCommandExists('npm')]);
+  const [hasYarn, hasNpm] = await Promise.all([checkCommandExists('yarn'), checkCommandExists('npm')])
 
   return {
     hasYarn,

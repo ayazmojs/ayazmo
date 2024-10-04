@@ -1,6 +1,6 @@
 import figlet from 'figlet'
 import chalk from 'chalk'
-import CliLogger from "./cli-logger.js";
+import CliLogger from './cli-logger.js'
 
 export default function printAyazmo (): void {
   const fonts = figlet.fontsSync()

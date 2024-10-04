@@ -4,7 +4,7 @@ import {
   ENTITIES_TS_PATH,
   ENTITIES_JS_PATH
 } from '@ayazmo/utils'
-import { Migrator, MigrationObject } from '@ayazmo/types'
+import { Migrator, MigrationObject, MikroORM } from '@ayazmo/types'
 import {
   discoverPrivateMigrationPaths,
   discoverMigrationFiles,
@@ -12,14 +12,14 @@ import {
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
 
-export async function runMigrations(): Promise<void> {
-  let orm: any
+export async function runMigrations (): Promise<void> {
+  let orm: MikroORM | null = null
   CliLogger.info('Checking environment...')
 
   try {
     const globalConfig = await importGlobalConfig()
 
-    if (!globalConfig.plugins.length) {
+    if (!Array.isArray(globalConfig.plugins) || globalConfig.plugins.length === 0) {
       throw new Error('No plugins enabled!')
     }
 
@@ -33,17 +33,17 @@ export async function runMigrations(): Promise<void> {
 
     const entities = [ENTITIES_JS_PATH]
 
-    if (publicPaths.entities.length) {
-      entities.push(...publicPaths.entities.map(entityPath => `${entityPath}/*.js`));
+    if (publicPaths.entities.length > 0) {
+      entities.push(...publicPaths.entities.map(entityPath => `${entityPath}/*.js`))
     }
 
-    if (!entities.length) {
-      throw new Error("No database entities found.")
+    if (entities.length === 0) {
+      throw new Error('No database entities found.')
     }
 
     orm = await initDatabase({
       ...{
-        entities: entities,
+        entities,
         entitiesTs: [ENTITIES_TS_PATH],
         baseDir: process.cwd(),
         migrations: {
@@ -67,7 +67,7 @@ export async function runMigrations(): Promise<void> {
   } catch (error) {
     CliLogger.error(error)
   } finally {
-    if (orm) await orm.close()
+    if (orm != null) await orm.close()
     process.exit(0)
   }
 }
