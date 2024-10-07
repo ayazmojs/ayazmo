@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.2.7
+
+### Patch Changes
+
+- lint
+
 ## 0.2.6
 
 ### Patch Changes
