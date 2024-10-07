@@ -1,13 +1,12 @@
 import { AppConfig, AyazmoInstance } from '@ayazmo/types'
-import BaseEventEmitter from '../interfaces/BaseEventEmitter.js'
 import { InMemoryEventEmitter } from '../emitter/InMemoryEventEmitter.js'
 import { RedisEventEmitter } from '../emitter/RedisEventEmitter.js'
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js'
 
+type EventEmitterType = InMemoryEventEmitter | RedisEventEmitter;
+
 class EventService extends AyazmoCoreService {
-  private readonly eventEmitter: BaseEventEmitter & {
-    listSubscribers: (event: string) => any[]
-  }
+  private readonly eventEmitter: EventEmitterType;
 
   constructor(app: AyazmoInstance, config: AppConfig) {
     super(app, config)
@@ -20,7 +19,7 @@ class EventService extends AyazmoCoreService {
     }
   }
 
-  getEmitter(): BaseEventEmitter {
+  getEmitter(): EventEmitterType {
     return this.eventEmitter
   }
 
