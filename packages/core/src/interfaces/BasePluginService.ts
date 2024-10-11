@@ -7,7 +7,7 @@ export abstract class BasePluginService {
   private _em: EntityManager | undefined
   app: AyazmoInstance
   private _queryFilterManager: QueryFilterManager
-  protected abstract defaultQueryFilters: Record<string, any>;
+  protected defaultQueryFilters: Record<string, any>;
 
   constructor(app: AyazmoInstance, pluginSettings: PluginSettings) {
     if (new.target === BasePluginService) {
