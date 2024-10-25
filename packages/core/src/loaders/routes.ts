@@ -1,4 +1,5 @@
 import { AyazmoRouteOptions, PluginSettings, PluginRoutes } from '@ayazmo/types'
+import { merge } from '@ayazmo/utils'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
 import { isValidRoute, isRouteEnabled } from '../utils/route-validator.js'
@@ -45,10 +46,10 @@ export async function loadRoutes(
             // extract custom route options
             const { enabled, ...routeOptions } = route
 
-            app.route({
-              ...routeOptions,
-              ...hooksResult
-            })
+            app.route(merge(
+              routeOptions,
+              hooksResult
+            ))
             app.log.info(` - Registered route ${route.method} ${route.url}`)
           } else {
             app.log.error(` - Invalid route detected in ${path}`)
