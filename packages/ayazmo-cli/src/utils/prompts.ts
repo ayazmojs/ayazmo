@@ -53,7 +53,7 @@ export async function askUserWhichPlugin (availablePlugins: string[]): Promise<{
     {
       type: 'list',
       name: 'selectedPlugin',
-      message: 'Which plugin would you like to use?',
+      message: 'In which plugin would you like to create the migration?',
       choices: availablePlugins
     }
   ])
