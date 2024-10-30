@@ -15,7 +15,7 @@ class EventService extends AyazmoCoreService {
       case 'redis':
         this.eventEmitter = new RedisEventEmitter(app, configModule);
         break;
-      default: this.eventEmitter = new InMemoryEventEmitter()
+      default: this.eventEmitter = new InMemoryEventEmitter(app, configModule);
     }
   }
 
@@ -31,8 +31,8 @@ class EventService extends AyazmoCoreService {
     this.eventEmitter.unsubscribe(event, handler)
   }
 
-  async publish(event: string, data: any, config: any): Promise<void> {
-    await this.eventEmitter.publish(event, data, config)
+  async publish(event: string, data: any, pluginSettings: any): Promise<void> {
+    await this.eventEmitter.publish(event, data, pluginSettings)
   }
 
   listSubscribers(event: string): any[] {

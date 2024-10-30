@@ -17,6 +17,7 @@ export interface PluginSettings {
   filters?: {
     [key: string]: Dictionary | ((args: Dictionary) => Promise<FilterQuery<AnyEntity>> | FilterQuery<AnyEntity>)
   }
+  onBeforePublish?: (event: string, data: any) => Promise<any> | any
   [key: string]: any
 }
 
@@ -55,6 +56,7 @@ export interface AyazmoAppConfig {
   cors: FastifyCorsOptions
   cache: any
   enabledAuthProviders: string[]
+  onBeforePublish?: (event: string, data: any) => Promise<any> | any
 }
 
 export type RoleCheckFunction = (user: any) => boolean

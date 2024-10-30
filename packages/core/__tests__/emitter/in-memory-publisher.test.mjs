@@ -57,4 +57,71 @@ describe("core: testing the in memory publisher", () => {
 
     assert.equal(eventService.listSubscribers(testEvent).length, 0, 'No subscribers should be registered');
   });
+
+  it('should publish event with onBeforePublish callback', async () => {
+    const eventService = app.diContainer.resolve('eventService');
+    const testEvent = 'test.callback.event';
+    const testPayload = { key: 'value' };
+    let receivedPayload = null;
+
+    const handler = (payload) => {
+      receivedPayload = payload;
+    };
+
+    eventService.subscribe(testEvent, handler);
+
+    await eventService.publish(testEvent, testPayload, {
+      onBeforePublish: async (event, data) => {
+        return data;
+      }
+    });
+
+    assert.deepStrictEqual(receivedPayload, testPayload, 'Payload should be received unchanged');
+    eventService.unsubscribe(testEvent, handler);
+  });
+
+  it('should modify payload through onBeforePublish callback', async () => {
+    const eventService = app.diContainer.resolve('eventService');
+    const testEvent = 'test.modified.event';
+    const testPayload = { key: 'value' };
+    const modifiedPayload = { key: 'modified' };
+    let receivedPayload = null;
+
+    const handler = (payload) => {
+      receivedPayload = payload;
+    };
+
+    eventService.subscribe(testEvent, handler);
+
+    await eventService.publish(testEvent, testPayload, {
+      onBeforePublish: async (event, data) => {
+        return modifiedPayload;
+      }
+    });
+
+    assert.deepStrictEqual(receivedPayload, modifiedPayload, 'Modified payload should be received');
+    eventService.unsubscribe(testEvent, handler);
+  });
+
+  it('should not publish event when onBeforePublish returns null', async () => {
+    const eventService = app.diContainer.resolve('eventService');
+    const testEvent = 'test.null.event';
+    const testPayload = { key: 'value' };
+    let wasHandlerCalled = false;
+
+    const handler = () => {
+      wasHandlerCalled = true;
+    };
+
+    eventService.subscribe(testEvent, handler);
+
+    await eventService.publish(testEvent, testPayload, {
+      onBeforePublish: async (event, data) => {
+        return null;
+      }
+    });
+
+    assert.strictEqual(wasHandlerCalled, false, 'Handler should not be called when onBeforePublish returns null');
+    eventService.unsubscribe(testEvent, handler);
+  });
 })

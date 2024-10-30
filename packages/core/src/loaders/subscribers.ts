@@ -48,7 +48,7 @@ export async function loadSubscribers(
         fastify.log.warn(` - Invalid event or handler in ${file}. Event must be a string and handler must be a function.`)
       }
 
-      fastify.log.info(` - Registered subscriber ${module.default.name} on ${event}`)
+      fastify.log.info(` - Registered subscriber ${module.default.name} on ${subscriber.event}`)
     } catch (error) {
       fastify.log.error(` - Error while loading module ${file}: ${error}`)
     }

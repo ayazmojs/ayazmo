@@ -1,6 +1,6 @@
 import { Queue, Worker, FlowProducer, FlowJob, Job } from 'bullmq';
 import BaseEventEmitter from '../interfaces/BaseEventEmitter.js';
-import { AppConfig, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType } from '@ayazmo/types';
+import { AppConfig, AyazmoInstance, AyazmoQueue, AyazmoWorker as AyazmoWorkerType, PluginSettings } from '@ayazmo/types';
 
 const allQueueEvents = [
   'cleaned',
@@ -208,67 +208,6 @@ export class AyazmoWorker {
 
     this.setupEventHandlers(w, workerConfig);
 
-    // Worker event listeners
-    // w.on('active', (job, prev) => {
-    //   this.app.log.debug(`Worker active job ${job.id}`);
-    //   console.log(`Worker active job ${job.id}`);
-    // });
-
-    // w.on('closing', () => {
-    //   this.app.log.debug(`Worker is closing`);
-    //   console.log(`Worker is closing`);
-    // });
-
-    // w.on('closed', () => {
-    //   this.app.log.debug(`Worker is closed`);
-    //   console.log(`Worker is closed`);
-    // });
-
-    // w.on('progress', (job, progress) => {
-    //   this.app.log.debug(`Worker is in progress ${job.id}`);
-    //   console.log(`Worker is in progress ${job.id}`);
-    // });
-
-    // w.on('ready', () => {
-    //   this.app.log.debug(`Worker is in ready status`);
-    //   console.log(`Worker is in ready status`);
-    // });
-
-    // w.on('paused', () => {
-    //   this.app.log.debug(`Worker is paused`);
-    //   console.log(`Worker is paused`);
-    // });
-
-    // w.on('drained', () => {
-    //   this.app.log.debug(`Worker is drained`);
-    //   console.log(`Worker is drained`);
-    // });
-
-    // w.on('resumed', () => {
-    //   this.app.log.debug(`Worker is resumed`);
-    //   console.log(`Worker is resumed`);
-    // });
-
-    // w.on('stalled', (jobId, prev) => {
-    //   this.app.log.debug(`Worker job ${jobId} is stalled`);
-    //   console.log(`Worker job ${jobId} is stalled`);
-    // });
-
-    // w.on('completed', (job) => {
-    //   this.app.log.debug(`Worker completed job ${job.id}`);
-    //   console.log(`Worker completed job ${job.id}`);
-    // });
-
-    // w.on('failed', (job, err) => {
-    //   this.app.log.error(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
-    //   console.log(`Worker job ${job ? job.id : 'undefined'} failed: ${err.message}`);
-    // });
-
-    // w.on('error', (err) => {
-    //   this.app.log.error(`Worker error: ${err.message}`);
-    //   console.log(`Worker error: ${err.message}`);
-    // });
-
     return w;
   }
 
@@ -307,11 +246,12 @@ export class AyazmoWorker {
 export class RedisEventEmitter extends BaseEventEmitter {
   private publisher: AyazmoPublisher;
   private workers: AyazmoWorker;
-  // create a map to hold events and handlers
   private eventHandlers: Map<string, Set<(...args: any[]) => void>> = new Map();
+  private config: AppConfig;
 
   constructor(app: AyazmoInstance, config: AppConfig) {
     super();
+    this.config = config;
     this.publisher = new AyazmoPublisher(app, config);
 
     if (config.app?.emitter?.workers) {
@@ -319,8 +259,30 @@ export class RedisEventEmitter extends BaseEventEmitter {
     }
   }
 
-  override async publish(event: string, data: any): Promise<void> {
-    await this.publisher.publish(event, data);
+  override async publish(event: string, data: any, pluginSettings?: PluginSettings): Promise<void> {
+    // First try to get the callback from pluginSettings
+    let onBeforePublish = pluginSettings?.onBeforePublish;
+    
+    // If not found in pluginSettings, fall back to global config
+    if (typeof onBeforePublish !== 'function' && this.config.app?.onBeforePublish) {
+      onBeforePublish = this.config.app.onBeforePublish;
+    }
+
+    // If we have a callback, execute it
+    if (typeof onBeforePublish === 'function') {
+      const result = await onBeforePublish(event, data);
+      
+      // Only publish if the callback returned something other than null/undefined
+      if (result !== null && result !== undefined) {
+        await this.publisher.publish(event, result);
+      }
+      return;
+    }
+
+    // If no callback was defined, publish the original data
+    if (data !== null && data !== undefined) {
+      await this.publisher.publish(event, data);
+    }
   }
 
   override async subscribe(event: string, handler: (...args: any[]) => void): Promise<void> {

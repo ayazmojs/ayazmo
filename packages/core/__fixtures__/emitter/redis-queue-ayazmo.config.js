@@ -16,7 +16,7 @@ export default {
               },
             }
           },
-          publishOn: ['comment.create']
+          publishOn: ['test.modified.event', 'test.callback.event', 'test.null.event', 'comment.create']
         }
       ],
       workers: [{
