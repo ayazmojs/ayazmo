@@ -2,10 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import { getEntityFiles, hasEntities, filterPluginsWithEntities } from '../../dist/utils/migration-helpers.js'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('migration-helpers', () => {
   describe('getEntityFiles', () => {
