@@ -2426,14 +2426,6 @@ awilix-manager@^4.0.0:
   dependencies:
     awilix "^9.0.0"
 
-awilix@^11.0.0:
-  version "11.0.0"
-  resolved "https://registry.npmjs.org/awilix/-/awilix-11.0.0.tgz"
-  integrity sha512-lnEm2TZu1OUWO1twi/3JrjSYu3RYjiOMiMQgfpwXj6uG4NSDtPSAWwTvqbpV7B8iWsXiC8GoMBKg1YsrUxPJhg==
-  dependencies:
-    camel-case "^4.1.2"
-    fast-glob "^3.3.2"
-
 awilix@^12.0.3:
   version "12.0.3"
   resolved "https://registry.yarnpkg.com/awilix/-/awilix-12.0.3.tgz#6c9f010b49d0da3151f6b1d8b84fedc7fbf47125"
@@ -2577,10 +2569,10 @@ builtins@^5.0.0, builtins@^5.0.1:
   dependencies:
     semver "^7.0.0"
 
-bullmq@^5.15.0:
-  version "5.15.0"
-  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.15.0.tgz#110d5b6afc665af9883a9dd960c92c7589fe0e4d"
-  integrity sha512-h53shVjx8s6wxYGtUfzAfENpSP7N5T0D4PMTvbZncozLjb8yUKhopfpa7PmcpQfq7SSO9dm/OZ9XQuGOCSGNug==
+bullmq@^5.21.2:
+  version "5.21.2"
+  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.21.2.tgz#2a5a3a2198fd900556369a83b471531f68a1ab96"
+  integrity sha512-LPuNoGaDc5CON2X6h4cJ2iVfd+B+02xubFU+IB/fyJHd+/HqUZRqnlYryUCAuhVHBhUKtA6oyVdJxqSa62i+og==
   dependencies:
     cron-parser "^4.6.0"
     ioredis "^5.4.1"
@@ -8760,10 +8752,10 @@ tsutils@^3.21.0:
   dependencies:
     tslib "^1.8.1"
 
-tsx@^4.19.1:
-  version "4.19.1"
-  resolved "https://registry.npmjs.org/tsx/-/tsx-4.19.1.tgz"
-  integrity sha512-0flMz1lh74BR4wOvBjuh9olbnwqCPc35OOlfyzHba0Dc+QNUeWX/Gq2YTbnwcWPO3BMd8fkzRVrHcsR+a7z7rA==
+tsx@^4.19.2:
+  version "4.19.2"
+  resolved "https://registry.yarnpkg.com/tsx/-/tsx-4.19.2.tgz#2d7814783440e0ae42354d0417d9c2989a2ae92c"
+  integrity sha512-pOUl6Vo2LUq/bSa8S5q7b91cgNSjctn9ugq/+Mvow99qW6x/UZYwzxy/3NmqoT66eHYfCVvFvACC58UBPFf28g==
   dependencies:
     esbuild "~0.23.0"
     get-tsconfig "^4.7.5"
