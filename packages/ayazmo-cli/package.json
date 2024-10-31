@@ -14,12 +14,12 @@
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "dotenv": "^16.3.1",
-    "execa": "^9.4.0",
-    "figlet": "^1.7.0",
+    "execa": "^9.5.1",
+    "figlet": "^1.8.0",
     "figures": "^6.0.1",
     "globby": "^14.0.1",
     "inquirer": "^11.1.0",
-    "jscodeshift": "^17.0.0",
+    "jscodeshift": "^17.1.0",
     "ora": "^8.0.1",
     "tiged": "^2.12.5"
   },
@@ -27,7 +27,7 @@
     "ayazmo": "./dist/index.js"
   },
   "devDependencies": {
-    "@types/figlet": "^1.5.8",
+    "@types/figlet": "^1.7.0",
     "@types/inquirer": "^9.0.7",
     "@types/jscodeshift": "^0.12.0",
     "ts-node": "^10.9.2",
