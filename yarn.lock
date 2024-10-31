@@ -2434,10 +2434,10 @@ awilix@^11.0.0:
     camel-case "^4.1.2"
     fast-glob "^3.3.2"
 
-awilix@^11.0.1:
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/awilix/-/awilix-11.0.1.tgz#56f03155aa2a0c1e33cc2d516cdab8b54b4eb0af"
-  integrity sha512-g619ISOUk6ytZFZWuABZK4/FEtmH9e5ptFBvj6+cH/nK8owby4kv3cexszhNMrDVwyQdfqmPxJDLYSg4cf0zhQ==
+awilix@^12.0.3:
+  version "12.0.3"
+  resolved "https://registry.yarnpkg.com/awilix/-/awilix-12.0.3.tgz#6c9f010b49d0da3151f6b1d8b84fedc7fbf47125"
+  integrity sha512-UBFALNvqVOj4V4s6yPW9JYTwg3Bih4w9kQRoD/J/z0iskMBRiCUkakmgPmSHRzjxEcJac7FiQhSpvD5JvSoLew==
   dependencies:
     camel-case "^4.1.2"
     fast-glob "^3.3.2"
