@@ -21,9 +21,9 @@
   },
   "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7",
   "dependencies": {
-    "@mikro-orm/core": "^6.3.12",
-    "@mikro-orm/migrations": "^6.3.12",
-    "@mikro-orm/postgresql": "^6.3.12",
+    "@mikro-orm/core": "^6.3.13",
+    "@mikro-orm/migrations": "^6.3.13",
+    "@mikro-orm/postgresql": "^6.3.13",
     "awilix": "^11.0.1",
     "fastify": "4.28.1"
   },

@@ -35,19 +35,20 @@ export const installPlugin = async (pluginName: string): Promise<void> => {
     const pluginPaths = getPluginPaths(pluginName, { private: false })
     const pluginConfigPath = path.join(pluginPaths.config ?? '')
 
-    if (pluginConfigPath == null || !fs.existsSync(pluginConfigPath)) {
-      throw new Error(`Plugin ${pluginName} does not have an application config file.`)
+    // Use default config template if plugin doesn't provide one
+    const configPath = fs.existsSync(pluginConfigPath)
+      ? pluginConfigPath
+      : path.join(process.cwd(), 'node_modules', '@ayazmo', 'utils', 'dist', 'templates', 'default-plugin-config.template.js')
+
+    if (!fs.existsSync(configPath)) {
+      throw new Error('Could not find plugin config template')
     }
 
-    // add the plugin to the plugins array in the ayazmo.config.js file
     const configFileSource = await fs.promises.readFile(applicationConfigFilePath, 'utf8')
     const configFileUpdated = addPluginToConfig(configFileSource, pluginName)
     await writeFile(applicationConfigFilePath, configFileUpdated)
 
-    // amend the config file
-    if (applicationConfigFilePath != null && pluginConfigPath != null) {
-      await amendConfigFile(applicationConfigFilePath, pluginConfigPath)
-    }
+    await amendConfigFile(applicationConfigFilePath, configPath, pluginName)
   } catch (error) {
     CliLogger.error(`Failed to install plugin ${pluginName}:`)
     CliLogger.error(error)

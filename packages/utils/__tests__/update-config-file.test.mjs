@@ -9,6 +9,7 @@ const configFile = path.resolve(__dirname, '../__fixtures__/update-config-file/a
 const pluginConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-file/plugin.config.js');
 const initialConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-file/initial.config.js');
 const updatedConfigFile = path.resolve(__dirname, '../__fixtures__/update-config-file/updated.config.js');
+const defaultPluginConfigTemplate = path.resolve(__dirname, '../src/templates/default-plugin-config.template.js');
 
 async function importFresh(filePath) {
   // Append a query string to filePath to bypass cache
@@ -60,11 +61,30 @@ describe('updateConfigFile', () => {
 
     // Read the contents of both files
     const configFileImport = await importFresh(configFile);
+    const configFileContents = configFileImport.default;
+    const pluginExists = configFileContents.plugins.some(p => p.name === 'new-plugin-name-test');
+    assert.equal(pluginExists, false);
+  });
+
+  it('should add a new plugin using the default plugin config template', async () => {
+  
+    // Add plugin config using the default template
+    await amendConfigFile(configFile, defaultPluginConfigTemplate, 'test-plugin-name');
+
+    const configFileImport = await importFresh(configFile);
     const updatedConfigFileImport = await importFresh(updatedConfigFile);
     const configFileContents = configFileImport.default;
     const updatedConfigFileContents = updatedConfigFileImport.default;
 
-    // Compare the contents of configFile and updatedConfigFile
-    assert.deepEqual(configFileContents.plugins, updatedConfigFileContents.plugins);
+    // Find the added plugin in the config
+    const addedPlugin = configFileContents.plugins.find(p => p.name === 'test-plugin-name');
+
+    // Verify the plugin was added with default settings
+    assert.ok(addedPlugin, 'Plugin should be added to config');
+    assert.equal(addedPlugin.name, 'test-plugin-name');
+    assert.deepEqual(addedPlugin.settings, { private: false });
+    
+    // Config should still differ from the original
+    assert.notDeepEqual(configFileContents.plugins, updatedConfigFileContents.plugins);
   });
 });

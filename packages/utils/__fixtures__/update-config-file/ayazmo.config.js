@@ -57,5 +57,10 @@ export default {
     name: 'ayazmo-plugin-rabbitmq',
     settings: {
     }
+  }, {
+    name: "test-plugin-name",
+    settings: {
+      private: false
+    }
   }]
 }

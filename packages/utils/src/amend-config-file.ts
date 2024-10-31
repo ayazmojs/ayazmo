@@ -23,17 +23,22 @@ function buildObjectExpression (obj: Record<string, any>): namedTypes.ObjectExpr
  *
  * @param appConfigPath The path to the app config file.
  * @param pluginConfigPath The path to the plugin config file.
+ * @param pluginName The name of the plugin (used to replace placeholder in default template)
  */
-export async function amendConfigFile (appConfigPath: string, pluginConfigPath: string): Promise<void> {
+export async function amendConfigFile (appConfigPath: string, pluginConfigPath: string, pluginName: string): Promise<void> {
   try {
-    const [appConfig, pluginConfigImport] = await Promise.all([
-      fs.promises.readFile(appConfigPath, 'utf-8'),
-      import(pluginConfigPath)
-    ])
+    const appConfig = await fs.promises.readFile(appConfigPath, 'utf-8')
+    const pluginConfigImport = await import(pluginConfigPath)
+    let parsedPluginConfig: PluginConfig = pluginConfigImport.default
+    // Replace placeholder with actual plugin name if using default template
+    if (parsedPluginConfig.name === '__PLUGIN_NAME__') {
+      parsedPluginConfig = {
+        ...parsedPluginConfig,
+        name: pluginName
+      }
+    }
 
-    const pluginConfig: PluginConfig = pluginConfigImport.default
-
-    // Parse the code into an AST with recast
+    // Parse the app config code into an AST with recast
     const ast = recast.parse(appConfig)
 
     let pluginsArray: namedTypes.ArrayExpression | null = null as any
@@ -64,7 +69,7 @@ export async function amendConfigFile (appConfigPath: string, pluginConfigPath: 
               namedTypes.Identifier.check(prop.key) &&
               prop.key.name === 'name' &&
               namedTypes.Literal.check(prop.value) &&
-              prop.value.value === pluginConfig.name
+              prop.value.value === parsedPluginConfig.name
             )
           })
         }
@@ -72,7 +77,7 @@ export async function amendConfigFile (appConfigPath: string, pluginConfigPath: 
       })
 
       if (!pluginExists) {
-        const newPluginNode = buildObjectExpression(pluginConfig)
+        const newPluginNode = buildObjectExpression(parsedPluginConfig)
         pluginsArray.elements.push(newPluginNode)
       }
     } else {
@@ -86,7 +91,7 @@ export async function amendConfigFile (appConfigPath: string, pluginConfigPath: 
             const newPluginsProperty = builders.property(
               'init',
               builders.identifier('plugins'),
-              builders.arrayExpression([buildObjectExpression(pluginConfig)])
+              builders.arrayExpression([buildObjectExpression(parsedPluginConfig)])
             )
             path.node.declaration.properties.push(newPluginsProperty)
             return false
@@ -96,7 +101,7 @@ export async function amendConfigFile (appConfigPath: string, pluginConfigPath: 
       })
     }
 
-    // // Generate the updated code from the modified AST
+    // Generate the updated code from the modified AST
     let updatedCode = recast.print(ast).code
     // Post-process to remove extra new lines
     updatedCode = updatedCode.replace(
@@ -107,10 +112,11 @@ export async function amendConfigFile (appConfigPath: string, pluginConfigPath: 
       'private: true,\n'
     )
 
-    // // Write the updated code back to the file
+    // Write the updated code back to the file
     await fs.promises.writeFile(appConfigPath, updatedCode, 'utf-8')
   } catch (error) {
     console.error('Error amending config file:', error)
+    throw error // Re-throw the error to be handled by the caller
   }
 }
 
