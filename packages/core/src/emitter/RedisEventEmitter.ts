@@ -262,16 +262,16 @@ export class RedisEventEmitter extends BaseEventEmitter {
   override async publish(event: string, data: any, pluginSettings?: PluginSettings): Promise<void> {
     // First try to get the callback from pluginSettings
     let onBeforePublish = pluginSettings?.onBeforePublish;
-    
+
     // If not found in pluginSettings, fall back to global config
-    if (typeof onBeforePublish !== 'function' && this.config.app?.onBeforePublish) {
+    if (typeof onBeforePublish !== 'function' && typeof this.config.app?.onBeforePublish === 'function') {
       onBeforePublish = this.config.app.onBeforePublish;
     }
 
     // If we have a callback, execute it
     if (typeof onBeforePublish === 'function') {
       const result = await onBeforePublish(event, data);
-      
+
       // Only publish if the callback returned something other than null/undefined
       if (result !== null && result !== undefined) {
         await this.publisher.publish(event, result);

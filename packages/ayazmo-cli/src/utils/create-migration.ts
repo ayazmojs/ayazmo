@@ -1,5 +1,4 @@
 import path from 'node:path'
-import fs from 'node:fs/promises'
 import { importGlobalConfig, initDatabase, loadEnvironmentVariables } from '@ayazmo/utils'
 import type { IBaseOrmConfig, ITypePrompt, INamePrompt, IPluginPrompt, Migrator, PluginConfig, MikroORM } from '@ayazmo/types'
 import { getPluginRoot } from '@ayazmo/core'
@@ -9,35 +8,7 @@ import {
   askUserWhichPlugin
 } from './prompts.js'
 import CliLogger from './cli-logger.js'
-
-// Helper function to get entity files from a directory
-async function getEntityFiles (directory: string): Promise<string[]> {
-  try {
-    const files = await fs.readdir(directory)
-    return files.filter(file => file.endsWith('.ts') || file.endsWith('.js')).map(file => path.join(directory, file))
-  } catch (error) {
-    CliLogger.warn(`Failed to read directory ${directory}: ${(error as Error).message}`)
-    return []
-  }
-}
-
-// Helper function to dynamically import entity files
-async function importEntityFiles (files: string[]): Promise<any[]> {
-  const imports: any[] = []
-  for (const file of files) {
-    try {
-      const module = await import(file)
-      if (module.default != null) {
-        imports.push(module.default)
-      } else {
-        imports.push(module)
-      }
-    } catch (error) {
-      CliLogger.warn(`Failed to import file ${file}: ${(error as Error).message}`)
-    }
-  }
-  return imports
-}
+import { getEntityFiles, importEntityFiles } from './migration-helpers.js'
 
 export async function createMigration (): Promise<void> {
   loadEnvironmentVariables()

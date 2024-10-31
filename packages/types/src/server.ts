@@ -39,4 +39,6 @@ declare module 'fastify' {
 
 export interface AyazmoInstance extends FastifyInstance<http.Server, http.IncomingMessage, http.ServerResponse> {
   diContainer: AwilixContainer
+  userAuthChain: preHandlerHookHandler
+  adminAuthChain: preHandlerHookHandler
 }
