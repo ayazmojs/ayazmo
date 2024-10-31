@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.3.0
+
+### Minor Changes
+
+- add onBeforePublish
+
 ## 0.2.7
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # ayazmo
 
+## 0.3.0
+
+### Minor Changes
+
+- add onBeforePublish
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ayazmo/core@0.3.0
+  - @ayazmo/types@0.3.0
+  - @ayazmo/utils@0.3.0
+
 ## 0.2.7
 
 ### Patch Changes
