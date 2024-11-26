@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.4.0
+
+### Minor Changes
+
+- upgrade deps
+
 ## 0.3.0
 
 ### Minor Changes
