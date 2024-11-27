@@ -46,6 +46,8 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
       path.join(getPluginRoot(plugin.name, plugin.settings), 'dist', 'entities')
     )
 
+    const schema: string = process.env.DB_SCHEMA ?? globalConfig.database?.schema ?? 'public'
+
     const ormConfig: Partial<MikroORMOptions<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>> = {
       entities: [],
       entitiesTs: ['./src/plugins/*/src/entities'],
@@ -84,6 +86,7 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
     }
 
     const migrator: Migrator = orm.getMigrator()
+    await orm.em.getConnection().execute(`SET search_path TO ${schema};`)
 
     if (options != null) {
       return await migrator.down(options)

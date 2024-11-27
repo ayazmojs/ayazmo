@@ -41,6 +41,8 @@ export async function runMigrations (): Promise<void> {
       throw new Error('No database entities found.')
     }
 
+    const schema: string = process.env.DB_SCHEMA ?? globalConfig.database?.schema ?? 'public'
+
     orm = await initDatabase({
       ...{
         entities,
@@ -49,13 +51,19 @@ export async function runMigrations (): Promise<void> {
         migrations: {
           snapshot: false,
           migrationsList: privateMigrationClasses,
-          disableForeignKeys: false
+          disableForeignKeys: false,
+          allOrNothing: true
         }
       },
       ...globalConfig.database
     })
 
     const migrator: Migrator = orm.getMigrator()
+
+    await orm.em.getConnection().execute(`CREATE SCHEMA IF NOT EXISTS ${schema};`)
+
+    await orm.em.getConnection().execute(`SET search_path TO ${schema};`)
+
     const pendingMigrations = await migrator.getPendingMigrations()
 
     if (!Array.isArray(pendingMigrations) || pendingMigrations.length === 0) {
