@@ -5,23 +5,30 @@
 import {
   initDatabase,
   importGlobalConfig,
-  ENTITIES_JS_PATH,
-  ENTITIES_TS_PATH
+  loadEnvironmentVariables
 } from '@ayazmo/utils'
 import {
   Migrator,
   MigrationObject,
   MigrateOptions,
   UmzugMigration,
-  MikroORM
+  MikroORM,
+  MikroORMOptions,
+  IDatabaseDriver,
+  Connection,
+  EntityManager
 } from '@ayazmo/types'
 import {
   discoverMigrationFiles,
-  discoverPublicPaths
+  discoverPublicPaths,
+  getPluginRoot
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
+import path from 'node:path'
+import { getEntityFiles, importEntityFiles } from './migration-helpers.js'
 
 export async function downMigrations (options?: string | string[] | MigrateOptions): Promise<UmzugMigration[]> {
+  loadEnvironmentVariables()
   let orm: MikroORM | null = null
 
   try {
@@ -34,25 +41,47 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
     const publicPaths = discoverPublicPaths(globalConfig.plugins)
     const migrationClasses: MigrationObject[] = await discoverMigrationFiles([...publicPaths.migrations])
 
-    const entities = [ENTITIES_JS_PATH]
+    // Get entities paths from all enabled plugins
+    const entitiesPaths: string[] = globalConfig.plugins.map(plugin =>
+      path.join(getPluginRoot(plugin.name, plugin.settings), 'dist', 'entities')
+    )
 
-    if (entities.length === 0) {
-      throw new Error('No database entities found.')
+    const ormConfig: Partial<MikroORMOptions<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>> = {
+      entities: [],
+      entitiesTs: ['./src/plugins/*/src/entities'],
+      baseDir: process.cwd(),
+      migrations: {
+        snapshot: false,
+        migrationsList: migrationClasses ?? [],
+        disableForeignKeys: false
+      }
+    }
+
+    // Import entities from all plugin paths
+    for (const dir of entitiesPaths) {
+      const entityFiles = await getEntityFiles(dir)
+      if (entityFiles.length > 0) {
+        const importedEntities = await importEntityFiles(entityFiles)
+        if (Array.isArray(ormConfig.entities)) {
+          ormConfig.entities.push(...importedEntities)
+        } else {
+          ormConfig.entities = importedEntities
+        }
+      }
+    }
+
+    if (!Array.isArray(ormConfig.entities) || ormConfig.entities.length === 0) {
+      throw new Error('No database entities found. Please ensure entity files exist in the correct location.')
     }
 
     orm = await initDatabase({
-      ...{
-        entities,
-        entitiesTs: [ENTITIES_TS_PATH],
-        baseDir: process.cwd(),
-        migrations: {
-          snapshot: false,
-          migrationsList: migrationClasses ?? [],
-          disableForeignKeys: false
-        }
-      },
+      ...ormConfig,
       ...globalConfig.database
     })
+
+    if (orm != null && !(await orm.isConnected())) {
+      throw new Error('Failed to connect to the database. Please ensure your ayazmo.config.js file has the correct DB credentials.')
+    }
 
     const migrator: Migrator = orm.getMigrator()
 
@@ -65,6 +94,6 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
     CliLogger.error(error)
     throw error
   } finally {
-    if (orm != null) await orm.close()
+    if (orm != null) await orm.close(true)
   }
 }
