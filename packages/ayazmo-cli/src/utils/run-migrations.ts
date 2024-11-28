@@ -33,7 +33,7 @@ export async function runMigrations (): Promise<void> {
 
     const entities = [ENTITIES_JS_PATH]
 
-    if (publicPaths.entities.length > 0) {
+    if (Array.isArray(publicPaths.entities) && publicPaths.entities.length > 0) {
       entities.push(...publicPaths.entities.map(entityPath => `${entityPath}/*.js`))
     }
 

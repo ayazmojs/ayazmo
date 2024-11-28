@@ -14,7 +14,7 @@ export async function createApplication (): Promise<void> {
   try {
     const { hasYarn, hasNpm } = await determinePackageManager()
 
-    if (!hasYarn && !hasNpm) {
+    if (hasYarn == null && hasNpm == null) {
       throw new Error('No package manager found. Please install npm or yarn and try again.')
     }
 

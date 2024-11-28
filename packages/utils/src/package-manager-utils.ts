@@ -28,15 +28,54 @@ export const getPackageManager = async (): Promise<string> => {
 }
 
 /**
- * Wrapper around yarn/npm add command
- * @param packageName
+ * Checks if the current project is a monorepo by looking for a workspaces field in package.json
+ * @returns Boolean indicating if the current project is a monorepo
+ */
+const isMonorepo = async (): Promise<boolean> => {
+  try {
+    const packageJsonPath = path.join(process.cwd(), 'package.json')
+    const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf8'))
+    return Boolean(packageJson.workspaces)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Installs a package using the detected package manager (yarn/npm)
+ * Automatically detects if running in a monorepo and adjusts the installation command accordingly
+ *
+ * @param packageName - The name of the package to install
+ * @throws Error if the installation fails
  */
 export const installPackage = async (packageName: string): Promise<void> => {
   const packageManager = await getPackageManager()
-  const command = packageManager === 'yarn' ? 'add' : 'install'
-  const { stderr } = await execa(packageManager, [command, packageName], { cwd: process.cwd(), stdio: 'inherit' })
-  if (stderr !== '') {
-    throw new Error(`Failed to install package ${packageName}: ${String(stderr)}`)
+  const monorepo = await isMonorepo()
+
+  let commandArgs: string[]
+
+  if (packageManager === 'yarn') {
+    commandArgs = ['add', packageName]
+    if (monorepo) {
+      commandArgs.push('-W')
+    }
+  } else { // npm
+    commandArgs = ['install', packageName]
+  }
+
+  try {
+    const { stderr } = await execa(packageManager, commandArgs, {
+      cwd: process.cwd()
+    })
+
+    if (stderr !== null && stderr !== '') {
+      throw new Error(`Failed to install package ${packageName}: ${String(stderr)}`)
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to install package ${packageName}: ${error.message}`)
+    }
+    throw error
   }
 }
 
@@ -47,29 +86,8 @@ export const installPackage = async (packageName: string): Promise<void> => {
 export const removePackage = async (packageName: string): Promise<void> => {
   const packageManager = await getPackageManager()
   const command = packageManager === 'yarn' ? 'remove' : 'uninstall'
-  const { stderr } = await execa(packageManager, [command, packageName], { cwd: process.cwd(), stdio: 'inherit' })
-  if (stderr !== '') {
+  const { stderr } = await execa(packageManager, [command, packageName], { cwd: process.cwd() })
+  if (stderr !== null && stderr !== '') {
     throw new Error(`Failed to remove package ${packageName}: ${String(stderr)}`)
-  }
-}
-
-/**
- * Installs a package in the root of a monorepo
- * @param packageName The name of the package to install
- */
-export const installPackageInMonorepo = async (packageName: string): Promise<void> => {
-  const packageManager = await getPackageManager()
-  let commandArgs: string[]
-
-  if (packageManager === 'yarn') {
-    commandArgs = ['add', packageName, '-W']
-  } else { // npm
-    commandArgs = ['install', packageName]
-  }
-
-  const { stderr } = await execa(packageManager, commandArgs, { cwd: process.cwd(), stdio: 'inherit' })
-
-  if (stderr !== '') {
-    throw new Error(`Failed to install package ${packageName} at the root of the monorepo: ${String(stderr)}`)
   }
 }

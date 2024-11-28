@@ -1,16 +1,20 @@
-import { PrimaryKey, Property, JsonType, Opt } from '@ayazmo/types'
-import { ulid } from "ulidx";
+import { PrimaryKey, Property, JsonType } from '@ayazmo/types'
+import { ulid } from 'ulidx'
+
+export interface BaseEntityMetadata {
+  [key: string]: unknown
+}
 
 export abstract class BaseEntity {
   @PrimaryKey()
-    id = ulid()
+    id: string = ulid()
 
   @Property()
-    createdAt?: Date & Opt = new Date()
+    createdAt: Date = new Date()
 
-  @Property({ onUpdate: () => new Date(), nullable: true })
-    updatedAt?: Date & Opt = new Date()
+  @Property({ onUpdate: () => new Date() })
+    updatedAt: Date = new Date()
 
   @Property({ type: JsonType, nullable: true })
-    meta?: any = null
+    meta: BaseEntityMetadata | null = null
 }

@@ -55,7 +55,7 @@ export const removePlugin = async (pluginName: string): Promise<void> => {
   // check if the plugin has migrations
   const migrationsPath = pluginPaths.migrations
   const migrationFiles = await globby(`${migrationsPath}/*.js`)
-  if (migrationFiles.length > 0) {
+  if (Array.isArray(migrationFiles) && migrationFiles.length > 0) {
     // list the migration filenames one on each line
     const migrationNames = migrationFiles.map(migrationFile => path.basename(migrationFile, '.js'))
     CliLogger.info(`The following migrations will be downgraded: ${migrationNames.join(', ')}`)
@@ -88,6 +88,11 @@ export const removePlugin = async (pluginName: string): Promise<void> => {
 
   // run yarn or npm uninstall to remove the plugin from the project
   const packageManager = await getPackageManager()
+
+  if (packageManager == null) {
+    throw new Error('No package manager found. Please install npm or yarn and try again.')
+  }
+
   CliLogger.info(`Uninstalling plugin ${pluginName} with ${packageManager}`)
   await uninstallPluginWithPackageManager(pluginName, packageManager)
 }

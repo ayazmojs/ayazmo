@@ -102,7 +102,12 @@ export async function createMigration (): Promise<void> {
     }
 
     const { fileName } = await migrator.createMigration(ormConfig.migrations.path, migrationTypePrompt.type === 'empty', false, migrationNamePrompt.filename)
-    CliLogger.success(`Successfully created migration: ${fileName ?? ''}`)
+
+    if (fileName != null && fileName.trim() !== '') {
+      CliLogger.success(`Successfully created migration: ${fileName}`)
+    } else {
+      CliLogger.error(`No Entities found to create migration. Scanned plugins: ${availablePlugins.join(', ')}`)
+    }
   } catch (error) {
     CliLogger.error((error as Error).message)
   } finally {

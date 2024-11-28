@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "lib": [
-			"ES2022"
-		],
+      "ES2022"
+    ],
     "resolveJsonModule": false,
     "target": "ES2022",
     "outDir": "./dist",
@@ -10,7 +10,7 @@
     "declaration": true,
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "moduleDetection": "force", 
+    "moduleDetection": "force",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
@@ -42,6 +42,5 @@
     "__tests__/**/*.test.mjs",
     "__fixtures__",
     "node_modules/**/*",
-    "!node_modules/@fastify/awilix/lib/index.d.ts",
-    "!node_modules/@fastify/cookie/types/plugin.d.ts"  ]
+  ]
 }
