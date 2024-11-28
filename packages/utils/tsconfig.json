@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "lib": [
-			"DOM",
-			"DOM.Iterable",
 			"ES2022"
 		],
     "resolveJsonModule": false,
