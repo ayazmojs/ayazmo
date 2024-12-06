@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.4.1
+
+### Patch Changes
+
+- eslint + migration fixes
+
+- Updated dependencies []:
+  - @ayazmo/core@0.4.1
+  - @ayazmo/types@0.4.1
+  - @ayazmo/utils@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
