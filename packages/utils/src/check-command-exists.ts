@@ -4,7 +4,7 @@ export default async function checkCommandExists (command: string): Promise<bool
   try {
     await execa(command, ['--version'])
     return true
-  } catch (error) {
+  } catch {
     return false
   }
 }

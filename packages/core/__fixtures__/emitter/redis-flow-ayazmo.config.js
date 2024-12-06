@@ -12,14 +12,14 @@ export default {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
           },
-          publishOn: ["comment.create"],
+          publishOn: ['comment.create'],
           events: {
-            'failed': (job, err) => {
-              console.log('Job error', job, err);
+            failed: (job, err) => {
+              console.log('Job error', job, err)
             }
           }
         },
@@ -32,24 +32,24 @@ export default {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
           },
-          publishOn: ["comment.create", "comment.delete"],
+          publishOn: ['comment.create', 'comment.delete'],
           transformer: async (payload, type, app) => {
-            return payload;
+            return payload
           },
           events: {
-            'stalled': (job) => {
-              console.log('Job stalled', job);
+            stalled: (job) => {
+              console.log('Job stalled', job)
             }
           }
         }
       ],
       workers: [
         {
-          queueName: "eventsQueue",
+          queueName: 'eventsQueue',
           options: {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
@@ -57,13 +57,13 @@ export default {
             lockDuration: 60000
           },
           events: {
-            'error': (err) => {
-              console.log('eventsQueue Worker error', err.message);
+            error: (err) => {
+              console.log('eventsQueue Worker error', err.message)
             }
           }
         },
         {
-          queueName: "comments",
+          queueName: 'comments',
           options: {
             removeOnComplete: true,
             removeOnFail: { count: 0 },
@@ -71,8 +71,8 @@ export default {
             lockDuration: 60000
           },
           events: {
-            'error': (err) => {
-              console.log('comments Worker error', err.message);
+            error: (err) => {
+              console.log('comments Worker error', err.message)
             }
           }
         }
@@ -81,15 +81,15 @@ export default {
   },
   plugins: [
     {
-      "name": "ayazmo-plugin-private",
-      "settings": {
-        "private": true
+      name: 'ayazmo-plugin-private',
+      settings: {
+        private: true
       }
     },
     {
-      "name": "ayazmo-plugin-public",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-public',
+      settings: {
+        private: false
       }
     }
   ]

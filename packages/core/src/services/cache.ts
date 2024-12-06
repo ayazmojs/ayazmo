@@ -4,62 +4,62 @@ import { AppConfig, AyazmoInstance } from '@ayazmo/types'
 import { AyazmoCoreService } from '../interfaces/AyazmoCoreService.js'
 
 export default class CacheService extends AyazmoCoreService {
-  private cache: Cache
+  private readonly cache: Cache
 
-  constructor(app: AyazmoInstance, appConfig: AppConfig) {
+  constructor (app: AyazmoInstance, appConfig: AppConfig) {
     super(app, appConfig)
     const config = app.diContainer.resolve('config') as AppConfig
     const appCacheConfig = config.app.cache
     if (appCacheConfig && appCacheConfig.storage.type === 'redis') {
-      appCacheConfig.storage.options.client = app.redis;
+      appCacheConfig.storage.options.client = app.redis
     }
     this.cache = createCache(appCacheConfig)
   }
 
-  async get(cacheKey: string, opts: any): Promise<any> {
+  async get (cacheKey: string, opts: any): Promise<any> {
     if (typeof this.cache[cacheKey] === 'function') {
-      return this.cache[cacheKey](opts);
+      return this.cache[cacheKey](opts)
     }
-    throw new Error(`Cache: ${cacheKey} is not a function.`);
+    throw new Error(`Cache: ${cacheKey} is not a function.`)
   }
 
-  async getOrSet(cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): Promise<any> {
+  async getOrSet (cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): Promise<any> {
     this.define(cacheKey, opts, fetcher)
-    return this.get(cacheKey, opts)
+    return await this.get(cacheKey, opts)
   }
 
-  define(cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): void {
+  define (cacheKey: string, opts: any, fetcher: (arg: any) => Promise<any>): void {
     if (typeof this.cache[cacheKey] !== 'function') {
-      this.cache.define(cacheKey, opts, fetcher);
+      this.cache.define(cacheKey, opts, fetcher)
     }
   }
 
-  clear(name?: string, arg?: any): void {
+  clear (name?: string, arg?: any): void {
     if (name) {
       if (arg !== undefined) {
-        this.cache.clear(name, arg);
+        this.cache.clear(name, arg)
       } else {
-        this.cache.clear(name);
+        this.cache.clear(name)
       }
     } else {
-      this.cache.clear();
+      this.cache.clear()
     }
   }
 
   /**
    * Invalidate the whole cache storage
-   * 
+   *
    * Example:
    * ```typescript
    * // invalidate user:1 reference
    * cacheService.invalidateAll('user:1')
-   * 
+   *
    * // invalidate all user references
    * cacheService.invalidateAll('user:*')
    * ```
-   * @param references 
+   * @param references
    */
-  invalidateAll(references: string | string[]): void {
-    this.cache.invalidateAll(references);
+  invalidateAll (references: string | string[]): void {
+    this.cache.invalidateAll(references)
   }
 }

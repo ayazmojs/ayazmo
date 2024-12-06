@@ -2,7 +2,7 @@ import { AyazmoInstance, PluginSettings } from '@ayazmo/types'
 import { globby } from 'globby'
 import EventService from '../services/event.js'
 
-export async function loadSubscribers(
+export async function loadSubscribers (
   fastify: AyazmoInstance,
   subscribersPath: string,
   pluginSettings: PluginSettings
@@ -10,7 +10,6 @@ export async function loadSubscribers(
   const eventService = fastify.diContainer.resolve('eventService') as EventService
 
   if (pluginSettings?.subscribers) {
-
     const subscribers = pluginSettings.subscribers ?? {}
 
     // Load all the subscribers from the configured path

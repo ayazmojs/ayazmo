@@ -4,7 +4,7 @@ import path from 'node:path'
 import { globby } from 'globby'
 import { fileURLToPath } from 'url'
 
-export async function loadCoreServices(
+export async function loadCoreServices (
   app: AyazmoInstance
 ): Promise<void> {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -32,7 +32,7 @@ export async function loadCoreServices(
       // Register the service in the DI container
       app.diContainer.register({
         [serviceName]: asFunction(
-          (cradle) => new serviceModule.default(app, {})
+          () => new serviceModule.default(app, {})
         ).singleton()
       })
 

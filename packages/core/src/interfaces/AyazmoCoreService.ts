@@ -15,6 +15,6 @@ export abstract class AyazmoCoreService {
   }
 
   getGlobalConfig (): AppConfig {
-    return this.container.resolve('config') as AppConfig
+    return this.container.resolve('config')
   }
 }

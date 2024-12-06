@@ -6,21 +6,21 @@ export const appConfigDefaultQueue = {
   },
   plugins: [
     {
-      "name": "ayazmo-plugin-private",
-      "settings": {
-        "private": true
+      name: 'ayazmo-plugin-private',
+      settings: {
+        private: true
       }
     },
     {
-      "name": "ayazmo-plugin-public",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-public',
+      settings: {
+        private: false
       }
     },
     {
-      "name": "ayazmo-plugin-test-service",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-test-service',
+      settings: {
+        private: false
       }
     }
   ]
@@ -40,25 +40,25 @@ export const appConfigQueue = {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
-          },
+          }
         }
       ]
     }
   },
   plugins: [
     {
-      "name": "ayazmo-plugin-private",
-      "settings": {
-        "private": true
+      name: 'ayazmo-plugin-private',
+      settings: {
+        private: true
       }
     },
     {
-      "name": "ayazmo-plugin-public",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-public',
+      settings: {
+        private: false
       }
     }
   ]
@@ -78,8 +78,8 @@ export const appConfigFlow = {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
           }
         },
@@ -92,8 +92,8 @@ export const appConfigFlow = {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
           }
         }
@@ -102,15 +102,15 @@ export const appConfigFlow = {
   },
   plugins: [
     {
-      "name": "ayazmo-plugin-private",
-      "settings": {
-        "private": true
+      name: 'ayazmo-plugin-private',
+      settings: {
+        private: true
       }
     },
     {
-      "name": "ayazmo-plugin-public",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-public',
+      settings: {
+        private: false
       }
     }
   ]

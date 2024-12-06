@@ -4,7 +4,7 @@ import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
 import { isValidRoute, isRouteEnabled } from '../utils/route-validator.js'
 
-export async function loadRoutes(
+export async function loadRoutes (
   app: FastifyInstance,
   path: string,
   pluginSettings: PluginSettings): Promise<void> {
@@ -17,7 +17,7 @@ export async function loadRoutes(
   const pluginRoutesEnabled = routeConfig?.enabled ?? true
 
   if (!pluginRoutesEnabled) {
-    app.log.info(` - Routes plugin is disabled`)
+    app.log.info(' - Routes plugin is disabled')
     return
   }
 
@@ -43,14 +43,14 @@ export async function loadRoutes(
               hooksResult = routeHooks(app)
             }
 
-            // extract custom route options
+            // extract custom route options, omitting the 'enabled' flag since it's only used for route validation
             const { enabled, ...routeOptions } = route
 
             app.route(merge(
               routeOptions,
               hooksResult
             ))
-            app.log.info(` - Registered route ${route.method} ${route.url}`)
+            app.log.info(` - Registered route ${route.method} ${route.url} ${enabled ? '' : '(disabled)'}`)
           } else {
             app.log.error(` - Invalid route detected in ${path}`)
           }

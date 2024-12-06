@@ -62,4 +62,4 @@ describe('migration-helpers', () => {
       assert.deepEqual(result, [{ name: 'plugin1', settings: {} }])
     })
   })
-}) 
+})

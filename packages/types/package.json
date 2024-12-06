@@ -12,9 +12,7 @@
   "scripts": {
     "build": "rimraf dist && tsc --build",
     "watch": "tsc --build --watch",
-    "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
-    "lint": "ts-standard src/*",
-    "lint-fix": "ts-standard --fix src/*"
+    "prepublishOnly": "cross-env NODE_ENV=production tsc --build"
   },
   "publishConfig": {
     "access": "public"

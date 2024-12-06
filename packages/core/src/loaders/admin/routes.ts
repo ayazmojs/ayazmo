@@ -4,20 +4,20 @@ import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
 import { isValidAdminRoute, isRouteEnabled, isValidAdminRouteOverride, parsePreHandler } from '../../utils/route-validator.js'
 
-export async function loadAdminRoutes(
+export async function loadAdminRoutes (
   app: FastifyInstance,
   path: string,
   pluginSettings: PluginSettings): Promise<void> {
-  const config = app.diContainer.resolve('config') as AppConfig
+  const config: AppConfig = app.diContainer.resolve('config')
   const { admin } = config
 
   if (!admin?.enabled) {
-    app.log.info(` - Admin routes plugin is disabled via config`)
+    app.log.info(' - Admin routes plugin is disabled via config')
     return
   }
 
   if (!app.hasDecorator('adminAuthChain')) {
-    app.log.debug(` - Admin routes plugin requires adminAuthChain decorator to be enabled`)
+    app.log.debug(' - Admin routes plugin requires adminAuthChain decorator to be enabled')
     return
   }
 
@@ -41,7 +41,7 @@ export async function loadAdminRoutes(
     routes = routesModule.default
   }
 
-  let routesOverrideConfig: PluginRoutes[] = [];
+  let routesOverrideConfig: PluginRoutes[] = []
 
   if (typeof pluginSettings?.admin?.routes === 'function') {
     routesOverrideConfig = (pluginSettings.admin.routes as (app: AyazmoInstance) => PluginRoutes[])(app as AyazmoInstance)
@@ -70,20 +70,21 @@ export async function loadAdminRoutes(
           (r: any) => r.url === tmpRoute.url && r.method === tmpRoute.method
         )
 
-        if (overrideRoute && isValidAdminRouteOverride(overrideRoute)) {
+        if ((overrideRoute != null) && isValidAdminRouteOverride(overrideRoute)) {
           // Merge the original route with the override from config
           merge(tmpRoute, overrideRoute)
           tmpRoute = parsePreHandler(app, tmpRoute)
         }
 
         // extract custom route options
-        const { enabled, ...routeOptions } = tmpRoute
-        routeOptions.url = `${admin.opts.prefix}${tmpRoute.url}`
+        const { url, ...routeOptions } = tmpRoute
+        const finalUrl = `${admin.opts.prefix}${url}`
 
         app.route({
           ...routeOptions,
+          url: finalUrl
         })
-        app.log.info(` - Registered admin route ${routeOptions.method} ${routeOptions.url}`)
+        app.log.info(` - Registered admin route ${routeOptions.method} ${finalUrl}`)
       })
     })
 }

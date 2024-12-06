@@ -12,34 +12,34 @@ export default {
               attempts: 3,
               backoff: {
                 type: 'exponential',
-                delay: 1000,
-              },
+                delay: 1000
+              }
             }
           },
           publishOn: ['test.modified.event', 'test.callback.event', 'test.null.event', 'comment.create']
         }
       ],
       workers: [{
-        queueName: "eventsQueue",
+        queueName: 'eventsQueue',
         options: {
           removeOnComplete: true,
           removeOnFail: { count: 0 },
-          concurrency: 1,
+          concurrency: 1
         }
       }]
     }
   },
   plugins: [
     {
-      "name": "ayazmo-plugin-private",
-      "settings": {
-        "private": true
+      name: 'ayazmo-plugin-private',
+      settings: {
+        private: true
       }
     },
     {
-      "name": "ayazmo-plugin-public",
-      "settings": {
-        "private": false
+      name: 'ayazmo-plugin-public',
+      settings: {
+        private: false
       }
     }
   ]

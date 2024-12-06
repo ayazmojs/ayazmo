@@ -3,9 +3,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { asValue } from 'awilix'
-import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance } from '@ayazmo/types'
+import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
 import { merge } from '@ayazmo/utils'
-import { EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
 import { globby } from 'globby'
 import { loadRoutes } from '../loaders/routes.js'
 import { loadEntities } from '../loaders/entities.js'
@@ -63,7 +62,8 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
 export const getPluginRoot = (pluginName: string, settings: any): string => {
   const nodeModulesPath: string = path.join(process.cwd(), 'node_modules', pluginName)
 
-  if (settings?.private) {
+  const isPrivatePlugin = settings?.private ?? false
+  if (isPrivatePlugin) {
     return path.join(pluginsRoot, pluginName)
   }
 
@@ -110,16 +110,16 @@ export const discoverPublicPaths = (plugins: PluginConfig[]): { migrations: stri
   const paths = {
     migrations: [] as string[],
     entities: [] as string[]
-  };
+  }
   const publicPlugins = plugins.filter(plugin => plugin.settings?.private !== true)
   for (const plugin of publicPlugins) {
     const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings)
     if (fs.existsSync(pluginPaths.migrations)) {
-      paths.migrations.push(pluginPaths.migrations);
+      paths.migrations.push(pluginPaths.migrations)
     }
 
     if (fs.existsSync(pluginPaths.entities)) {
-      paths.entities.push(pluginPaths.entities);
+      paths.entities.push(pluginPaths.entities)
     }
   }
 
@@ -137,7 +137,7 @@ export const discoverPublicPaths = (plugins: PluginConfig[]): { migrations: stri
  * @param {PluginConfig[]} plugins - An array of plugin configurations.
  * @returns {string[]} An array containing the migration paths for all private plugins.
  */
-export const discoverPrivateMigrationPaths = (plugins: PluginConfig[]): string[] => {
+export const discoverPrivateMigrationPaths = async (plugins: PluginConfig[]): Promise<string[]> => {
   const migrationPaths: string[] = []
   const privatePlugins = plugins.filter(plugin => plugin.settings?.private === true)
   for (const plugin of privatePlugins) {
@@ -149,10 +149,17 @@ export const discoverPrivateMigrationPaths = (plugins: PluginConfig[]): string[]
     migrationPaths.push(pluginPaths.migrations)
   }
 
+  const applicationMigrationPaths = await globby('dist/plugins/*/src/migrations', {
+    cwd: process.cwd(),
+    onlyDirectories: true,
+    absolute: true
+  })
+  migrationPaths.push(...applicationMigrationPaths)
+
   return migrationPaths
 }
 
-export async function discoverMigrationFiles(migrationPaths: string[]): Promise<MigrationObject[]> {
+export async function discoverMigrationFiles (migrationPaths: string[]): Promise<MigrationObject[]> {
   const migrationFiles = await globby(migrationPaths.map(path => `${path}/*.js`))
 
   return await Promise.all(
@@ -174,7 +181,7 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
   )
 }
 
-export async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]): Promise<void> {
+export async function bootstrapPlugins (app: AyazmoInstance, plugins: PluginConfig[]): Promise<void> {
   for (const registeredPlugin of plugins) {
     const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name)
     const publicPluginPath: string = path.join(nodeModulesPath, registeredPlugin.name)
@@ -239,8 +246,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
 
     if (pluginPaths != null) {
-      // @ts-expect-error
-      const [entityCollection, gqlCollection, ...rest] = await Promise.all([
+      const [entityCollection] = await Promise.all([
         loadEntities(app, pluginPaths.entities),
         loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, pluginPaths.services, registeredPlugin.settings),
@@ -285,20 +291,19 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
       app.diContainer.register({
         dbService: asValue(db)
       })
-
     } catch (error) {
       if (error instanceof AggregateError) {
         for (const individualError of error.errors) {
           if (individualError.code === 'ECONNREFUSED') {
-            app.log.error(`- Database connection refused: ${individualError.message}`);
+            app.log.error(`- Database connection refused: ${individualError.message}`)
           } else {
-            app.log.error(`- Error while initializing database: ${individualError.message}`);
+            app.log.error(`- Error while initializing database: ${individualError.message}`)
           }
         }
       } else if (error.code === 'ENOTFOUND') {
-        app.log.error(`- Database host not found: ${error.message}. Please check your database host settings.`);
+        app.log.error(`- Database host not found: ${error.message}. Please check your database host settings.`)
       } else {
-        app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`);
+        app.log.error(`- Error while loading plugins: ${error}\n${error.stack}`)
       }
 
       process.exit(1)
@@ -306,7 +311,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   }
 }
 
-export async function listFilesInDirectory(directory: string): Promise<string[]> {
+export async function listFilesInDirectory (directory: string): Promise<string[]> {
   // // Check if the directory exists
   if (!fs.existsSync(directory)) {
     return []

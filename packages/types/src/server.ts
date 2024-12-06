@@ -2,9 +2,7 @@ import { FastifyInstance, RouteOptions, preHandlerHookHandler, FastifyServerOpti
 import { AwilixContainer } from 'awilix'
 import http from 'http'
 
-export interface AyazmoRouteOptions extends RouteOptions {
-
-}
+export type AyazmoRouteOptions = RouteOptions
 
 export interface ServerOptions extends FastifyServerOptions {
   configPath?: string

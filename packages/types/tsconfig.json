@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "lib": [
-			"ES2022"
-		],
+      "ES2022"
+    ],
     "resolveJsonModule": false,
     "target": "ES2022",
     "outDir": "./dist",

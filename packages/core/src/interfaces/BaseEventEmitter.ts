@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IEventEmitter } from '@ayazmo/types'
 
 export default abstract class BaseEventEmitter implements IEventEmitter {

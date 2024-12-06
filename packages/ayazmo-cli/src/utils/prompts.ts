@@ -2,9 +2,44 @@ import inquirer from 'inquirer'
 import path from 'node:path'
 import fs from 'node:fs'
 import { isNonEmptyString } from '@ayazmo/utils'
+import { PluginConfig } from '@ayazmo/types'
 
-export async function askUserForTypeOfMigration (): Promise<{ type: 'entities' | 'empty' }> {
-  return await inquirer.prompt([
+export type PluginChoiceType = 'specific' | 'all'
+
+export interface PluginChoice {
+  name: string
+  value: string
+  type: PluginChoiceType
+}
+
+interface ChoiceOption {
+  name: string
+  value: string
+}
+
+export async function askUserForMigrationPlugin (plugins: PluginConfig[]): Promise<PluginChoice> {
+  const sortedPlugins = [...plugins].sort((a, b) => a.name.localeCompare(b.name))
+  const choices: ChoiceOption[] = [
+    { name: 'All Plugins', value: 'all' },
+    ...sortedPlugins.map(p => ({ name: p.name, value: p.name }))
+  ]
+
+  const { selectedPlugin } = await inquirer.prompt<{ selectedPlugin: string }>({
+    type: 'list',
+    name: 'selectedPlugin',
+    message: 'Select plugins to run migrations for:',
+    choices
+  })
+
+  return {
+    name: selectedPlugin === 'all' ? 'All Plugins' : selectedPlugin,
+    value: selectedPlugin,
+    type: selectedPlugin === 'all' ? 'all' : 'specific'
+  }
+}
+
+export async function askUserForTypeOfMigration (): Promise<{ type: 'entities' | 'empty', scope?: 'selected' | 'all' }> {
+  const typeResponse = await inquirer.prompt([
     {
       type: 'list',
       name: 'type',
@@ -21,6 +56,30 @@ export async function askUserForTypeOfMigration (): Promise<{ type: 'entities' |
       ]
     }
   ])
+
+  // Ask for scope only if entities type is selected
+  if (typeResponse.type === 'entities') {
+    const scopeResponse = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'scope',
+        message: 'Which entities do you want to include in the migration?',
+        choices: [
+          {
+            name: 'Only from selected plugin',
+            value: 'selected'
+          },
+          {
+            name: 'From all plugins',
+            value: 'all'
+          }
+        ]
+      }
+    ])
+    return { type: typeResponse.type, scope: scopeResponse.scope }
+  }
+
+  return { type: typeResponse.type }
 }
 
 export async function askUserForMigrationName (): Promise<{ filename: string }> {

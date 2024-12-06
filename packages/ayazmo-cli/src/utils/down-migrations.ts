@@ -20,12 +20,9 @@ import {
 } from '@ayazmo/types'
 import {
   discoverMigrationFiles,
-  discoverPublicPaths,
-  getPluginRoot
+  discoverPublicPaths
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
-import path from 'node:path'
-import { getEntityFiles, importEntityFiles } from './migration-helpers.js'
 
 export async function downMigrations (options?: string | string[] | MigrateOptions): Promise<UmzugMigration[]> {
   loadEnvironmentVariables()
@@ -41,39 +38,20 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
     const publicPaths = discoverPublicPaths(globalConfig.plugins)
     const migrationClasses: MigrationObject[] = await discoverMigrationFiles([...publicPaths.migrations])
 
-    // Get entities paths from all enabled plugins
-    const entitiesPaths: string[] = globalConfig.plugins.map(plugin =>
-      path.join(getPluginRoot(plugin.name, plugin.settings), 'dist', 'entities')
-    )
-
     const schema: string = process.env.DB_SCHEMA ?? globalConfig.database?.schema ?? 'public'
 
     const ormConfig: Partial<MikroORMOptions<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>> = {
-      entities: [],
-      entitiesTs: ['./src/plugins/*/src/entities'],
       baseDir: process.cwd(),
       migrations: {
         snapshot: false,
         migrationsList: migrationClasses ?? [],
         disableForeignKeys: false
+      },
+      discovery: {
+        warnWhenNoEntities: false,
+        requireEntitiesArray: false,
+        disableDynamicFileAccess: false
       }
-    }
-
-    // Import entities from all plugin paths
-    for (const dir of entitiesPaths) {
-      const entityFiles = await getEntityFiles(dir)
-      if (entityFiles.length > 0) {
-        const importedEntities = await importEntityFiles(entityFiles)
-        if (Array.isArray(ormConfig.entities)) {
-          ormConfig.entities.push(...importedEntities)
-        } else {
-          ormConfig.entities = importedEntities
-        }
-      }
-    }
-
-    if (!Array.isArray(ormConfig.entities) || ormConfig.entities.length === 0) {
-      throw new Error('No database entities found. Please ensure entity files exist in the correct location.')
     }
 
     orm = await initDatabase({

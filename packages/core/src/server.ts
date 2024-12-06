@@ -12,7 +12,7 @@ import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import os from 'os'
-import { AppConfig, RolesConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
+import { AppConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 
@@ -23,26 +23,24 @@ const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: AyazmoInstance
 
-  constructor(options: ServerOptions = {}) {
+  constructor (options: ServerOptions = {}) {
     const { configPath, ...restOptions } = options
-    // @ts-ignore
     this.fastify = fastify(restOptions)
-    this.fastify.decorate('configPath', options?.configPath ?? configDir)
+    this.fastify.decorate('configPath', configPath ?? configDir)
     this.fastify.decorate('anonymousStrategy', anonymousStrategy)
-      .register(fastifyAuth);
+      .register(fastifyAuth)
     this.registerGQL()
     this.setupGracefulShutdown()
     this.setDefaultErrorHandler()
   }
 
-  private registerAdminRoles() {
-    const config = diContainer.resolve('config') as AppConfig;
-    const adminRoles = config?.admin?.roles as RolesConfig
+  private registerAdminRoles (): void {
+    const config: AppConfig = diContainer.resolve('config')
+    const adminRoles = config?.admin?.roles
 
     if (adminRoles) {
       Object.entries(adminRoles).forEach(([roleName, checkUserRole]) => {
         this.fastify.decorate(roleName, (request: FastifyRequest, reply: FastifyReply, done: any) => {
-          // @ts-ignore
           const roleIsAllowed: boolean = checkUserRole(request.admin)
 
           if (roleIsAllowed) {
@@ -50,8 +48,8 @@ export class Server {
           } else {
             done(AyazmoError({
               statusCode: 403,
-              message: "Unauthorized",
-              code: "UNAUTHORIZED"
+              message: 'Unauthorized',
+              code: 'UNAUTHORIZED'
             }))
           }
         })
@@ -59,11 +57,11 @@ export class Server {
     }
   }
 
-  getServerInstance() {
+  getServerInstance (): AyazmoInstance {
     return this.fastify
   }
 
-  private setDefaultErrorHandler() {
+  private setDefaultErrorHandler (): void {
     this.fastify.setErrorHandler((error, request, reply) => {
       // Default error handling logic
       if (error.validation != null) {
@@ -81,12 +79,11 @@ export class Server {
     })
   }
 
-  public setErrorHandler(customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
+  public setErrorHandler (customErrorHandler: (error: Error, request: FastifyRequest, reply: FastifyReply) => void) {
     this.fastify.setErrorHandler(customErrorHandler)
   }
 
-  public registerGQL() {
-    // @ts-ignore
+  public registerGQL () {
     this.fastify.register(mercurius, {
       schema: `
         directive @auth(strategies: [String]) on OBJECT | FIELD_DEFINITION
@@ -100,19 +97,18 @@ export class Server {
       `,
       resolvers: {
         Query: {
-          health: async (_, { }) => true
+          health: async () => true
         },
         Mutation: {
-          health: async (_, { }) => true
+          health: async () => true
         }
       }
     })
   }
 
-  public registerAuthDirective() {
-    // @ts-ignore
+  public registerAuthDirective () {
     this.fastify.register(mercuriusAuth, {
-      applyPolicy: async (authDirectiveAST, parent, args, context, info) => {
+      applyPolicy: async (authDirectiveAST, parent, args, context) => {
         const strategies: string[] = authDirectiveAST.arguments[0].value.values.map(value => value.value)
         const runStrategies: FastifyAuthFunction[] = []
         let shouldThrow: boolean = false
@@ -126,7 +122,6 @@ export class Server {
           runStrategies.push(this.fastify[authStrategy])
         })
 
-        // @ts-ignore
         const auth: FastifyAuthFunction = this.fastify.auth(runStrategies)
         // @ts-expect-error
         auth(context.reply.request, context.reply, (error: Error) => {
@@ -143,12 +138,12 @@ export class Server {
 
         return true
       },
-      authContext: async (context) => { },
+      authContext: async () => { },
       authDirective: 'auth'
     })
   }
 
-  public initializeHealthRoute(): void {
+  public initializeHealthRoute (): void {
     if (!this.fastify.hasRoute({
       method: 'GET',
       url: '/health'
@@ -159,7 +154,7 @@ export class Server {
     }
   }
 
-  private async shutdownServer() {
+  private async shutdownServer () {
     const shutdownInitiated = Date.now()
 
     try {
@@ -194,80 +189,76 @@ export class Server {
     }
   }
 
-  private async enableCORS(): Promise<void> {
-    const config = this.fastify.diContainer.resolve('config') as AppConfig;
+  private async enableCORS (): Promise<void> {
+    const config = this.fastify.diContainer.resolve('config') as AppConfig
     if (config?.app?.cors) {
-      // @ts-ignore
       await this.fastify.register(cors, config.app.cors)
     }
   }
 
-  private enableCookies(): void {
-    // @ts-ignore
+  private enableCookies (): void {
     this.fastify.register(fastifyCookie, {
       hook: 'preParsing'
     })
   }
 
-  public async maybeEnableRedis(opts?: null | any): Promise<void> {
-    const config = this.fastify.diContainer.resolve('config') as AppConfig;
+  public async maybeEnableRedis (opts?: null | any): Promise<void> {
+    const config = this.fastify.diContainer.resolve('config') as AppConfig
     if (config?.app?.redis || opts) {
-      // @ts-ignore
       await this.fastify.register(fastifyRedis, config.app.redis ?? opts)
     }
   }
 
-  public async enableUserAuthChain(): Promise<void> {
+  public async enableUserAuthChain (): Promise<void> {
     if (!this.fastify.hasDecorator('auth')) {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
       return
     }
-    const config = this.fastify.diContainer.resolve('config') as AppConfig;
-    // @ts-ignore
+    const config = this.fastify.diContainer.resolve('config') as AppConfig
     this.fastify
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
   }
 
-  public async loadConfig(): Promise<void> {
+  public async loadConfig (): Promise<void> {
     if (!this.fastify.diContainer.hasRegistration('config')) {
       await loadConfig(this.fastify)
     }
   }
 
-  public async loadDiContainer(): Promise<void> {
+  public async loadDiContainer (): Promise<void> {
     if (!this.fastify.hasDecorator('diContainer')) {
       await this.fastify.register(fastifyAwilixPlugin, { disposeOnClose: true })
     }
   }
 
-  public async loadCoreServices(): Promise<void> {
+  public async loadCoreServices (): Promise<void> {
     await loadCoreServices(this.fastify)
   }
 
-  private setupGracefulShutdown() {
+  private setupGracefulShutdown () {
     // Listen for termination signals
     process.on('SIGINT', async () => await this.shutdownServer())
     process.on('SIGTERM', async () => await this.shutdownServer())
 
     // Catch unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
+    process.on('unhandledRejection', (reason) => {
       // Check if reason is an Error and log its stack for more details
-      this.fastify.log.error('unhandledRejection:');
+      this.fastify.log.error('unhandledRejection:')
       if (reason instanceof Error) {
-        this.fastify.log.error(reason.stack);
+        this.fastify.log.error(reason.stack)
       } else {
-        this.fastify.log.error(reason);
+        this.fastify.log.error(reason)
       }
 
       // Perform a graceful shutdown
       this.shutdownServer().catch(err => {
-        this.fastify.log.error('Failed to shutdown the server gracefully', err);
-        process.exit(1); // Exit with a failure code
-      });
-    });
+        this.fastify.log.error('Failed to shutdown the server gracefully', err)
+        process.exit(1) // Exit with a failure code
+      })
+    })
   }
 
-  public async loadPlugins(): Promise<void> {
+  public async loadPlugins (): Promise<void> {
     // load ayazmo services
     await this.loadCoreServices()
 
@@ -275,12 +266,12 @@ export class Server {
     await loadPlugins(this.fastify)
   }
 
-  async start(): Promise<void> {
+  async start (): Promise<void> {
     try {
       this.enableCookies()
       await this.loadDiContainer()
       await this.loadConfig()
-      const config = this.fastify.diContainer.resolve('config') as AppConfig;
+      const config = this.fastify.diContainer.resolve('config') as AppConfig
       await this.registerAdminRoles()
       await this.maybeEnableRedis()
       await this.loadPlugins()

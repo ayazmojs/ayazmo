@@ -4,17 +4,24 @@ import { fileURLToPath } from 'url'
 
 export function getAyazmoVersion (): string {
   try {
+    // Try local installation path first
     try {
-      // local installation path
       const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'node_modules', 'ayazmo', 'package.json'), 'utf8'))
       return packageJson.version
-    } catch (error) { }
+    } catch {
+      // Failed to read from local installation, continue to next attempt
+    }
 
+    // Try finding package.json in parent directories
     try {
       const packageVersion = findAndParsePackageJsonVersion()
       return packageVersion ?? ''
-    } catch (error) { }
-  } catch (error) { }
+    } catch {
+      // Failed to find package.json in parent directories
+    }
+  } catch {
+    // Catch any other unexpected errors
+  }
 
   return ''
 }

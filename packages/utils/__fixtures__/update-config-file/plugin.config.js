@@ -7,6 +7,6 @@ const config = {
       anotherOption: true
     }
   }
-};
+}
 
-export default config;
+export default config

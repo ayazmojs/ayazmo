@@ -23,7 +23,7 @@ export class QueryFilterManager {
     }
   }
 
-  public getFilter (name: string, args: any): object {
+  public getFilter (name: string, args: unknown): object {
     const filter = this.filters.get(name) ?? {}
     if (typeof filter === 'function') {
       return filter(args)

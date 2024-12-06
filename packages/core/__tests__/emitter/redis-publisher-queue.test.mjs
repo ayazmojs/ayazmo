@@ -1,11 +1,10 @@
-import assert from "node:assert";
-import { describe, it, after, before } from "node:test";
-import buildServer, { __dirname } from "../../__fixtures__/build-server.js";
-import { RedisMemoryServer } from 'redis-memory-server';
-import path from "node:path";
+import assert from 'node:assert'
+import { describe, it, after, before } from 'node:test'
+import buildServer, { __dirname } from '../../__fixtures__/build-server.js'
+import { RedisMemoryServer } from 'redis-memory-server'
+import path from 'node:path'
 
-describe("core: testing the redis publisher via Queue", () => {
-
+describe('core: testing the redis publisher via Queue', () => {
   let app,
     server,
     redisServer,
@@ -19,10 +18,10 @@ describe("core: testing the redis publisher via Queue", () => {
         ip: '127.0.0.1'
       },
       autoStart: true
-    });
+    })
     server = buildServer(path.join(__dirname, 'emitter', 'redis-queue-ayazmo.config.js'))
-    await server.loadDiContainer();
-    await server.loadConfig();
+    await server.loadDiContainer()
+    await server.loadConfig()
     await server.maybeEnableRedis({
       host: await redisServer.getHost(),
       port: await redisServer.getPort(),
@@ -31,9 +30,9 @@ describe("core: testing the redis publisher via Queue", () => {
       options: {
         tls: false
       }
-    });
-    await server.loadCoreServices();
-    app = server.getServerInstance();
+    })
+    await server.loadCoreServices()
+    app = server.getServerInstance()
     const eventService = app.diContainer.resolve('eventService')
     worker = eventService.getEmitter().getAllWorkers().get('eventsQueue')
     queue = eventService.getEmitter().getPublisher().getInstance()
@@ -46,16 +45,16 @@ describe("core: testing the redis publisher via Queue", () => {
     await queue.drain()
     await worker.close()
     await app.close()
-    await redisServer.stop();
+    await redisServer.stop()
   })
 
-  it("test redis connection", async () => {
+  it('test redis connection', async () => {
     const redis = app.redis
     assert.ok(redis)
     assert.equal(redis.status, 'ready')
   })
 
-  it("successfully loads the redis publisher config with default queue options", () => {
+  it('successfully loads the redis publisher config with default queue options', () => {
     const eventService = app.diContainer.resolve('eventService')
     assert.equal(eventService.constructor.name, 'EventService')
 
@@ -66,7 +65,7 @@ describe("core: testing the redis publisher via Queue", () => {
     assert.equal(publisher.constructor.name, 'AyazmoPublisher')
     assert.equal(publisher.isFlow, false)
 
-    const queue = publisher.getInstance();
+    const queue = publisher.getInstance()
     assert.equal(queue.constructor.name, 'Queue')
     assert.equal(worker.constructor.name, 'Worker')
 
@@ -80,15 +79,15 @@ describe("core: testing the redis publisher via Queue", () => {
           type: 'exponential'
         },
         removeOnComplete: true,
-        removeOnFail: { count: 0 },
+        removeOnFail: { count: 0 }
       }
     )
   })
 
-  it("successfully publishes a job to the queue", async () => {
-    let jobId;
-    let interval;
-    let completed = false;
+  it('successfully publishes a job to the queue', async () => {
+    let jobId
+    let interval
+    const completed = false
     const eventService = app.diContainer.resolve('eventService')
     const emitter = eventService.getEmitter()
     const queue = emitter.getPublisher().getInstance()
@@ -96,8 +95,8 @@ describe("core: testing the redis publisher via Queue", () => {
     await worker.waitUntilReady()
 
     queue.on('waiting', async (job) => {
-      jobId = job.id;
-    });
+      jobId = job.id
+    })
 
     await eventService.publish('comment.create', { key: 'value' })
     const handler = async (job) => {
@@ -110,28 +109,28 @@ describe("core: testing the redis publisher via Queue", () => {
     // wait until the job has been consumed but timeout after 20 seconds
     await new Promise((resolve, reject) => {
       if (completed) {
-        resolve();
+        resolve()
       }
 
-      const startTime = Date.now();
+      const startTime = Date.now()
 
       // set a time counter in an interval
       interval = setInterval(async () => {
-        const elapsedTime = Date.now() - startTime;
+        const elapsedTime = Date.now() - startTime
         // display the elapsed time in seconds in place instead of on new line
-        console.log(`\rWorker consuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`);
+        console.log(`\rWorker consuming elapsed time: ${(elapsedTime / 1000).toFixed(2)} seconds`)
         if (elapsedTime > 20000) {
-          clearInterval(interval);
-          reject(new Error('Timeout after 20 seconds'));
+          clearInterval(interval)
+          reject(new Error('Timeout after 20 seconds'))
         }
-      }, 1000);
+      }, 1000)
 
       worker.on('completed', async (job) => {
         if (job.id === jobId) {
-          clearInterval(interval);
-          resolve();
+          clearInterval(interval)
+          resolve()
         }
-      });
+      })
     })
 
     await eventService.unsubscribe('comment.create', handler)
@@ -139,140 +138,140 @@ describe("core: testing the redis publisher via Queue", () => {
   })
 
   it('should publish event with onBeforePublish callback via Redis', async () => {
-    const eventService = app.diContainer.resolve('eventService');
-    const testEvent = 'test.callback.event';
-    const testPayload = { key: 'value' };
-    let receivedPayload = null;
-    let jobId;
+    const eventService = app.diContainer.resolve('eventService')
+    const testEvent = 'test.callback.event'
+    const testPayload = { key: 'value' }
+    let receivedPayload = null
+    let jobId
 
     const handler = async (job) => {
-      receivedPayload = job.data;
-    };
+      receivedPayload = job.data
+    }
 
-    await eventService.subscribe(testEvent, handler);
-    
+    await eventService.subscribe(testEvent, handler)
+
     queue.on('waiting', async (job) => {
-      jobId = job.id;
-    });
+      jobId = job.id
+    })
 
     await eventService.publish(testEvent, testPayload, {
       onBeforePublish: async (event, data) => {
-        return data;
+        return data
       }
-    });
+    })
 
     // Wait for job completion
     await new Promise((resolve) => {
       worker.on('completed', async (job) => {
         if (job.id === jobId) {
-          resolve();
+          resolve()
         }
-      });
-    });
+      })
+    })
 
-    assert.deepStrictEqual(receivedPayload, testPayload, 'Payload should be received unchanged');
-    await eventService.unsubscribe(testEvent, handler);
-  });
+    assert.deepStrictEqual(receivedPayload, testPayload, 'Payload should be received unchanged')
+    await eventService.unsubscribe(testEvent, handler)
+  })
 
   it('should modify payload through onBeforePublish callback via Redis', async () => {
-    const eventService = app.diContainer.resolve('eventService');
-    const testEvent = 'test.modified.event';
-    const testPayload = { key: 'value' };
-    const modifiedPayload = { key: 'modified' };
-    let receivedPayload = null;
-    let jobId;
+    const eventService = app.diContainer.resolve('eventService')
+    const testEvent = 'test.modified.event'
+    const testPayload = { key: 'value' }
+    const modifiedPayload = { key: 'modified' }
+    let receivedPayload = null
+    let jobId
 
     const handler = async (job) => {
-      receivedPayload = job.data;
-    };
+      receivedPayload = job.data
+    }
 
-    await eventService.subscribe(testEvent, handler);
-    
+    await eventService.subscribe(testEvent, handler)
+
     queue.on('waiting', async (job) => {
-      jobId = job.id;
-    });
+      jobId = job.id
+    })
 
     await eventService.publish(testEvent, testPayload, {
       onBeforePublish: async (event, data) => {
-        return modifiedPayload;
+        return modifiedPayload
       }
-    });
+    })
 
     // Wait for job completion
     await new Promise((resolve) => {
       worker.on('completed', async (job) => {
         if (job.id === jobId) {
-          resolve();
+          resolve()
         }
-      });
-    });
+      })
+    })
 
-    assert.deepStrictEqual(receivedPayload, modifiedPayload, 'Modified payload should be received');
-    await eventService.unsubscribe(testEvent, handler);
-  });
+    assert.deepStrictEqual(receivedPayload, modifiedPayload, 'Modified payload should be received')
+    await eventService.unsubscribe(testEvent, handler)
+  })
 
   it('should not publish event when onBeforePublish returns null via Redis', async () => {
-    const eventService = app.diContainer.resolve('eventService');
-    const testEvent = 'test.null.event';
-    const testPayload = { key: 'value' };
-    let wasHandlerCalled = false;
-    let jobReceived = false;
+    const eventService = app.diContainer.resolve('eventService')
+    const testEvent = 'test.null.event'
+    const testPayload = { key: 'value' }
+    let wasHandlerCalled = false
+    let jobReceived = false
 
     const handler = async () => {
-      wasHandlerCalled = true;
-    };
+      wasHandlerCalled = true
+    }
 
-    await eventService.subscribe(testEvent, handler);
+    await eventService.subscribe(testEvent, handler)
 
     // Monitor if any job is added to the queue
     queue.on('waiting', () => {
-      jobReceived = true;
-    });
+      jobReceived = true
+    })
 
     await eventService.publish(testEvent, testPayload, {
       onBeforePublish: async (event, data) => {
-        return null;
+        return null
       }
-    });
+    })
 
     // Give some time for any potential job processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-    assert.strictEqual(wasHandlerCalled, false, 'Handler should not be called when onBeforePublish returns null');
-    assert.strictEqual(jobReceived, false, 'No job should be added to the queue');
-    await eventService.unsubscribe(testEvent, handler);
-  });
+    assert.strictEqual(wasHandlerCalled, false, 'Handler should not be called when onBeforePublish returns null')
+    assert.strictEqual(jobReceived, false, 'No job should be added to the queue')
+    await eventService.unsubscribe(testEvent, handler)
+  })
 
   it('should not publish event when event is not in publishOn configuration', async () => {
-    const eventService = app.diContainer.resolve('eventService');
-    const testEvent = 'unauthorized.event';
-    const testPayload = { key: 'value' };
-    let wasHandlerCalled = false;
-    let jobReceived = false;
+    const eventService = app.diContainer.resolve('eventService')
+    const testEvent = 'unauthorized.event'
+    const testPayload = { key: 'value' }
+    let wasHandlerCalled = false
+    let jobReceived = false
 
     const handler = async () => {
-      wasHandlerCalled = true;
-    };
+      wasHandlerCalled = true
+    }
 
-    await eventService.subscribe(testEvent, handler);
+    await eventService.subscribe(testEvent, handler)
 
     // Monitor if any job is added to the queue
     queue.on('waiting', () => {
-      jobReceived = true;
-    });
+      jobReceived = true
+    })
 
     // Add debug listeners to verify behavior
     queue.on('added', () => {
-      console.log('Job unexpectedly added to queue');
-    });
+      console.log('Job unexpectedly added to queue')
+    })
 
-    await eventService.publish(testEvent, testPayload);
+    await eventService.publish(testEvent, testPayload)
 
     // Give some time for any potential job processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-    assert.strictEqual(wasHandlerCalled, false, 'Handler should not be called for unauthorized event');
-    assert.strictEqual(jobReceived, false, 'No job should be added to queue for unauthorized event');
-    await eventService.unsubscribe(testEvent, handler);
-  });
+    assert.strictEqual(wasHandlerCalled, false, 'Handler should not be called for unauthorized event')
+    assert.strictEqual(jobReceived, false, 'No job should be added to queue for unauthorized event')
+    await eventService.unsubscribe(testEvent, handler)
+  })
 })
