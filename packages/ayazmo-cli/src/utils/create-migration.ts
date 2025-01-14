@@ -10,7 +10,7 @@ import {
   Connection,
   EntityManager
 } from '@ayazmo/types'
-import { getPluginRoot } from '@ayazmo/core'
+import { getPluginRoot, BaseSchemaEntity } from '@ayazmo/core'
 import {
   askUserForTypeOfMigration,
   askUserForMigrationName,
@@ -47,7 +47,7 @@ export async function createMigration (): Promise<void> {
 
   // Initialize ORM configuration with base settings
   const ormConfig: Partial<MikroORMOptions<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>> = {
-    entities: [],
+    entities: [BaseSchemaEntity],
     baseDir: cwd,
     migrations: {
       snapshot: false,
@@ -132,15 +132,12 @@ export async function createMigration (): Promise<void> {
       ormConfig.migrations.path = migrationPath
     }
 
-    // Add entities from application if scope is 'all' or not specified
-    if (migrationTypePrompt.scope !== 'selected') {
-      const applicationEntityPaths = await globby('dist/plugins/*/src/entities', {
-        cwd,
-        onlyDirectories: true,
-        absolute: true
-      })
-      entitiesPath.push(...applicationEntityPaths)
-    }
+    const applicationEntityPaths = await globby('dist/plugins/*/src/entities', {
+      cwd,
+      onlyDirectories: true,
+      absolute: true
+    })
+    entitiesPath.push(...applicationEntityPaths)
 
     // Import and configure entity files
     for (const dir of entitiesPath) {
@@ -168,6 +165,11 @@ export async function createMigration (): Promise<void> {
     const pendingMigrations = await migrator.getPendingMigrations()
 
     if (Array.isArray(pendingMigrations) && pendingMigrations.length > 0) {
+      CliLogger.warn('The following migrations are pending:')
+      pendingMigrations.forEach(migration => {
+        const migrationPath = path.join(ormConfig.migrations?.path ?? '', migration.name)
+        CliLogger.warn(`- ${migration.name} (${migrationPath})`)
+      })
       throw new Error('There are pending migrations. Please run them before creating a new one.')
     }
 

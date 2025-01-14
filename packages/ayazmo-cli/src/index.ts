@@ -40,9 +40,14 @@ program
 program
   .command('migration:up')
   .description('Run all migrations')
-  .action(async () => {
+  .option('-i, --interactive', 'Run in interactive mode')
+  .option('-p, --plugin <plugin-name>', 'Run migrations for a specific plugin')
+  .action(async (options) => {
     validateAyazmoProject()
-    await runMigrations()
+    await runMigrations({
+      interactive: options.interactive ?? false,
+      plugin: options.plugin
+    })
   })
 
 program

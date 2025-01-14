@@ -44,7 +44,7 @@ export async function loadRoutes (
             }
 
             // extract custom route options, omitting the 'enabled' flag since it's only used for route validation
-            const { enabled, ...routeOptions } = route
+            const { enabled = true, ...routeOptions } = route
 
             app.route(merge(
               routeOptions,

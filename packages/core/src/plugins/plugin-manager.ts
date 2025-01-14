@@ -13,6 +13,7 @@ import { loadGraphQL } from '../loaders/graphql.js'
 import { loadSubscribers } from '../loaders/subscribers.js'
 import { loadAdminRoutes } from '../loaders/admin/routes.js'
 import adminAuthChain from '../admin/auth/adminAuthChain.js'
+import { BaseSchemaEntity } from '../interfaces/BaseSchemaEntity.js'
 
 const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins')
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
@@ -214,7 +215,7 @@ export async function bootstrapPlugins (app: AyazmoInstance, plugins: PluginConf
 
 export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   const config: AppConfig = app.diContainer.resolve('config')
-  const entities: AnyEntity[] = []
+  const entities: AnyEntity[] = [BaseSchemaEntity]
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {

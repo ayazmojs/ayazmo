@@ -11,7 +11,12 @@ import {
 import CliLogger from './cli-logger.js'
 import { askUserForMigrationPlugin } from './prompts.js'
 
-export async function runMigrations (): Promise<void> {
+interface MigrationOptions {
+  interactive?: boolean
+  plugin?: string
+}
+
+export async function runMigrations (options: MigrationOptions = { interactive: false }): Promise<void> {
   let orm: MikroORM | null = null
   CliLogger.info('Checking environment...')
 
@@ -22,7 +27,27 @@ export async function runMigrations (): Promise<void> {
       throw new Error('No plugins enabled!')
     }
 
-    const selectedPlugin = await askUserForMigrationPlugin(globalConfig.plugins)
+    // Early validation of plugin parameter
+    if (options.plugin) {
+      const pluginExists = globalConfig.plugins.some(p => p.name === options.plugin)
+      if (!pluginExists) {
+        throw new Error(`Plugin "${options.plugin}" is not enabled in your configuration. Please check your config file.`)
+      }
+    }
+
+    let selectedPlugin: { type: 'all' | 'single', value: string }
+
+    if (options.plugin) {
+      selectedPlugin = { type: 'single', value: options.plugin }
+    } else if (options.interactive) {
+      const choice = await askUserForMigrationPlugin(globalConfig.plugins)
+      selectedPlugin = {
+        type: choice.type === 'specific' ? 'single' : 'all',
+        value: choice.value
+      }
+    } else {
+      selectedPlugin = { type: 'all', value: 'all' }
+    }
 
     let migrationsList: MigrationObject[] = []
     if (selectedPlugin.type === 'all') {

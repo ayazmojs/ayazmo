@@ -1,5 +1,18 @@
 # ayazmo
 
+## 0.5.0
+
+### Minor Changes
+
+- switch to entityschema
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ayazmo/types@0.5.0
+  - @ayazmo/core@0.5.0
+  - @ayazmo/utils@0.5.0
+
 ## 0.4.1
 
 ### Patch Changes
