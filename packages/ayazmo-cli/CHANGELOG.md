@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.5.1
+
+### Patch Changes
+
+- cache entities
+
+- Updated dependencies []:
+  - @ayazmo/utils@0.5.1
+  - @ayazmo/core@0.5.1
+  - @ayazmo/types@0.5.1
+
 ## 0.5.0
 
 ### Minor Changes

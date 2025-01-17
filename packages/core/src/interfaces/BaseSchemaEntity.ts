@@ -11,7 +11,7 @@ const BaseSchemaEntity = new EntitySchema<BaseSchemaEntity>({
     name: 'BaseSchemaEntity',
     abstract: true,
     properties: {
-      id: { type: 'number', primary: true },
+      id: { type: 'string', length: 26, primary: true },
       createdAt: { type: 'Date', onCreate: () => new Date(), nullable: true },
       updatedAt: { type: 'Date', onCreate: () => new Date(), onUpdate: () => new Date(), nullable: true },
       meta: { type: 'json', nullable: true },

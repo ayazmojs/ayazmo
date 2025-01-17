@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { asValue } from 'awilix'
 import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
-import { merge } from '@ayazmo/utils'
+import { merge, PluginCache } from '@ayazmo/utils'
 import { globby } from 'globby'
 import { loadRoutes } from '../loaders/routes.js'
 import { loadEntities } from '../loaders/entities.js'
@@ -17,7 +17,7 @@ import { BaseSchemaEntity } from '../interfaces/BaseSchemaEntity.js'
 
 const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins')
 const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
-
+const cacheRoot: string = path.join(process.cwd(), '.ayazmo', 'plugins')
 /**
  * Constructs the file paths for various components of a plugin based on the plugin name and base directory.
  *
@@ -223,6 +223,9 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     return
   }
 
+  const pluginCache = new PluginCache(app)
+  await pluginCache.cachePublicPlugins(config.plugins, nodeModulesPath)
+
   await bootstrapPlugins(app, config.plugins)
 
   app.decorate('adminAuthChain', adminAuthChain(app, config))
@@ -248,7 +251,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
 
     if (pluginPaths != null) {
       const [entityCollection] = await Promise.all([
-        loadEntities(app, pluginPaths.entities),
+        loadEntities(app, path.join(cacheRoot, registeredPlugin.name, 'entities')),
         loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, pluginPaths.services, registeredPlugin.settings),
         loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),

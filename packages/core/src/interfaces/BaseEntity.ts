@@ -6,15 +6,15 @@ export interface BaseEntityMetadata {
 }
 
 export abstract class BaseEntity {
-  @PrimaryKey()
-    id: string = ulid()
+  @PrimaryKey({ type: 'string', length: 26 })
+  id: string = ulid()
 
   @Property()
-    createdAt: Date = new Date()
+  createdAt: Date = new Date()
 
   @Property({ onUpdate: () => new Date() })
-    updatedAt: Date = new Date()
+  updatedAt: Date = new Date()
 
   @Property({ type: JsonType, nullable: true })
-    meta: BaseEntityMetadata | null = null
+  meta: BaseEntityMetadata | null = null
 }

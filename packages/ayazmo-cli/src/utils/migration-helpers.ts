@@ -4,7 +4,7 @@ import { getPluginRoot } from '@ayazmo/core'
 import type { PluginConfig } from '@ayazmo/types'
 import { MetadataStorage } from '@ayazmo/types'
 import CliLogger from './cli-logger.js'
-import { ensureAyazmoSubfolder } from './ayazmo-folder.js'
+import { ensureAyazmoSubfolder } from '@ayazmo/utils'
 
 interface EntityModule {
   default?: any

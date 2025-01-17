@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { globby } from 'globby'
-import { importGlobalConfig, initDatabase, loadEnvironmentVariables } from '@ayazmo/utils'
+import { importGlobalConfig, initDatabase, loadEnvironmentVariables, createAyazmoFolders, cleanupAyazmoFolder } from '@ayazmo/utils'
 import type { IPluginPrompt, PluginConfig } from '@ayazmo/types'
 import {
   Migrator,
@@ -18,7 +18,6 @@ import {
 } from './prompts.js'
 import CliLogger from './cli-logger.js'
 import { getEntityFiles, importEntityFiles, copyEntitiesToTemp } from './migration-helpers.js'
-import { createAyazmoFolders, cleanupAyazmoFolder } from './ayazmo-folder.js'
 
 // Extended interface to include migration scope
 interface ITypePrompt {

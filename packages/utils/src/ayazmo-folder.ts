@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import CliLogger from './cli-logger.js'
 
 export interface AyazmoFolderOptions {
   root?: string
@@ -50,7 +49,7 @@ export async function createAyazmoFolders (options: AyazmoFolderOptions = {}): P
     return absoluteRoot
   } catch (error) {
     if (error instanceof Error) {
-      CliLogger.error(`Failed to create Ayazmo folder structure: ${error.message}`)
+      console.error(`Failed to create Ayazmo folder structure: ${error.message}`)
     }
     throw error
   }
@@ -70,7 +69,7 @@ export async function ensureAyazmoSubfolder (subfolder: string, root: string = D
     return absolutePath
   } catch (error) {
     if (error instanceof Error) {
-      CliLogger.error(`Failed to create subfolder ${subfolder}: ${error.message}`)
+      console.error(`Failed to create subfolder ${subfolder}: ${error.message}`)
     }
     throw error
   }
@@ -90,7 +89,7 @@ export async function cleanupAyazmoFolder (root: string = DEFAULT_ROOT): Promise
     }
   } catch (error) {
     if (error instanceof Error) {
-      CliLogger.warn(`Failed to cleanup ${root} folder: ${error.message}`)
+      console.warn(`Failed to cleanup ${root} folder: ${error.message}`)
     }
   }
 }
