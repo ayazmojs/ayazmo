@@ -5,13 +5,21 @@ import { glob } from 'glob'
 import path from 'node:path'
 import fs from 'node:fs'
 
+export interface IPluginPaths {
+  pluginName: string;
+  entityPath: string;
+  isPrivate: boolean;
+}
+
 export class PluginCache {
   private readonly app: AyazmoInstance
   private readonly cacheRoot: string
+  private readonly nodeModulesPath: string
 
   constructor(app: AyazmoInstance) {
     this.app = app
     this.cacheRoot = path.resolve(process.cwd(), '.ayazmo/plugins')
+    this.nodeModulesPath = path.join(process.cwd(), 'node_modules')
     this.app.log.debug(`Plugin cache root initialized at: ${this.cacheRoot}`)
   }
 
@@ -25,7 +33,6 @@ export class PluginCache {
     })
     this.app.log.debug(`Initialized plugin cache structure at ${this.cacheRoot}`)
 
-    // Verify the folder exists
     if (!fs.existsSync(this.cacheRoot)) {
       throw new Error(`Failed to create plugin cache directory at ${this.cacheRoot}`)
     }
@@ -35,112 +42,116 @@ export class PluginCache {
    * Get the cache path for a specific plugin
    */
   private getPluginCachePath(pluginName: string): string {
-    const cachePath = path.join(this.cacheRoot, pluginName)
-    this.app.log.debug(`Generated cache path for plugin ${pluginName}: ${cachePath}`)
-    return cachePath
+    return path.join(this.cacheRoot, pluginName)
+  }
+
+  /**
+   * Discover paths for all plugins (both public and private)
+   */
+  private async discoverPluginPaths(plugins: PluginConfig[]): Promise<IPluginPaths[]> {
+    const pluginPaths: IPluginPaths[] = [];
+
+    for (const plugin of plugins) {
+      const isPrivate = plugin.settings?.private === true;
+      const customPath = plugin.settings?.path;
+      
+      let entityPath: string;
+
+      if (customPath) {
+        entityPath = path.join(customPath, plugin.name, 'dist', 'entities');
+      } else if (isPrivate) {
+        entityPath = path.join(process.cwd(), 'dist', 'plugins', plugin.name, 'src', 'entities');
+      } else {
+        entityPath = path.join(this.nodeModulesPath, plugin.name, 'dist', 'entities');
+      }
+
+      if (await fs.promises.access(entityPath).then(() => true).catch(() => false)) {
+        pluginPaths.push({
+          pluginName: plugin.name,
+          entityPath,
+          isPrivate
+        });
+      }
+    }
+
+    return pluginPaths;
   }
 
   /**
    * Copy a directory recursively
    */
-  private copyDirRecursive(source: string, target: string): void {
-    // Create target directory
-    fs.mkdirSync(target, { recursive: true })
-
-    // Read source directory
-    const files = fs.readdirSync(source)
+  private async copyDirRecursive(source: string, target: string): Promise<void> {
+    await fs.promises.mkdir(target, { recursive: true });
+    const files = await fs.promises.readdir(source);
 
     for (const file of files) {
-      // Skip TypeScript declaration files
-      if (file.endsWith('.d.ts')) {
-        continue
-      }
+      if (file.endsWith('.d.ts')) continue;
 
-      const sourcePath = path.join(source, file)
-      const targetPath = path.join(target, file)
-      
-      const stat = fs.statSync(sourcePath)
-      
+      const sourcePath = path.join(source, file);
+      const targetPath = path.join(target, file);
+      const stat = await fs.promises.stat(sourcePath);
+
       if (stat.isDirectory()) {
-        // Recursively copy subdirectory
-        this.app.log.debug(`Copying directory ${sourcePath} to ${targetPath}`)
-        this.copyDirRecursive(sourcePath, targetPath)
+        this.app.log.debug(`Copying directory ${sourcePath} to ${targetPath}`);
+        await this.copyDirRecursive(sourcePath, targetPath);
       } else {
-        // Copy file
-        this.app.log.debug(`Copying file ${sourcePath} to ${targetPath}`)
-        fs.copyFileSync(sourcePath, targetPath)
+        this.app.log.debug(`Copying file ${sourcePath} to ${targetPath}`);
+        await fs.promises.copyFile(sourcePath, targetPath);
       }
     }
   }
 
   /**
-   * Copy a plugin's entities to cache
+   * Cache a single plugin's entities
    */
-  private async cachePlugin(plugin: PluginConfig, nodeModulesPath: string): Promise<void> {
-    const pluginRoot = path.join(nodeModulesPath, plugin.name)
-    const sourceEntitiesPath = path.join(pluginRoot, 'dist', 'entities')
-    const cacheEntitiesPath = path.join(this.getPluginCachePath(plugin.name), 'entities')
+  private async cachePlugin(pluginPath: IPluginPaths): Promise<void> {
+    const cacheEntitiesPath = path.join(this.getPluginCachePath(pluginPath.pluginName), 'src', 'entities');
 
     try {
-      this.app.log.debug(`Attempting to cache plugin ${plugin.name} entities`)
-      this.app.log.debug(`Source entities path: ${sourceEntitiesPath}`)
-      this.app.log.debug(`Cache entities path: ${cacheEntitiesPath}`)
+      this.app.log.debug(`Attempting to cache plugin ${pluginPath.pluginName} entities`);
+      this.app.log.debug(`Source entities path: ${pluginPath.entityPath}`);
+      this.app.log.debug(`Cache entities path: ${cacheEntitiesPath}`);
 
-      if (!fs.existsSync(sourceEntitiesPath)) {
-        this.app.log.debug(`No entities found for plugin ${plugin.name}`)
-        return
+      await this.copyDirRecursive(pluginPath.entityPath, cacheEntitiesPath);
+
+      if (!await fs.promises.access(cacheEntitiesPath).then(() => true).catch(() => false)) {
+        throw new Error(`Cache entities path ${cacheEntitiesPath} was not created after copy operation`);
       }
 
-      // Copy only the entities directory
-      this.copyDirRecursive(sourceEntitiesPath, cacheEntitiesPath)
-      
-      // Verify the copy worked
-      if (!fs.existsSync(cacheEntitiesPath)) {
-        throw new Error(`Cache entities path ${cacheEntitiesPath} was not created after copy operation`)
-      }
-
-      this.app.log.debug(`Successfully cached plugin ${plugin.name} entities`)
+      this.app.log.debug(`Successfully cached plugin ${pluginPath.pluginName} entities`);
     } catch (error) {
-      this.app.log.error(`Failed to cache plugin ${plugin.name} entities: ${error.message}`)
-      throw error
+      this.app.log.error(`Failed to cache plugin ${pluginPath.pluginName} entities: ${error.message}`);
+      throw error;
     }
   }
 
   /**
-   * Cache all public plugins entities
+   * Cache all plugins (both public and private)
    */
-  public async cachePublicPlugins(plugins: PluginConfig[], nodeModulesPath: string): Promise<void> {
-    await this.initializeCache()
+  public async cachePlugins(plugins: PluginConfig[]): Promise<void> {
+    await this.initializeCache();
     
-    // Filter public plugins (those in node_modules) that don't have custom paths
-    const pluginsToCache = plugins.filter(plugin => 
-      !plugin.settings?.private && 
-      !plugin.settings?.path
-    )
+    const pluginPaths = await this.discoverPluginPaths(plugins);
+    this.app.log.debug(`Found ${pluginPaths.length} plugins to cache`);
     
-    this.app.log.debug(`Found ${pluginsToCache.length} public plugins to cache`)
-    
-    // Cache plugins in parallel
-    await Promise.all(
-      pluginsToCache.map(plugin => this.cachePlugin(plugin, nodeModulesPath))
-    )
+    await Promise.all(pluginPaths.map(plugin => this.cachePlugin(plugin)));
   }
 
   /**
    * Get all cached plugin entity paths
    */
   public async getCachedPaths(): Promise<Map<string, string>> {
-    const paths = new Map<string, string>()
-    const pluginDirs = await glob('*/entities', { 
+    const paths = new Map<string, string>();
+    const pluginDirs = await glob('*/src/entities', { 
       cwd: this.cacheRoot,
       absolute: true
-    })
+    });
 
     for (const dir of pluginDirs) {
-      const pluginName = path.basename(path.dirname(dir))
-      paths.set(pluginName, dir)
+      const pluginName = path.basename(path.dirname(path.dirname(dir)));
+      paths.set(pluginName, dir);
     }
 
-    return paths
+    return paths;
   }
 }

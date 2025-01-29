@@ -224,7 +224,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   }
 
   const pluginCache = new PluginCache(app)
-  await pluginCache.cachePublicPlugins(config.plugins, nodeModulesPath)
+  await pluginCache.cachePlugins(config.plugins)
 
   await bootstrapPlugins(app, config.plugins)
 
@@ -251,7 +251,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
 
     if (pluginPaths != null) {
       const [entityCollection] = await Promise.all([
-        loadEntities(app, path.join(cacheRoot, registeredPlugin.name, 'entities')),
+        loadEntities(app, path.join(cacheRoot, registeredPlugin.name, 'src', 'entities')),
         loadGraphQL(app, pluginPaths.graphql),
         loadServices(app, pluginPaths.services, registeredPlugin.settings),
         loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),
