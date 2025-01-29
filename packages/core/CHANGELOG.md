@@ -1,5 +1,13 @@
 # @ayazmo/core
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.0
+  - @ayazmo/utils@0.6.0
+
 ## 0.5.1
 
 ### Patch Changes

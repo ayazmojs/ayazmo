@@ -1,5 +1,18 @@
 # ayazmo
 
+## 0.6.0
+
+### Minor Changes
+
+- cleanup migration:create
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ayazmo/core@0.6.0
+  - @ayazmo/types@0.6.0
+  - @ayazmo/utils@0.6.0
+
 ## 0.5.1
 
 ### Patch Changes
