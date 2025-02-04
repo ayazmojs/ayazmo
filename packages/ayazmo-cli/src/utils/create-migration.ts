@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { importGlobalConfig, initDatabase, loadEnvironmentVariables, createAyazmoFolders, cleanupAyazmoFolder } from '@ayazmo/utils'
+import { importGlobalConfig, initDatabase, loadEnvironmentVariables, createAyazmoFolders, cleanupAyazmoFolder, resolvePluginPaths, getPluginCacheEntityPath } from '@ayazmo/utils'
 import {
   MikroORM,
   MikroORMOptions,
@@ -44,26 +44,17 @@ async function validatePluginConfiguration(globalConfig: any): Promise<void> {
 }
 
 async function discoverPluginPaths(globalConfig: any): Promise<IPluginEntityPaths[]> {
-  const cwd = process.cwd();
   const pluginPaths: IPluginEntityPaths[] = [];
 
   for (const plugin of globalConfig.plugins) {
-    const isPrivate = plugin.settings?.private !== false;
-    
-    const entityPath = isPrivate 
-      ? path.join(cwd, 'dist', 'plugins', plugin.name, 'src', 'entities')
-      : path.join(cwd, 'node_modules', plugin.name, 'dist', 'entities');
-    
-    const sourcePath = isPrivate
-      ? path.join(cwd, 'src', 'plugins', plugin.name, 'src', 'migrations')
-      : path.join(cwd, 'node_modules', plugin.name, 'src', 'migrations');
+    const { entityPath, migrationPath } = resolvePluginPaths(plugin.name, plugin.settings);
 
     if (await fs.pathExists(entityPath)) {
       pluginPaths.push({
         pluginName: plugin.name,
         entityPath,
-        isPrivate,
-        sourcePath
+        isPrivate: plugin.settings?.private !== false,
+        sourcePath: migrationPath
       });
     }
   }
@@ -72,10 +63,8 @@ async function discoverPluginPaths(globalConfig: any): Promise<IPluginEntityPath
 }
 
 async function copyEntityFiles(context: IMigrationContext): Promise<void> {
-  const ayazmoRoot = path.join(process.cwd(), '.ayazmo', 'plugins');
-  
   for (const plugin of context.pluginPaths) {
-    const targetPluginPath = path.join(ayazmoRoot, plugin.pluginName, 'src', 'entities');
+    const targetPluginPath = getPluginCacheEntityPath(plugin.pluginName);
     const entityFiles = await getEntityFiles(plugin.entityPath);
 
     // Ensure directory exists once per plugin
@@ -158,11 +147,9 @@ export async function createMigration(): Promise<void> {
       await copyEntityFiles(context);
 
       // Import entities from all plugins in .ayazmo
-      const ayazmoRoot = path.join(process.cwd(), '.ayazmo', 'plugins');
-      
       // Collect entities from all plugins
       for (const plugin of context.pluginPaths) {
-        const pluginPath = path.join(ayazmoRoot, plugin.pluginName, 'src', 'entities');
+        const pluginPath = getPluginCacheEntityPath(plugin.pluginName);
         const entityFiles = await getEntityFiles(pluginPath);
         
         if (entityFiles.length > 0) {
