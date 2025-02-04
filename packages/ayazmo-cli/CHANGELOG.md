@@ -1,5 +1,16 @@
 # ayazmo
 
+## 0.6.1
+
+### Patch Changes
+
+- rework paths
+
+- Updated dependencies []:
+  - @ayazmo/core@0.6.1
+  - @ayazmo/types@0.6.1
+  - @ayazmo/utils@0.6.1
+
 ## 0.6.0
 
 ### Minor Changes

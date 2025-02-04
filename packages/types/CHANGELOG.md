@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.1
+
+### Patch Changes
+
+- rework paths
+
 ## 0.6.0
 
 ## 0.5.1
