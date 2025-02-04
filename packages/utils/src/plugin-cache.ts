@@ -4,6 +4,7 @@ import { createAyazmoFolders } from './ayazmo-folder.js'
 import { glob } from 'glob'
 import path from 'node:path'
 import fs from 'node:fs'
+import { getPluginCacheEntityPath, resolvePluginPaths, AYAZMO_CACHE_ROOT } from './paths.js'
 
 export interface IPluginPaths {
   pluginName: string;
@@ -14,12 +15,10 @@ export interface IPluginPaths {
 export class PluginCache {
   private readonly app: AyazmoInstance
   private readonly cacheRoot: string
-  private readonly nodeModulesPath: string
 
   constructor(app: AyazmoInstance) {
     this.app = app
-    this.cacheRoot = path.resolve(process.cwd(), '.ayazmo/plugins')
-    this.nodeModulesPath = path.join(process.cwd(), 'node_modules')
+    this.cacheRoot = AYAZMO_CACHE_ROOT
     this.app.log.debug(`Plugin cache root initialized at: ${this.cacheRoot}`)
   }
 
@@ -39,37 +38,19 @@ export class PluginCache {
   }
 
   /**
-   * Get the cache path for a specific plugin
-   */
-  private getPluginCachePath(pluginName: string): string {
-    return path.join(this.cacheRoot, pluginName)
-  }
-
-  /**
    * Discover paths for all plugins (both public and private)
    */
   private async discoverPluginPaths(plugins: PluginConfig[]): Promise<IPluginPaths[]> {
     const pluginPaths: IPluginPaths[] = [];
 
     for (const plugin of plugins) {
-      const isPrivate = plugin.settings?.private === true;
-      const customPath = plugin.settings?.path;
-      
-      let entityPath: string;
-
-      if (customPath) {
-        entityPath = path.join(customPath, plugin.name, 'dist', 'entities');
-      } else if (isPrivate) {
-        entityPath = path.join(process.cwd(), 'dist', 'plugins', plugin.name, 'src', 'entities');
-      } else {
-        entityPath = path.join(this.nodeModulesPath, plugin.name, 'dist', 'entities');
-      }
+      const { entityPath } = resolvePluginPaths(plugin.name, plugin.settings);
 
       if (await fs.promises.access(entityPath).then(() => true).catch(() => false)) {
         pluginPaths.push({
           pluginName: plugin.name,
           entityPath,
-          isPrivate
+          isPrivate: plugin.settings?.private === true
         });
       }
     }
@@ -105,7 +86,7 @@ export class PluginCache {
    * Cache a single plugin's entities
    */
   private async cachePlugin(pluginPath: IPluginPaths): Promise<void> {
-    const cacheEntitiesPath = path.join(this.getPluginCachePath(pluginPath.pluginName), 'src', 'entities');
+    const cacheEntitiesPath = getPluginCacheEntityPath(pluginPath.pluginName);
 
     try {
       this.app.log.debug(`Attempting to cache plugin ${pluginPath.pluginName} entities`);
