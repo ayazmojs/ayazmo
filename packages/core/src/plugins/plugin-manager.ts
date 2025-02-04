@@ -3,8 +3,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { asValue } from 'awilix'
-import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig } from '@ayazmo/types'
-import { merge, PluginCache } from '@ayazmo/utils'
+import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig, PluginSettings } from '@ayazmo/types'
+import { merge, PluginCache, PLUGINS_ROOT, getPluginCacheEntityPath } from '@ayazmo/utils'
 import { globby } from 'globby'
 import { loadRoutes } from '../loaders/routes.js'
 import { loadEntities } from '../loaders/entities.js'
@@ -15,14 +15,11 @@ import { loadAdminRoutes } from '../loaders/admin/routes.js'
 import adminAuthChain from '../admin/auth/adminAuthChain.js'
 import { BaseSchemaEntity } from '../interfaces/BaseSchemaEntity.js'
 
-const pluginsRoot: string = path.join(process.cwd(), 'src', 'plugins')
-const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
-const cacheRoot: string = path.join(process.cwd(), '.ayazmo', 'plugins')
 /**
  * Constructs the file paths for various components of a plugin based on the plugin name and base directory.
  *
  * This helper function creates an object with paths pointing to the expected locations of a plugin's
- * services, GraphQL definitions, entities, routes, migrations, subscribers, and bootstrap files within
+ * services, GraphQL definitions, routes, subscribers, and bootstrap files within
  * a specified base directory. The base directory is typically the root of either the 'plugins' directory
  * for private plugins or 'node_modules' for public plugins.
  *
@@ -65,7 +62,7 @@ export const getPluginRoot = (pluginName: string, settings: any): string => {
 
   const isPrivatePlugin = settings?.private ?? false
   if (isPrivatePlugin) {
-    return path.join(pluginsRoot, pluginName)
+    return path.join(PLUGINS_ROOT, pluginName)
   }
 
   return nodeModulesPath
@@ -87,9 +84,13 @@ export const getPluginRoot = (pluginName: string, settings: any): string => {
  */
 export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
   const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
-  // check if the plugin settings private is true and load the plugin paths from src
+  
+  if (settings?.path) {
+    return constructPaths(pluginName, settings.path)
+  }
+  
   if (settings?.private) {
-    return constructPaths(pluginName, pluginsRoot)
+    return constructPaths(pluginName, PLUGINS_ROOT)
   }
 
   return constructPaths(pluginName, nodeModulesPath)
@@ -182,33 +183,30 @@ export async function discoverMigrationFiles (migrationPaths: string[]): Promise
   )
 }
 
-export async function bootstrapPlugins (app: AyazmoInstance, plugins: PluginConfig[]): Promise<void> {
-  for (const registeredPlugin of plugins) {
-    const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name)
-    const publicPluginPath: string = path.join(nodeModulesPath, registeredPlugin.name)
-
-    let pluginPaths: PluginPaths | null = null
-
-    if (registeredPlugin?.path) {
-      pluginPaths = constructPaths(registeredPlugin.name, registeredPlugin.path)
-    } else if (fs.existsSync(privatePluginPath)) {
-      pluginPaths = constructPaths(registeredPlugin.name, pluginsRoot)
-    } else if (fs.existsSync(publicPluginPath)) {
-      pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath)
-    } else {
-      app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`)
-      continue
-    }
-
-    if (pluginPaths != null) {
+async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
+  for (const plugin of plugins) {
+    try {
+      const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
+      
       if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
-        const bootstrap = await import(pluginPaths.bootstrap)
-
-        if (!bootstrap.default || typeof bootstrap.default !== 'function') {
-          throw new Error(`The module ${pluginPaths.bootstrap} does not have a valid default export.`)
+        const pluginModule = await import(pluginPaths.bootstrap)
+        
+        // Validate using the plugin's schema if it exports one
+        if (pluginModule.schema) {
+          const result = pluginModule.schema.safeParse(plugin)
+          if (!result.success) {
+            const errors = result.error.errors.map(err => 
+              `${err.path.join('.')}: ${err.message}`
+            ).join('\n')
+            throw new Error(`Invalid configuration for plugin '${plugin.name}':\n${errors}`)
+          }
         }
-        await bootstrap.default(app, registeredPlugin)
+
+        await pluginModule.default(app, app.diContainer, plugin)
       }
+    } catch (error) {
+      app.log.error(error)
+      throw error
     }
   }
 }
@@ -230,37 +228,22 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
 
   app.decorate('adminAuthChain', adminAuthChain(app, config))
 
-  for (const registeredPlugin of config.plugins) {
-    const privatePluginPath: string = path.join(pluginsRoot, registeredPlugin.name)
-    const publicPluginPath: string = path.join(nodeModulesPath, registeredPlugin.name)
+  for (const plugin of config.plugins) {
+    app.log.info(`Loading plugin '${plugin.name}'...`)
+    
+    const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
+    const settings = plugin.settings || {} as PluginSettings
 
-    let pluginPaths: PluginPaths | null = null
+    const [entityCollection] = await Promise.all([
+      loadEntities(app, getPluginCacheEntityPath(plugin.name)),
+      loadGraphQL(app, pluginPaths.graphql),
+      loadServices(app, pluginPaths.services, settings),
+      loadRoutes(app, pluginPaths.routes, settings),
+      loadSubscribers(app, pluginPaths.subscribers, settings),
+      loadAdminRoutes(app, pluginPaths.admin.routes, settings)
+    ])
 
-    if (registeredPlugin?.path) {
-      pluginPaths = constructPaths(registeredPlugin.name, registeredPlugin.path)
-    } else if (fs.existsSync(privatePluginPath)) {
-      pluginPaths = constructPaths(registeredPlugin.name, pluginsRoot)
-    } else if (fs.existsSync(publicPluginPath)) {
-      pluginPaths = constructPaths(registeredPlugin.name, nodeModulesPath)
-    } else {
-      app.log.error(`Plugin '${registeredPlugin.name}' was not found in plugins directory or node_modules.`)
-      continue
-    }
-
-    app.log.info(`Loading plugin '${registeredPlugin.name}'...`)
-
-    if (pluginPaths != null) {
-      const [entityCollection] = await Promise.all([
-        loadEntities(app, path.join(cacheRoot, registeredPlugin.name, 'src', 'entities')),
-        loadGraphQL(app, pluginPaths.graphql),
-        loadServices(app, pluginPaths.services, registeredPlugin.settings),
-        loadRoutes(app, pluginPaths.routes, registeredPlugin.settings),
-        loadSubscribers(app, pluginPaths.subscribers, registeredPlugin.settings),
-        loadAdminRoutes(app, pluginPaths.admin.routes, registeredPlugin.settings)
-      ])
-
-      entities.push(...entityCollection)
-    }
+    entities.push(...entityCollection)
   }
 
   if (config.database) {

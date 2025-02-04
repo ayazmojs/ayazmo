@@ -1257,7 +1257,7 @@
     globby "^11.0.0"
     read-yaml-file "^1.1.0"
 
-"@mikro-orm/core@^6.4.1":
+"@mikro-orm/core@6.4.1":
   version "6.4.1"
   resolved "https://registry.yarnpkg.com/@mikro-orm/core/-/core-6.4.1.tgz#aae35b0ff55267d951c8eb90fae650d11bb30e55"
   integrity sha512-OChUSn2Kx1cGnVo8TcB5J9+6LonVXZCuzK808oD1gnnkmQxWtqFMLO695s4m2jmBGl3LUXXvKfXndagp9v/h7g==
@@ -1279,7 +1279,7 @@
     knex "3.1.0"
     sqlstring "2.3.3"
 
-"@mikro-orm/migrations@^6.4.1":
+"@mikro-orm/migrations@6.4.1":
   version "6.4.1"
   resolved "https://registry.yarnpkg.com/@mikro-orm/migrations/-/migrations-6.4.1.tgz#817d1a1f70cea1b2b1f59352beda9b1685893bb4"
   integrity sha512-fGLNnN6POW6vWncTkJKK0EOP1nVC19bK9fJwofDV1cOEVNP0NtVvcASZI3tqyhBrrALD2quTk1RM9o/nZRskzQ==
@@ -1288,7 +1288,7 @@
     fs-extra "11.2.0"
     umzug "3.8.2"
 
-"@mikro-orm/postgresql@^6.4.1":
+"@mikro-orm/postgresql@6.4.1":
   version "6.4.1"
   resolved "https://registry.yarnpkg.com/@mikro-orm/postgresql/-/postgresql-6.4.1.tgz#6cef0c3898b23badbb9f59fe227f0463228b9080"
   integrity sha512-Y1fTORDKoxfvwpDLJwYqu7qIx5dTYdSzsfWReyOjFCyV9erZ5g7W07yjxc5/Gkf5bjLIpvL2QEiCXVUK3Ausaw==
@@ -1916,6 +1916,13 @@
   version "12.20.55"
   resolved "https://registry.npmjs.org/@types/node/-/node-12.20.55.tgz"
   integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
+
+"@types/node@^20.11.24":
+  version "20.17.17"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.17.17.tgz#5cea2af2e271313742c14f418eaf5dcfa8ae2e3a"
+  integrity sha512-/WndGO4kIfMicEQLTi/mDANUu/iVUhT7KboZPdEqqHQ4aTS+3qT3U5gIqWDFV+XouorjfgGqvKILJeHhuQgFYg==
+  dependencies:
+    undici-types "~6.19.2"
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.4"
@@ -8449,3 +8456,8 @@ yoctocolors@^2.0.0:
   version "2.1.1"
   resolved "https://registry.npmjs.org/yoctocolors/-/yoctocolors-2.1.1.tgz"
   integrity sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==
+
+zod@^3.24.1:
+  version "3.24.1"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.1.tgz#27445c912738c8ad1e9de1bea0359fa44d9d35ee"
+  integrity sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==

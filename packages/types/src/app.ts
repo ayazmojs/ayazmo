@@ -1,4 +1,3 @@
-
 import { Options, MikroORM, Dictionary, FilterQuery, AnyEntity } from '@mikro-orm/core'
 import { FastifyCorsOptions } from '@fastify/cors'
 import { AwilixContainer } from 'awilix'
