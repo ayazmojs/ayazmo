@@ -2,7 +2,7 @@ import { AyazmoRouteOptions, PluginSettings, PluginRoutes, AppConfig, AyazmoInst
 import { merge } from '@ayazmo/utils'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
-import { isValidAdminRoute, isRouteEnabled, isValidAdminRouteOverride, parsePreHandler } from '../../utils/route-validator.js'
+import { validateAdminRoute, isRouteEnabled, isValidAdminRouteOverride, parsePreHandler } from '../../utils/route-validator.js'
 
 export async function loadAdminRoutes (
   app: FastifyInstance,
@@ -55,36 +55,49 @@ export async function loadAdminRoutes (
     .after(async () => {
       routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
         let tmpRoute = { ...route }
-        if (!isValidAdminRoute(tmpRoute)) {
-          app.log.debug(` - Invalid admin route detected in ${route.url} ${route.method}`)
+        const validationResult = validateAdminRoute(tmpRoute)
+        const routeEnabled = isRouteEnabled(tmpRoute)
+
+        if (!validationResult.isValid) {
+          app.log.error(` - Invalid admin route detected in ${path}:`)
+          validationResult.errors.forEach(error => {
+            app.log.error(`   - ${error}`)
+          })
+          app.log.error(`   Route details: ${JSON.stringify(tmpRoute, null, 2)}`)
           return
         }
 
-        if (!isRouteEnabled(tmpRoute)) {
-          app.log.debug(` - Admin route ${route.url} ${route.method} is disabled`)
+        if (!routeEnabled) {
+          app.log.debug(` - Skipping disabled admin route ${tmpRoute.method} ${tmpRoute.url}`)
           return
         }
 
-        // Check for route override
-        const overrideRoute = routesOverrideConfig.find(
-          (r: any) => r.url === tmpRoute.url && r.method === tmpRoute.method
-        )
+        try {
+          // Check for route override
+          const overrideRoute = routesOverrideConfig.find(
+            (r: any) => r.url === tmpRoute.url && r.method === tmpRoute.method
+          )
 
-        if ((overrideRoute != null) && isValidAdminRouteOverride(overrideRoute)) {
-          // Merge the original route with the override from config
-          merge(tmpRoute, overrideRoute)
-          tmpRoute = parsePreHandler(app, tmpRoute)
+          if ((overrideRoute != null) && isValidAdminRouteOverride(overrideRoute)) {
+            // Merge the original route with the override from config
+            merge(tmpRoute, overrideRoute)
+            tmpRoute = parsePreHandler(app, tmpRoute)
+            app.log.debug(` - Applied route override for ${tmpRoute.method} ${tmpRoute.url}`)
+          }
+
+          // extract custom route options
+          const { url, ...routeOptions } = tmpRoute
+          const finalUrl = `${admin.opts.prefix}${url}`
+
+          app.route({
+            ...routeOptions,
+            url: finalUrl
+          })
+          app.log.info(` - Registered admin route ${routeOptions.method} ${finalUrl}`)
+        } catch (error) {
+          app.log.error(` - Failed to register admin route ${tmpRoute.method} ${tmpRoute.url}:`)
+          app.log.error(`   ${error.message}`)
         }
-
-        // extract custom route options
-        const { url, ...routeOptions } = tmpRoute
-        const finalUrl = `${admin.opts.prefix}${url}`
-
-        app.route({
-          ...routeOptions,
-          url: finalUrl
-        })
-        app.log.info(` - Registered admin route ${routeOptions.method} ${finalUrl}`)
       })
     })
 }

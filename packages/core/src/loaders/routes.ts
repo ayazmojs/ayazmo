@@ -2,7 +2,7 @@ import { AyazmoRouteOptions, PluginSettings, PluginRoutes } from '@ayazmo/types'
 import { merge } from '@ayazmo/utils'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
-import { isValidRoute, isRouteEnabled } from '../utils/route-validator.js'
+import { validateRoute, isRouteEnabled } from '../utils/route-validator.js'
 
 export async function loadRoutes (
   app: FastifyInstance,
@@ -28,33 +28,49 @@ export async function loadRoutes (
       // Check if the default export exists
       if (!routesModule.default) {
         app.log.error(` - The module ${path} does not have a valid default export. Skipping...`)
-      } else {
-        let routes = routesModule.default
+        return
+      }
 
-        if (typeof routesModule.default === 'function') {
-          routes = routesModule.default(app)
+      let routes = routesModule.default
+
+      if (typeof routesModule.default === 'function') {
+        routes = routesModule.default(app)
+      }
+
+      routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
+        const validationResult = validateRoute(route)
+        const routeEnabled = isRouteEnabled(route)
+
+        if (!validationResult.isValid) {
+          app.log.error(` - Invalid route detected in ${path}:`)
+          validationResult.errors.forEach(error => {
+            app.log.error(`   - ${error}`)
+          })
+          app.log.error(`   Route details: ${JSON.stringify(route, null, 2)}`)
+          return
         }
 
-        routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
-          if (isValidRoute(route) && isRouteEnabled(route)) {
-            const routeHooks = routeConfig[route.url]?.hooks
-            let hooksResult: any = {}
-            if (typeof routeHooks === 'function') {
-              hooksResult = routeHooks(app)
-            }
+        if (!routeEnabled) {
+          app.log.debug(` - Skipping disabled route ${route.method} ${route.url}`)
+          return
+        }
 
-            // extract custom route options, omitting the 'enabled' flag since it's only used for route validation
-            const { enabled = true, ...routeOptions } = route
-
-            app.route(merge(
-              routeOptions,
-              hooksResult
-            ))
-            app.log.info(` - Registered route ${route.method} ${route.url} ${enabled ? '' : '(disabled)'}`)
-          } else {
-            app.log.error(` - Invalid route detected in ${path}`)
+        try {
+          const routeHooks = routeConfig[route.url]?.hooks
+          let hooksResult = {}
+          if (typeof routeHooks === 'function') {
+            hooksResult = routeHooks(app)
           }
-        })
-      }
+
+          // extract custom route options, omitting the 'enabled' flag since it's only used for route validation
+          const { enabled = true, ...routeOptions } = route // eslint-disable-line @typescript-eslint/no-unused-vars
+
+          app.route(merge(routeOptions, hooksResult))
+          app.log.info(` - Registered route ${route.method} ${route.url}`)
+        } catch (error) {
+          app.log.error(` - Failed to register route ${route.method} ${route.url}:`)
+          app.log.error(`   ${error.message}`)
+        }
+      })
     })
 }

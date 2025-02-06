@@ -57,7 +57,7 @@ describe('core: testing the plugin manager', () => {
   it('tests plugin routes are loaded correctly', async () => {
     const config = app.diContainer.resolve('config')
     assert.equal(config.plugins.length, 2)
-    assert.ok(config.plugins[0].path)
+    assert.ok(config.plugins[0].settings.path)
 
     const hasRoute = app.hasRoute({
       method: 'GET',

@@ -213,6 +213,7 @@ async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
 
 export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   const config: AppConfig = app.diContainer.resolve('config')
+  
   const entities: AnyEntity[] = [BaseSchemaEntity]
 
   // Check if there are no plugins in the configuration
