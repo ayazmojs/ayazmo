@@ -1,10 +1,10 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { getPluginRoot } from '@ayazmo/core'
 import type { PluginConfig } from '@ayazmo/types'
 import { MetadataStorage } from '@ayazmo/types'
 import CliLogger from './cli-logger.js'
 import { ensureAyazmoSubfolder } from '@ayazmo/utils'
+import { resolvePluginPaths } from '@ayazmo/utils'
 
 interface EntityModule {
   default?: any
@@ -66,8 +66,8 @@ export async function hasEntities (entitiesPath: string): Promise<boolean> {
 export async function filterPluginsWithEntities (plugins: PluginConfig[]): Promise<PluginConfig[]> {
   const pluginsWithEntities = await Promise.all(
     plugins.map(async plugin => {
-      const entitiesDir = path.join(getPluginRoot(plugin.name, plugin.settings), 'dist', 'entities')
-      const hasEntityFiles = await hasEntities(entitiesDir)
+      const { entityPath } = resolvePluginPaths(plugin.name, plugin.settings)
+      const hasEntityFiles = await hasEntities(entityPath)
       return hasEntityFiles ? plugin : null
     })
   )
@@ -75,11 +75,13 @@ export async function filterPluginsWithEntities (plugins: PluginConfig[]): Promi
 }
 
 export function getMigrationPath (plugin: PluginConfig): string {
-  return path.join(getPluginRoot(plugin.name, plugin.settings ?? {}), 'src', 'migrations')
+  const { migrationPath } = resolvePluginPaths(plugin.name, plugin.settings ?? {})
+  return migrationPath
 }
 
 export function getEntitiesPath (plugin: PluginConfig): string {
-  return path.join(getPluginRoot(plugin.name, plugin.settings ?? {}), 'dist', 'entities')
+  const { entityPath } = resolvePluginPaths(plugin.name, plugin.settings ?? {})
+  return entityPath
 }
 
 /**

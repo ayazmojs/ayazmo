@@ -45,30 +45,6 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
 }
 
 /**
- * Retrieves the root directory path for a given plugin.
- *
- * This function determines the root directory of a plugin based on its name and settings.
- * If the plugin is marked as private in its settings, the function will return the path
- * within the local 'plugins' directory. Otherwise, it will return the path within
- * 'node_modules'.
- *
- * @param {string} pluginName - The name of the plugin for which to retrieve the root path.
- * @param {any} settings - An object containing the settings for the plugin, which may include
- *                         a 'private' property indicating whether the plugin is private.
- * @returns {string} The absolute path to the root directory of the plugin.
- */
-export const getPluginRoot = (pluginName: string, settings: any): string => {
-  const nodeModulesPath: string = path.join(process.cwd(), 'node_modules', pluginName)
-
-  const isPrivatePlugin = settings?.private ?? false
-  if (isPrivatePlugin) {
-    return path.join(PLUGINS_ROOT, pluginName)
-  }
-
-  return nodeModulesPath
-}
-
-/**
  * Constructs the file paths for various components of a plugin based on its name and settings.
  *
  * This function generates an object containing paths to the services, GraphQL schema, entities,
@@ -84,11 +60,11 @@ export const getPluginRoot = (pluginName: string, settings: any): string => {
  */
 export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
   const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
-  
+
   if (settings?.path) {
     return constructPaths(pluginName, settings.path)
   }
-  
+
   if (settings?.private) {
     return constructPaths(pluginName, PLUGINS_ROOT)
   }
@@ -161,7 +137,7 @@ export const discoverPrivateMigrationPaths = async (plugins: PluginConfig[]): Pr
   return migrationPaths
 }
 
-export async function discoverMigrationFiles (migrationPaths: string[]): Promise<MigrationObject[]> {
+export async function discoverMigrationFiles(migrationPaths: string[]): Promise<MigrationObject[]> {
   const migrationFiles = await globby(migrationPaths.map(path => `${path}/*.js`))
 
   return await Promise.all(
@@ -187,15 +163,15 @@ async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
   for (const plugin of plugins) {
     try {
       const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
-      
+
       if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
         const pluginModule = await import(pluginPaths.bootstrap)
-        
+
         // Validate using the plugin's schema if it exports one
         if (pluginModule.schema) {
           const result = pluginModule.schema.safeParse(plugin)
           if (!result.success) {
-            const errors = result.error.errors.map(err => 
+            const errors = result.error.errors.map(err =>
               `${err.path.join('.')}: ${err.message}`
             ).join('\n')
             throw new Error(`Invalid configuration for plugin '${plugin.name}':\n${errors}`)
@@ -211,10 +187,30 @@ async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
   }
 }
 
+const loadPluginEntities = async (app: AyazmoInstance): Promise<AnyEntity[]> => {
+  const config = app.diContainer.resolve('config')
+  const entities: AnyEntity[] = [BaseSchemaEntity]
+
+  // Check if there are no plugins in the configuration
+  if (!config.plugins || config.plugins.length === 0) {
+    app.log.warn('No plugins enabled in ayazmo.config.js file.')
+    return []
+  }
+
+  for (const plugin of config.plugins) {
+    const pluginPaths = getPluginPaths(plugin.name, plugin.settings);
+    if (pluginPaths.entities && fs.existsSync(pluginPaths.entities)) {
+      const pluginEntities = await loadEntities(app, getPluginCacheEntityPath(plugin.name));
+      entities.push(...pluginEntities);
+    }
+  }
+  return entities;
+}
+
 export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
   const config: AppConfig = app.diContainer.resolve('config')
-  
-  const entities: AnyEntity[] = [BaseSchemaEntity]
+
+  const entities: AnyEntity[] = []
 
   // Check if there are no plugins in the configuration
   if (!config.plugins || config.plugins.length === 0) {
@@ -229,23 +225,8 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
 
   app.decorate('adminAuthChain', adminAuthChain(app, config))
 
-  for (const plugin of config.plugins) {
-    app.log.info(`Loading plugin '${plugin.name}'...`)
-    
-    const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
-    const settings = plugin.settings || {} as PluginSettings
-
-    const [entityCollection] = await Promise.all([
-      loadEntities(app, getPluginCacheEntityPath(plugin.name)),
-      loadGraphQL(app, pluginPaths.graphql),
-      loadServices(app, pluginPaths.services, settings),
-      loadRoutes(app, pluginPaths.routes, settings),
-      loadSubscribers(app, pluginPaths.subscribers, settings),
-      loadAdminRoutes(app, pluginPaths.admin.routes, settings)
-    ])
-
-    entities.push(...entityCollection)
-  }
+  const pluginEntities = await loadPluginEntities(app);
+  entities.push(...pluginEntities);
 
   if (config.database) {
     const dbConfig: any = merge({
@@ -297,26 +278,19 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
       process.exit(1)
     }
   }
+
+  for (const plugin of config.plugins) {
+    app.log.info(`Loading plugin '${plugin.name}'...`)
+
+    const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
+    const settings = plugin.settings || {} as PluginSettings
+    await loadServices(app, pluginPaths.services, settings);
+    await Promise.all([
+      loadGraphQL(app, pluginPaths.graphql),
+      loadRoutes(app, pluginPaths.routes, settings),
+      loadSubscribers(app, pluginPaths.subscribers, settings),
+      loadAdminRoutes(app, pluginPaths.admin.routes, settings)
+    ])
+  }
 }
 
-export async function listFilesInDirectory (directory: string): Promise<string[]> {
-  // // Check if the directory exists
-  if (!fs.existsSync(directory)) {
-    return []
-  }
-
-  // Get the directory contents
-  const contents = fs.readdirSync(directory).filter(file => path.extname(file).toLowerCase() === '.js')
-
-  // Check if the directory is empty
-  if (contents.length === 0) {
-    return []
-  }
-
-  // Filter out non-file entries and return the filenames
-  const files = contents.filter((file) =>
-    fs.statSync(path.join(directory, file)).isFile()
-  )
-
-  return files
-}

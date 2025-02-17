@@ -2,9 +2,9 @@ import assert from 'node:assert'
 import { describe, it, before, after } from 'node:test'
 import path from 'node:path'
 import {
-  constructPaths,
-  getPluginRoot
+  constructPaths
 } from '../../dist/plugins/plugin-manager.js'
+import { resolvePluginPaths } from '@ayazmo/utils'
 import { pluginConfig } from '../../__fixtures__/config'
 import buildServer, { __dirname } from '../../__fixtures__/build-server.js'
 import { getTestHost } from '../../__fixtures__/helpers/get-test-host.js'
@@ -45,7 +45,10 @@ describe('core: testing the plugin manager', () => {
   })
 
   it('tests plugin root path is correct', () => {
-    assert.equal(getPluginRoot(plugins[0].name, plugins[0].settings), path.join(process.cwd(), 'src', 'plugins', plugins[0].name))
+    const { entityPath } = resolvePluginPaths(plugins[0].name, plugins[0].settings)
+    const pluginRoot = path.dirname(path.dirname(entityPath))
+    const expectedPath = path.join(__dirname, 'plugins', plugins[0].name)
+    assert.equal(pluginRoot, expectedPath)
   })
 
   it('tests services are loaded correctly', () => {
