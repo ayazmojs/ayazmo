@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.2
+
+### Patch Changes
+
+- improve loading plugins
+
 ## 0.6.1
 
 ### Patch Changes

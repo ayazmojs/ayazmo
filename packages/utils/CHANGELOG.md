@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.6.2
+
+### Patch Changes
+
+- improve loading plugins
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes
