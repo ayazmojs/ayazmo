@@ -178,7 +178,7 @@ async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
           }
         }
 
-        await pluginModule.default(app, app.diContainer, plugin)
+        await pluginModule.default(app, plugin)
       }
     } catch (error) {
       app.log.error(error)

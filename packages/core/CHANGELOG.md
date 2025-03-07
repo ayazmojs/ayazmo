@@ -1,5 +1,15 @@
 # @ayazmo/core
 
+## 0.6.3
+
+### Patch Changes
+
+- removed wrong param from bootstrap loading
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.3
+  - @ayazmo/utils@0.6.3
+
 ## 0.6.2
 
 ### Patch Changes

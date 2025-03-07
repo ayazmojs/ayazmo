@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.3
+
+### Patch Changes
+
+- removed wrong param from bootstrap loading
+
 ## 0.6.2
 
 ### Patch Changes
