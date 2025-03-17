@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.4
+
+### Patch Changes
+
+- deps upgrade & publish immutable
+
 ## 0.6.3
 
 ### Patch Changes

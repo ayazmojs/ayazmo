@@ -1,5 +1,15 @@
 # @ayazmo/core
 
+## 0.6.4
+
+### Patch Changes
+
+- deps upgrade & publish immutable
+
+- Updated dependencies []:
+  - @ayazmo/utils@0.6.4
+  - @ayazmo/types@0.6.4
+
 ## 0.6.3
 
 ### Patch Changes

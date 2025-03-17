@@ -32,7 +32,8 @@ class EventService extends AyazmoCoreService {
   }
 
   async publish (event: string, data: any, pluginSettings: any): Promise<void> {
-    await this.eventEmitter.publish(event, data, pluginSettings)
+    const dataClone = structuredClone(data)
+    await this.eventEmitter.publish(event, dataClone, pluginSettings)
   }
 
   listSubscribers (event: string): any[] {
