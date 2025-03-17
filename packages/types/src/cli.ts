@@ -28,3 +28,33 @@ export interface ITypePrompt {
 export interface INamePrompt {
   filename: string
 }
+
+export interface AyazmoDbCredentials {
+  host: string
+  port: number
+  user: string
+  password: string
+  dbName: string
+}
+
+export interface AyazmoMigrationOptions {
+  interactive?: boolean
+  plugin?: string
+  dbCredentials?: AyazmoDbCredentials
+}
+
+export interface AyazmoMigrationResult {
+  success: boolean
+  error?: Error
+  appliedMigrations?: string[]
+}
+
+export interface AyazmoPluginChoice {
+  type: 'specific' | 'all'
+  value: string
+}
+
+export interface AyazmoSelectedPlugin {
+  type: 'all' | 'single'
+  value: string
+}

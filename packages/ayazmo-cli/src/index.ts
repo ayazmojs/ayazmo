@@ -12,6 +12,7 @@ import printAyazmo from './utils/print-ayazmo.js'
 import { installPlugin } from './utils/install-plugin.js'
 import { removePlugin } from './utils/remove-plugin.js'
 import { downMigrations } from './utils/down-migrations.js'
+import CliLogger from './utils/cli-logger.js'
 
 const version = getAyazmoVersion()
 
@@ -44,10 +45,22 @@ program
   .option('-p, --plugin <plugin-name>', 'Run migrations for a specific plugin')
   .action(async (options) => {
     validateAyazmoProject()
-    await runMigrations({
-      interactive: options.interactive ?? false,
-      plugin: options.plugin
-    })
+    try {
+      const result = await runMigrations({
+        interactive: options.interactive ?? false,
+        plugin: options.plugin
+      })
+
+      if (!result.success) {
+        CliLogger.error('Migration failed')
+        process.exit(3) // Migration execution error
+      }
+
+      process.exit(0)
+    } catch (error) {
+      CliLogger.error(error instanceof Error ? error.message : String(error))
+      process.exit(1)
+    }
   })
 
 program

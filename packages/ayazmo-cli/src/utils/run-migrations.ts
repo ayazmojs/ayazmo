@@ -10,45 +10,26 @@ import {
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
 import { askUserForMigrationPlugin } from './prompts.js'
+import { validatePlugin, determineSelectedPlugin, mergeDbConfig, resolveSchema, createMigrationResult } from './migration-utils.js'
+import type { AyazmoMigrationOptions, AyazmoMigrationResult } from '@ayazmo/types'
 
-interface MigrationOptions {
-  interactive?: boolean
-  plugin?: string
-}
-
-export async function runMigrations (options: MigrationOptions = { interactive: false }): Promise<void> {
+export async function runMigrations (options: AyazmoMigrationOptions = { interactive: false }): Promise<AyazmoMigrationResult> {
   let orm: MikroORM | null = null
   CliLogger.info('Checking environment...')
 
   try {
     const globalConfig = await importGlobalConfig()
-
-    if (!Array.isArray(globalConfig.plugins) || globalConfig.plugins.length === 0) {
-      throw new Error('No plugins enabled!')
-    }
-
-    // Early validation of plugin parameter
-    if (options.plugin) {
-      const pluginExists = globalConfig.plugins.some(p => p.name === options.plugin)
-      if (!pluginExists) {
-        throw new Error(`Plugin "${options.plugin}" is not enabled in your configuration. Please check your config file.`)
-      }
-    }
-
-    let selectedPlugin: { type: 'all' | 'single', value: string }
-
-    if (options.plugin) {
-      selectedPlugin = { type: 'single', value: options.plugin }
-    } else if (options.interactive) {
-      const choice = await askUserForMigrationPlugin(globalConfig.plugins)
-      selectedPlugin = {
-        type: choice.type === 'specific' ? 'single' : 'all',
-        value: choice.value
-      }
-    } else {
-      selectedPlugin = { type: 'all', value: 'all' }
-    }
-
+    
+    // Validate plugins
+    validatePlugin(options.plugin, globalConfig.plugins)
+    
+    // Determine plugin selection
+    const pluginChoice = options.interactive 
+      ? await askUserForMigrationPlugin(globalConfig.plugins)
+      : undefined
+    const selectedPlugin = determineSelectedPlugin(options, pluginChoice)
+    
+    // Get migrations list
     let migrationsList: MigrationObject[] = []
     if (selectedPlugin.type === 'all') {
       const privateMigrationPaths = await discoverPrivateMigrationPaths(globalConfig.plugins)
@@ -67,10 +48,11 @@ export async function runMigrations (options: MigrationOptions = { interactive: 
     }
 
     if (migrationsList.length === 0) {
-      throw new Error('No migrations found. Did you build your application?')
+      return createMigrationResult(true, [])
     }
 
-    const schema: string = process.env.DB_SCHEMA ?? globalConfig.database?.schema ?? 'public'
+    const schema = resolveSchema(process.env, globalConfig)
+    const dbConfig = mergeDbConfig(globalConfig, options.dbCredentials)
 
     orm = await initDatabase({
       ...{
@@ -87,28 +69,61 @@ export async function runMigrations (options: MigrationOptions = { interactive: 
           disableDynamicFileAccess: false
         }
       },
-      ...globalConfig.database
+      ...dbConfig
     })
 
     const migrator: Migrator = orm.getMigrator()
 
-    await orm.em.getConnection().execute(`CREATE SCHEMA IF NOT EXISTS ${schema};`)
-    await orm.em.getConnection().execute(`SET search_path TO ${schema};`)
+    // Schema handling for supported databases
+    const connection = orm.em.getConnection()
+    const isPostgres = connection.constructor.name === 'PostgreSqlConnection'
+    
+    if (isPostgres) {
+      // Attempt to create schema with permission error handling
+      try {
+        await connection.execute(`CREATE SCHEMA IF NOT EXISTS ${schema};`)
+        CliLogger.info(`Schema '${schema}' created or already exists`)
+      } catch (error) {
+        if (error instanceof Error && 
+            ('code' in error && (error.code === '42501' || error.code === '7B') || 
+             error.message.toLowerCase().includes('permission') || 
+             error.message.toLowerCase().includes('privilege'))) {
+          CliLogger.warn(`No permission to create schema '${schema}'. Proceeding with migrations assuming schema exists...`)
+        } else {
+          CliLogger.error(`Failed to create schema: ${error instanceof Error ? error.message : String(error)}`)
+          throw error
+        }
+      }
+
+      // Set the search path - this is critical and must succeed for PostgreSQL
+      try {
+        await connection.execute(`SET search_path TO ${schema};`)
+      } catch (error) {
+        CliLogger.error(`Failed to set search path to schema '${schema}'`)
+        throw error
+      }
+    } else if (schema !== 'public') {
+      // For non-PostgreSQL databases, warn if a non-default schema is specified
+      CliLogger.warn(`Schema '${schema}' was specified but the current database type doesn't support schemas or uses a different mechanism. This setting will be ignored.`)
+    }
 
     const pendingMigrations = await migrator.getPendingMigrations()
 
     if (!Array.isArray(pendingMigrations) || pendingMigrations.length === 0) {
-      CliLogger.info('There are no pending migrations. Please create a migration first or build the existing ones.')
-    } else {
-      await migrator.up()
-      const appliedMigrations = migrationsList.map(m => m.name).join('\n- ')
-      const pluginInfo = selectedPlugin.type === 'all' ? 'all plugins' : `plugin: ${selectedPlugin.value}`
-      CliLogger.success(`Migrations applied successfully for ${pluginInfo}!\nApplied migrations:\n- ${appliedMigrations}`)
+      return createMigrationResult(true, [])
     }
+
+    await migrator.up()
+    const appliedMigrations = migrationsList.map(m => m.name)
+    const pluginInfo = selectedPlugin.type === 'all' ? 'all plugins' : `plugin: ${selectedPlugin.value}`
+    CliLogger.success(`Migrations applied successfully for ${pluginInfo}!\nApplied migrations:\n- ${appliedMigrations.join('\n- ')}`)
+
+    return createMigrationResult(true, appliedMigrations)
+
   } catch (error) {
     CliLogger.error(error)
+    return createMigrationResult(false, undefined, error instanceof Error ? error : new Error(String(error)))
   } finally {
     if (orm != null) await orm.close()
-    process.exit(0)
   }
 }
