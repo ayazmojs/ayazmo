@@ -34,7 +34,7 @@ export const installPlugin = async (pluginName: string): Promise<void> => {
   try {
     await installPackage(pluginName)
     const applicationConfigFilePath = path.join(process.cwd(), GLOBAL_CONFIG_FILE_NAME)
-    const pluginPaths = getPluginPaths(pluginName, { private: false })
+    const pluginPaths = getPluginPaths({ name: pluginName, settings: { private: false } })
     const pluginConfigPath = path.join(pluginPaths.config ?? '')
 
     // Use default config template if plugin doesn't provide one

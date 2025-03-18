@@ -50,7 +50,7 @@ export const removePlugin = async (pluginName: string): Promise<void> => {
   }
 
   // get the plugin root directory
-  const pluginPaths = getPluginPaths(pluginName, plugin.settings)
+  const pluginPaths = getPluginPaths(plugin)
 
   // check if the plugin has migrations
   const migrationsPath = pluginPaths.migrations

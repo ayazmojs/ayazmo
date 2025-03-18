@@ -2,7 +2,11 @@
   "name": "ayazmo",
   "version": "0.6.4",
   "description": "Ayazmo CLI to streamline the developers experience. Scaffold a new API, manage migrations and more",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./utils": "./dist/utils/index.js",
+    "./utils/*": "./dist/utils/*.js"
+  },
   "author": "Tsvetan Nikolov",
   "license": "MIT",
   "type": "module",
@@ -40,7 +44,8 @@
   },
   "files": [
     "dist",
-    "index.js"
+    "index.js",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"

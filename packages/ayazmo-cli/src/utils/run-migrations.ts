@@ -73,7 +73,13 @@ export async function runMigrations (options: AyazmoMigrationOptions = { interac
     })
 
     const migrator: Migrator = orm.getMigrator()
+    const pendingMigrations = await migrator.getPendingMigrations()
 
+    if (!Array.isArray(pendingMigrations) || pendingMigrations.length === 0) {
+      return createMigrationResult(true, [])
+    }
+
+    // Only perform schema operations if we have pending migrations to apply
     // Schema handling for supported databases
     const connection = orm.em.getConnection()
     const isPostgres = connection.constructor.name === 'PostgreSqlConnection'
@@ -105,12 +111,6 @@ export async function runMigrations (options: AyazmoMigrationOptions = { interac
     } else if (schema !== 'public') {
       // For non-PostgreSQL databases, warn if a non-default schema is specified
       CliLogger.warn(`Schema '${schema}' was specified but the current database type doesn't support schemas or uses a different mechanism. This setting will be ignored.`)
-    }
-
-    const pendingMigrations = await migrator.getPendingMigrations()
-
-    if (!Array.isArray(pendingMigrations) || pendingMigrations.length === 0) {
-      return createMigrationResult(true, [])
     }
 
     await migrator.up()

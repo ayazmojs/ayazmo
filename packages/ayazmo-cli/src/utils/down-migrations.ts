@@ -23,6 +23,7 @@ import {
   discoverPublicPaths
 } from '@ayazmo/core'
 import CliLogger from './cli-logger.js'
+import { resolveSchema } from './migration-utils.js'
 
 export async function downMigrations (options?: string | string[] | MigrateOptions): Promise<UmzugMigration[]> {
   loadEnvironmentVariables()
@@ -38,7 +39,7 @@ export async function downMigrations (options?: string | string[] | MigrateOptio
     const publicPaths = discoverPublicPaths(globalConfig.plugins)
     const migrationClasses: MigrationObject[] = await discoverMigrationFiles([...publicPaths.migrations])
 
-    const schema: string = process.env.DB_SCHEMA ?? globalConfig.database?.schema ?? 'public'
+    const schema: string = resolveSchema(process.env, globalConfig)
 
     const ormConfig: Partial<MikroORMOptions<IDatabaseDriver<Connection>, EntityManager<IDatabaseDriver<Connection>>>> = {
       baseDir: process.cwd(),

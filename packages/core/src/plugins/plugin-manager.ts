@@ -45,7 +45,7 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
 }
 
 /**
- * Constructs the file paths for various components of a plugin based on its name and settings.
+ * Constructs the file paths for various components of a plugin based on its configuration.
  *
  * This function generates an object containing paths to the services, GraphQL schema, entities,
  * routes, migrations, subscribers, and bootstrap files of a plugin. If the plugin is marked as
@@ -53,16 +53,15 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
  * the local 'plugins' directory. Otherwise, the paths will point to locations within the
  * 'node_modules' directory.
  *
- * @param {string} pluginName - The name of the plugin for which to construct the paths.
- * @param {any} settings - An object containing the settings for the plugin, which may include
- *                         a 'private' property indicating whether the plugin is private.
+ * @param {PluginConfig} plugin - The plugin configuration object containing the name and settings.
  * @returns {PluginPaths} An object containing the constructed file paths for the plugin components.
  */
-export const getPluginPaths = (pluginName: string, settings: any): PluginPaths => {
+export const getPluginPaths = (plugin: PluginConfig): PluginPaths => {
   const nodeModulesPath: string = path.join(process.cwd(), 'node_modules')
+  const { name: pluginName, settings, path: pluginPath } = plugin
 
-  if (settings?.path) {
-    return constructPaths(pluginName, settings.path)
+  if (pluginPath) {
+    return constructPaths(pluginName, pluginPath)
   }
 
   if (settings?.private) {
@@ -91,7 +90,7 @@ export const discoverPublicPaths = (plugins: PluginConfig[]): { migrations: stri
   }
   const publicPlugins = plugins.filter(plugin => plugin.settings?.private !== true)
   for (const plugin of publicPlugins) {
-    const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings)
+    const pluginPaths: PluginPaths = getPluginPaths(plugin)
     if (fs.existsSync(pluginPaths.migrations)) {
       paths.migrations.push(pluginPaths.migrations)
     }
@@ -119,7 +118,7 @@ export const discoverPrivateMigrationPaths = async (plugins: PluginConfig[]): Pr
   const migrationPaths: string[] = []
   const privatePlugins = plugins.filter(plugin => plugin.settings?.private === true)
   for (const plugin of privatePlugins) {
-    const pluginPaths: PluginPaths = getPluginPaths(plugin.name, plugin.settings)
+    const pluginPaths: PluginPaths = getPluginPaths(plugin)
     if (!fs.existsSync(pluginPaths.migrations)) {
       continue
     }
@@ -162,7 +161,7 @@ export async function discoverMigrationFiles(migrationPaths: string[]): Promise<
 async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
   for (const plugin of plugins) {
     try {
-      const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
+      const pluginPaths = getPluginPaths(plugin)
 
       if (pluginPaths.bootstrap && fs.existsSync(pluginPaths.bootstrap)) {
         const pluginModule = await import(pluginPaths.bootstrap)
@@ -198,7 +197,7 @@ const loadPluginEntities = async (app: AyazmoInstance): Promise<AnyEntity[]> => 
   }
 
   for (const plugin of config.plugins) {
-    const pluginPaths = getPluginPaths(plugin.name, plugin.settings);
+    const pluginPaths = getPluginPaths(plugin);
     if (pluginPaths.entities && fs.existsSync(pluginPaths.entities)) {
       const pluginEntities = await loadEntities(app, getPluginCacheEntityPath(plugin.name));
       entities.push(...pluginEntities);
@@ -281,8 +280,7 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
 
   for (const plugin of config.plugins) {
     app.log.info(`Loading plugin '${plugin.name}'...`)
-
-    const pluginPaths = getPluginPaths(plugin.name, plugin.settings)
+    const pluginPaths = getPluginPaths(plugin)
     const settings = plugin.settings || {} as PluginSettings
     await loadServices(app, pluginPaths.services, settings);
     await Promise.all([

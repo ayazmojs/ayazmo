@@ -30,8 +30,8 @@ export default {
   plugins: [
     {
       name: 'ayazmo-plugin-test',
+      path: path.resolve(path.join(__dirname, 'plugins')),
       settings: {
-        path: path.resolve(path.join(__dirname, 'plugins')),
         private: true,
         admin: {
           routes: [
@@ -56,8 +56,8 @@ export default {
     },
     {
       name: 'ayazmo-plugin-service-override',
+      path: path.resolve(path.join(__dirname, 'plugins')),
       settings: {
-        path: path.resolve(path.join(__dirname, 'plugins')),
         private: true,
         allowServiceOverride: true,
         queryFilters: {
