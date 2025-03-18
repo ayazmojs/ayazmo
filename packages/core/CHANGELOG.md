@@ -1,5 +1,15 @@
 # @ayazmo/core
 
+## 0.6.5
+
+### Patch Changes
+
+- enhanced migration cli
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.5
+  - @ayazmo/utils@0.6.5
+
 ## 0.6.4
 
 ### Patch Changes

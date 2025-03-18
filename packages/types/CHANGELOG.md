@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.5
+
+### Patch Changes
+
+- enhanced migration cli
+
 ## 0.6.4
 
 ### Patch Changes
