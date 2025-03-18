@@ -44,6 +44,55 @@ export interface AyazmoWorker {
   }
 }
 
+/**
+ * Common options for all cache storage types
+ */
+export interface CommonCacheStorageOptions {
+  /** Key prefix to use for cache keys */
+  keyPrefix?: string;
+  
+  /** Any additional storage-specific options */
+  [key: string]: any;
+}
+
+export interface CacheStorageOptions {
+  /** 
+   * Type of storage
+   * 'redis' and 'memory' are built-in types
+   * Custom implementations can use their own type identifiers
+   */
+  type: string;
+  
+  /** Storage-specific options */
+  options: CommonCacheStorageOptions;
+}
+
+export interface RouteCacheConfig {
+  /** Whether route caching is enabled */
+  enabled: boolean;
+  /** HTTP methods to cache (only GET for first version) */
+  methods: string[];
+  /** Routes to exclude from caching */
+  excludePaths?: string[];
+  /** Default TTL for route caching in seconds */
+  defaultTtl: number;
+  /** Status codes to cache */
+  statusCodes?: number[];
+}
+
+export interface CacheConfig {
+  /** Whether caching is enabled */
+  enabled: boolean;
+  /** Cache storage configuration */
+  storage: CacheStorageOptions;
+  /** Global TTL in seconds */
+  ttl?: number;
+  /** Stale-while-revalidate time in seconds */
+  stale?: number;
+  /** Route caching configuration */
+  routeCaching?: RouteCacheConfig;
+}
+
 export interface AyazmoAppConfig {
   server: FastifyListenOptions
   emitter: {
@@ -53,7 +102,7 @@ export interface AyazmoAppConfig {
   }
   redis: any
   cors: FastifyCorsOptions
-  cache: any
+  cache: CacheConfig
   enabledAuthProviders: string[]
   onBeforePublish?: (event: string, data: any) => Promise<any> | any
 }
