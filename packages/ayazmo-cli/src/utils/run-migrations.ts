@@ -101,7 +101,6 @@ export async function runMigrations (options: AyazmoMigrationOptions = { interac
         }
       }
 
-      // Set the search path - this is critical and must succeed for PostgreSQL
       try {
         await connection.execute(`SET search_path TO ${schema};`)
       } catch (error) {
