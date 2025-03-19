@@ -67,19 +67,6 @@ export interface CacheStorageOptions {
   options: CommonCacheStorageOptions;
 }
 
-export interface RouteCacheConfig {
-  /** Whether route caching is enabled */
-  enabled: boolean;
-  /** HTTP methods to cache (only GET for first version) */
-  methods: string[];
-  /** Routes to exclude from caching */
-  excludePaths?: string[];
-  /** Default TTL for route caching in seconds */
-  defaultTtl: number;
-  /** Status codes to cache */
-  statusCodes?: number[];
-}
-
 export interface CacheConfig {
   /** Whether caching is enabled */
   enabled: boolean;
@@ -89,8 +76,6 @@ export interface CacheConfig {
   ttl?: number;
   /** Stale-while-revalidate time in seconds */
   stale?: number;
-  /** Route caching configuration */
-  routeCaching?: RouteCacheConfig;
 }
 
 export interface AyazmoAppConfig {

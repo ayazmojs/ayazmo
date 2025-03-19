@@ -61,6 +61,9 @@ export const getPluginPaths = (plugin: PluginConfig): PluginPaths => {
   const { name: pluginName, settings, path: pluginPath } = plugin
 
   if (pluginPath) {
+    if (pluginPath.includes(pluginName)) {
+      return constructPaths("", pluginPath)
+    }
     return constructPaths(pluginName, pluginPath)
   }
 

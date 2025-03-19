@@ -9,3 +9,4 @@ export { Migrator, TSMigrationGenerator, Migration } from '@mikro-orm/migrations
 export { PostgreSqlDriver } from '@mikro-orm/postgresql'
 export { SqliteDriver } from '@mikro-orm/sqlite'
 export * from './services/cache.js'
+export * from './decorators/cache.js'

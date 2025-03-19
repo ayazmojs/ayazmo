@@ -15,6 +15,7 @@ import os from 'os'
 import { AppConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
+import { initCacheableDecorator } from './decorators/cacheable.js'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000
 
@@ -214,6 +215,10 @@ export class Server {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
       return
     }
+    if (this.fastify.hasDecorator('userAuthChain')) {
+      this.fastify.log.warn('userAuthChain decorator found, skipping auth providers');
+      return;
+  }
     const config = this.fastify.diContainer.resolve('config') as AppConfig
     this.fastify
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
@@ -275,6 +280,13 @@ export class Server {
       await this.registerAdminRoles()
       await this.maybeEnableRedis()
       await this.loadPlugins()
+      
+      // Initialize cache decorators after core services are loaded
+      if (this.fastify.diContainer.hasRegistration('cacheService')) {
+        initCacheableDecorator(this.fastify);
+        this.fastify.log.info('Cache decorators initialized');
+      }
+      
       // load auth providers after loading plugins
       this.enableUserAuthChain()
       this.registerAuthDirective()
