@@ -20,6 +20,7 @@ const writeFile = async (path: string, content: string): Promise<void> => {
   await new Promise((resolve, reject) => {
     const writeStream = fs.createWriteStream(path)
     writeStream.on('error', reject)
+    // @ts-ignore
     writeStream.on('finish', resolve)
     writeStream.write(content)
     writeStream.end()
