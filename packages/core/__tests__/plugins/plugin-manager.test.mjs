@@ -8,6 +8,7 @@ import { resolvePluginPaths } from '@ayazmo/utils'
 import { pluginConfig } from '../../__fixtures__/config'
 import buildServer, { __dirname } from '../../__fixtures__/build-server.js'
 import { getTestHost } from '../../__fixtures__/helpers/get-test-host.js'
+import WebSocket from 'ws'
 
 const plugins = pluginConfig.plugins
 
@@ -144,6 +145,61 @@ describe('core: testing the plugin manager', () => {
   it('tests Fastify decorator is added correctly during bootstrap', () => {
     assert.ok(app.hasDecorator('utility'), 'Decorator should be available on the app instance')
     assert.equal(app.utility(), 'This is a utility function', 'Decorator should return the correct value')
+  })
+
+  it('should handle WebSocket connections correctly', async () => {
+    // Get the server's address information
+    const address = app.server.address();
+    const host = address.address === '::' ? 'localhost' : address.address;
+    const port = address.port;
+    const wsUrl = `ws://${host}:${port}/v1/ws`;
+    
+    // Create a WebSocket client with better error handling
+    const ws = new WebSocket(wsUrl);
+    
+    // Add error handling
+    ws.on('error', (err) => {
+      console.error(`WebSocket connection error to ${wsUrl}:`, err.message);
+    });
+    
+    // Create a promise that will resolve when the connection is open
+    const connected = new Promise((resolve, reject) => {
+      ws.on('open', () => {
+        console.log(`WebSocket connection established to ${wsUrl}`);
+        resolve(true);
+      });
+      
+      // Add a timeout to fail the test if connection isn't established
+      setTimeout(() => {
+        reject(new Error(`WebSocket connection to ${wsUrl} timed out`));
+      }, 5000);
+    });
+    
+    // Wait for the connection to open
+    await connected;
+    
+    // Create a promise that will resolve when a message is received
+    const messageReceived = new Promise((resolve) => {
+      ws.on('message', (data) => {
+        const response = JSON.parse(data.toString());
+        console.log('Received WebSocket response:', response);
+        resolve(response);
+      });
+    });
+    
+    // Send a test message
+    console.log('Sending WebSocket message: Hello, WebSocket!');
+    ws.send('Hello, WebSocket!');
+    
+    // Wait for the response
+    const response = await messageReceived;
+    
+    // Close the WebSocket connection
+    ws.close();
+    
+    // Assert that the response is correct
+    assert.equal(response.type, 'echo');
+    assert.equal(response.message, 'Hello, WebSocket!');
   })
 
   it('should resolve the app', () => {

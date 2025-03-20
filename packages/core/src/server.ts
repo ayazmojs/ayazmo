@@ -12,7 +12,7 @@ import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import os from 'os'
-import { AppConfig, ServerOptions, AyazmoInstance } from '@ayazmo/types'
+import { AppConfig, ServerOptions, AyazmoInstance, AyazmoAppConfig } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 import { initCacheableDecorator } from './decorators/cacheable.js'
@@ -210,6 +210,17 @@ export class Server {
     }
   }
 
+  public async enableWebSockets (opts?: null | any): Promise<void> {
+    const config = this.fastify.diContainer.resolve('config') as AppConfig
+    // Use type assertion to avoid TypeScript errors
+    const appConfig: AyazmoAppConfig = config?.app
+    if (appConfig?.websocket || opts) {
+      const websocket = await import('@fastify/websocket')
+      await this.fastify.register(websocket.default, appConfig.websocket ?? opts)
+      this.fastify.log.info('WebSocket support enabled')
+    }
+  }
+
   public async enableUserAuthChain (): Promise<void> {
     if (!this.fastify.hasDecorator('auth')) {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
@@ -279,6 +290,7 @@ export class Server {
       const config = this.fastify.diContainer.resolve('config') as AppConfig
       await this.registerAdminRoles()
       await this.maybeEnableRedis()
+      await this.enableWebSockets()
       await this.loadPlugins()
       
       // Initialize cache decorators after core services are loaded

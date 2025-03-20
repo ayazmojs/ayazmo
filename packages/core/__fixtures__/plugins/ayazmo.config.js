@@ -12,6 +12,12 @@ export default {
     ],
     emitter: {
       type: 'memory'
+    },
+    websocket: {
+      options: {
+        maxPayload: 1048576, // 1MB
+        clientTracking: true
+      }
     }
   },
   admin: {

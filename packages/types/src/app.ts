@@ -88,6 +88,13 @@ export interface AyazmoAppConfig {
   redis: any
   cors: FastifyCorsOptions
   cache: CacheConfig
+  websocket?: {
+    options?: {
+      maxPayload?: number,
+      clientTracking?: boolean,
+      [key: string]: any
+    }
+  }
   enabledAuthProviders: string[]
   onBeforePublish?: (event: string, data: any) => Promise<any> | any
 }
