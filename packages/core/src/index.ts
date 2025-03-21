@@ -10,3 +10,4 @@ export { FastifyInstance, FastifyRequest, preHandlerHookHandler, FastifyReply } 
 export { AwilixContainer } from 'awilix'
 export { fastifyCors as cors, FastifyCorsOptions } from '@fastify/cors'
 export * from './decorators/index.js'
+export * from './config/index.js'

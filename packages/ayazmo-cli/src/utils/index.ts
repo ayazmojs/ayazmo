@@ -19,4 +19,5 @@ export * from './create-plugin';
 export * from './cli-logger';
 export * from './download-from-github';
 export * from './validate-ayazmo-project';
-export * from './is-ayazmo-project'; 
+export * from './is-ayazmo-project';
+export * from './config-validation'; 

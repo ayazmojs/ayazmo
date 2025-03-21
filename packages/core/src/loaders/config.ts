@@ -1,36 +1,56 @@
 // src/configLoader.ts
 import { AyazmoInstance, AppConfig } from '@ayazmo/types'
-import { merge, importGlobalConfig } from '@ayazmo/utils'
-import { asValue } from 'awilix'
+import { importGlobalConfig } from '@ayazmo/utils'
+import { ConfigService } from '../config/index.js'
 
 export const loadConfig = async (app: AyazmoInstance): Promise<AppConfig> => {
-  const defaultConfig: any = {
-    // Define your default configurations here
+  const defaultConfig: Partial<AppConfig> = {
     admin: {
       enabled: true,
       opts: {
         prefix: '/admin'
-      }
+      },
+      enabledAuthProviders: [],
+      roles: {},
+      routes: {}
     },
-    plugins: []
+    plugins: [],
+    app: {
+      server: {},
+      emitter: {
+        type: 'memory',
+        queues: [],
+        workers: []
+      },
+      redis: null,
+      cors: {},
+      cache: {
+        enabled: false,
+        storage: {
+          type: 'memory',
+          options: {}
+        },
+        ttl: 60,
+        stale: 10
+      },
+      enabledAuthProviders: []
+    }
   }
 
   try {
     const userConfig: AppConfig = await importGlobalConfig(app.configPath)
-    // TODO: Validate userConfig here
-
-    const mergedConfig: AppConfig = merge(defaultConfig, userConfig)
-
-    app.diContainer.register({
-      config: asValue(mergedConfig)
-    })
-
-    return mergedConfig
+    // Use ConfigService to load and merge configurations
+    const configService = ConfigService.getInstance(app)
+    return await configService.load(userConfig, defaultConfig)
+    
   } catch (error) {
     if (error.code !== 'MODULE_NOT_FOUND') {
       throw error // re-throw the error if it's not 'MODULE_NOT_FOUND'
     }
     app.log.warn('ayazmo.config.js not found, proceeding with default configurations.')
-    return defaultConfig
+    
+    // Use ConfigService with just default config
+    const configService = ConfigService.getInstance(app)
+    return await configService.load({} as AppConfig, defaultConfig)
   }
 }

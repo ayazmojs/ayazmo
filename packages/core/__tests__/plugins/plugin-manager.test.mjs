@@ -165,7 +165,6 @@ describe('core: testing the plugin manager', () => {
     // Create a promise that will resolve when the connection is open
     const connected = new Promise((resolve, reject) => {
       ws.on('open', () => {
-        console.log(`WebSocket connection established to ${wsUrl}`);
         resolve(true);
       });
       
@@ -182,13 +181,11 @@ describe('core: testing the plugin manager', () => {
     const messageReceived = new Promise((resolve) => {
       ws.on('message', (data) => {
         const response = JSON.parse(data.toString());
-        console.log('Received WebSocket response:', response);
         resolve(response);
       });
     });
     
     // Send a test message
-    console.log('Sending WebSocket message: Hello, WebSocket!');
     ws.send('Hello, WebSocket!');
     
     // Wait for the response

@@ -42,3 +42,22 @@ npx ayazmo plugin:create
 ```
 npx ayazmo add <plugin-name>
 ```
+
+## Configuration
+
+Ayazmo provides a flexible configuration system that supports multiple sources:
+
+- Environment variables prefixed with `AYAZMO_`
+- `.env` file variables
+- User configuration file (`ayazmo.config.js`)
+- Default configuration
+
+```bash
+# Validate your environment variables
+npx ayazmo config:validate
+
+# Generate a template .env file
+npx ayazmo config:template
+```
+
+Learn more about [configuration options](./docs/configuration.md).

@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { asValue } from 'awilix'
-import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, AppConfig, PostgreSqlDriver, PluginConfig, PluginSettings } from '@ayazmo/types'
+import { RequestContext, MigrationObject, AnyEntity, MikroORM, AyazmoInstance, EntityClass, EntityClassGroup, EntitySchema, PluginPaths, PostgreSqlDriver, PluginConfig, PluginSettings } from '@ayazmo/types'
 import { merge, PluginCache, PLUGINS_ROOT, getPluginCacheEntityPath } from '@ayazmo/utils'
 import { globby } from 'globby'
 import { loadRoutes } from '../loaders/routes.js'
@@ -190,16 +190,19 @@ async function bootstrapPlugins(app: AyazmoInstance, plugins: PluginConfig[]) {
 }
 
 const loadPluginEntities = async (app: AyazmoInstance): Promise<AnyEntity[]> => {
-  const config = app.diContainer.resolve('config')
+  const configService = app.diContainer.resolve('configService');
   const entities: AnyEntity[] = [BaseSchemaEntity]
 
-  // Check if there are no plugins in the configuration
-  if (!config.plugins || config.plugins.length === 0) {
-    app.log.warn('No plugins enabled in ayazmo.config.js file.')
+  // Get only enabled plugins directly using the ConfigService
+  const enabledPlugins = configService.getEnabledPlugins();
+  
+  // Check if there are no enabled plugins
+  if (enabledPlugins.length === 0) {
+    app.log.warn('No enabled plugins found in configuration.')
     return []
   }
 
-  for (const plugin of config.plugins) {
+  for (const plugin of enabledPlugins) {
     const pluginPaths = getPluginPaths(plugin);
     if (pluginPaths.entities && fs.existsSync(pluginPaths.entities)) {
       const pluginEntities = await loadEntities(app, getPluginCacheEntityPath(plugin.name));
@@ -210,34 +213,51 @@ const loadPluginEntities = async (app: AyazmoInstance): Promise<AnyEntity[]> => 
 }
 
 export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
-  const config: AppConfig = app.diContainer.resolve('config')
+  // Get the configService from the DI container
+  const configService = app.diContainer.resolve('configService');
+  
+  // Get all enabled plugins using the new method
+  const enabledPlugins = configService.getEnabledPlugins();
 
   const entities: AnyEntity[] = []
 
-  // Check if there are no plugins in the configuration
-  if (!config.plugins || config.plugins.length === 0) {
-    app.log.warn('No plugins enabled in ayazmo.config.js file.')
+  // Check if there are no enabled plugins
+  if (enabledPlugins.length === 0) {
+    app.log.warn('No enabled plugins found in configuration.')
     return
   }
 
+  app.log.info(`Found ${enabledPlugins.length} enabled plugins to load`)
+  
+  // Log disabled plugins for informational purposes
+  const disabledPlugins = configService.getDisabledPlugins();
+  if (disabledPlugins.length > 0) {
+    const disabledNames = disabledPlugins.map(p => p.name).join(', ');
+    app.log.info(`Skipping ${disabledPlugins.length} disabled plugins: ${disabledNames}`)
+  }
+
   const pluginCache = new PluginCache(app)
-  await pluginCache.cachePlugins(config.plugins)
+  await pluginCache.cachePlugins(enabledPlugins)
 
-  await bootstrapPlugins(app, config.plugins)
+  await bootstrapPlugins(app, enabledPlugins)
 
+  // We still need the full config for adminAuthChain
+  const config = configService.getConfig();
   app.decorate('adminAuthChain', adminAuthChain(app, config))
 
   const pluginEntities = await loadPluginEntities(app);
   entities.push(...pluginEntities);
 
-  if (config.database) {
+  // Use the ConfigService to check for a valid database configuration
+  const database = configService.get('database');
+  if (database) {
     const dbConfig: any = merge({
       driver: PostgreSqlDriver,
       discovery: { disableDynamicFileAccess: true, warnWhenNoEntities: false },
       debug: false,
       tsNode: false,
       entities: entities as Array<string | EntityClass<Partial<any>> | EntityClassGroup<Partial<any>> | EntitySchema<any, never>>
-    }, config.database)
+    }, database)
 
     try {
       const db = await MikroORM.init(dbConfig)
@@ -281,7 +301,8 @@ export const loadPlugins = async (app: AyazmoInstance): Promise<void> => {
     }
   }
 
-  for (const plugin of config.plugins) {
+  // Only process enabled plugins
+  for (const plugin of enabledPlugins) {
     app.log.info(`Loading plugin '${plugin.name}'...`)
     const pluginPaths = getPluginPaths(plugin)
     const settings = plugin.settings || {} as PluginSettings

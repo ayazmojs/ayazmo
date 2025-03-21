@@ -16,6 +16,7 @@ import { AppConfig, ServerOptions, AyazmoInstance, AyazmoAppConfig } from '@ayaz
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 import { initCacheableDecorator } from './decorators/cacheable.js'
+import { ConfigService } from './config/ConfigService.js'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000
 
@@ -304,6 +305,17 @@ export class Server {
       this.registerAuthDirective()
       await this.enableCORS()
       this.initializeHealthRoute()
+      // Validate configuration on server startup
+      const configService = ConfigService.getInstance(this.fastify)
+      const validation = configService.validate()
+      if (!validation.valid) {
+        this.fastify.log.error('Configuration validation failed:')
+        validation.errors.forEach(error => this.fastify.log.error(`- ${error}`))
+        // Always fail on validation errors with descriptive message
+        throw new Error(`Invalid configuration. Server stopped.\nValidation errors:\n${validation.errors.join('\n')}`)
+      } else {
+        this.fastify.log.info('Configuration validation successful')
+      }
 
       await this.fastify.listen(config.app.server)
       await this.fastify.ready()

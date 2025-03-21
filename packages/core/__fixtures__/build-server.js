@@ -2,7 +2,7 @@ import { config } from 'dotenv'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'url'
-import { Server } from '../src/server.js'
+import { Server } from '@ayazmo/core'
 import pino from 'pino'
 
 const logger = pino({

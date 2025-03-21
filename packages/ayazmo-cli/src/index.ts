@@ -12,6 +12,7 @@ import printAyazmo from './utils/print-ayazmo.js'
 import { installPlugin } from './utils/install-plugin.js'
 import { removePlugin } from './utils/remove-plugin.js'
 import { downMigrations } from './utils/down-migrations.js'
+import { validateConfig, generateTemplate } from './utils/config-validation.js'
 import CliLogger from './utils/cli-logger.js'
 
 const version = getAyazmoVersion()
@@ -100,5 +101,26 @@ program
   .description('Removes a plugin')
   .argument('<plugin-name>', 'The name of the plugin to remove')
   .action(removePlugin)
+
+// Add new command for config validation
+program
+  .command('config:validate')
+  .description('Validate environment variables against your app configuration')
+  .option('-t, --template', 'Generate a template .env file')
+  .option('-o, --output <path>', 'Output path for the template file (default: .env.example)')
+  .action(async (options) => {
+    validateAyazmoProject()
+    await validateConfig(options)
+  })
+
+// Add new command for generating environment variable templates
+program
+  .command('config:template')
+  .description('Generate a template .env file based on your app configuration')
+  .option('-o, --output <path>', 'Output path for the template file (default: .env.example)')
+  .action(async (options) => {
+    validateAyazmoProject()
+    await generateTemplate(options)
+  })
 
 program.parse(process.argv)
