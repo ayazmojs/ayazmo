@@ -14,7 +14,7 @@ describe('core: testing the in memory publisher', () => {
   before(async () => {
     server = buildServer()
     await server.loadDiContainer()
-    await server.loadConfig()
+    await server.initializeConfiguration()
     await server.loadCoreServices()
     app = server.getServerInstance()
     app.addHook('onRequest', async (request, reply) => {

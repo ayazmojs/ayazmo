@@ -12,7 +12,7 @@ import { loadCoreServices } from './loaders/core/services.js'
 import anonymousStrategy from './auth/AnonymousStrategy.js'
 import userAuthChain from './auth/userAuthChain.js'
 import os from 'os'
-import { AppConfig, ServerOptions, AyazmoInstance, AyazmoAppConfig } from '@ayazmo/types'
+import { AppConfig, ServerOptions, AyazmoInstance, RoleCheckFunction } from '@ayazmo/types'
 import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 import { initCacheableDecorator } from './decorators/cacheable.js'
@@ -24,6 +24,7 @@ const rootDir = process.env.AYAZMO_ROOT_DIR ?? process.cwd()
 const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: AyazmoInstance
+  private configService!: ConfigService; // Using definite assignment assertion
 
   constructor (options: ServerOptions = {}) {
     const { configPath, ...restOptions } = options
@@ -37,8 +38,7 @@ export class Server {
   }
 
   private registerAdminRoles (): void {
-    const config: AppConfig = diContainer.resolve('config')
-    const adminRoles = config?.admin?.roles
+    const adminRoles = this.configService.get('admin.roles') as Record<string, RoleCheckFunction> | undefined;
 
     if (adminRoles) {
       Object.entries(adminRoles).forEach(([roleName, checkUserRole]) => {
@@ -192,9 +192,9 @@ export class Server {
   }
 
   private async enableCORS (): Promise<void> {
-    const config = this.fastify.diContainer.resolve('config') as AppConfig
-    if (config?.app?.cors) {
-      await this.fastify.register(cors, config.app.cors)
+    const corsConfig = this.configService.get('app.cors');
+    if (corsConfig) {
+      await this.fastify.register(cors, corsConfig)
     }
   }
 
@@ -205,19 +205,17 @@ export class Server {
   }
 
   public async maybeEnableRedis (opts?: null | any): Promise<void> {
-    const config = this.fastify.diContainer.resolve('config') as AppConfig
-    if (config?.app?.redis || opts) {
-      await this.fastify.register(fastifyRedis, config.app.redis ?? opts)
+    const redisConfig = this.configService.get('app.redis');
+    if (redisConfig || opts) {
+      await this.fastify.register(fastifyRedis, redisConfig ?? opts)
     }
   }
 
   public async enableWebSockets (opts?: null | any): Promise<void> {
-    const config = this.fastify.diContainer.resolve('config') as AppConfig
-    // Use type assertion to avoid TypeScript errors
-    const appConfig: AyazmoAppConfig = config?.app
-    if (appConfig?.websocket || opts) {
+    const websocketConfig = this.configService.get('app.websocket');
+    if (websocketConfig || opts) {
       const websocket = await import('@fastify/websocket')
-      await this.fastify.register(websocket.default, appConfig.websocket ?? opts)
+      await this.fastify.register(websocket.default, websocketConfig ?? opts)
       this.fastify.log.info('WebSocket support enabled')
     }
   }
@@ -230,16 +228,37 @@ export class Server {
     if (this.fastify.hasDecorator('userAuthChain')) {
       this.fastify.log.warn('userAuthChain decorator found, skipping auth providers');
       return;
-  }
-    const config = this.fastify.diContainer.resolve('config') as AppConfig
+    }
+    
+    // Get the full config object for userAuthChain which expects the full config
+    const config = this.configService.getConfig() as AppConfig;
     this.fastify
       .decorate('userAuthChain', userAuthChain(this.fastify, config))
   }
 
   public async loadConfig (): Promise<void> {
-    if (!this.fastify.diContainer.hasRegistration('config')) {
+    // Check if both config and configService are already registered
+    if (!this.fastify.diContainer.hasRegistration('config') || 
+        !this.fastify.diContainer.hasRegistration('configService')) {
       await loadConfig(this.fastify)
     }
+  }
+
+  /**
+   * Initializes the entire configuration system by loading config and setting up ConfigService
+   * This is a convenience method that combines loadConfig and ConfigService initialization
+   * 
+   * @returns The initialized ConfigService instance
+   */
+  public async initializeConfiguration(): Promise<ConfigService> {
+    // First load the configuration
+    await this.loadConfig()
+    
+    // Then get and assign the ConfigService instance
+    this.configService = ConfigService.getInstance(this.fastify)
+    
+    // Return the instance for convenience
+    return this.configService
   }
 
   public async loadDiContainer (): Promise<void> {
@@ -287,8 +306,10 @@ export class Server {
     try {
       this.enableCookies()
       await this.loadDiContainer()
-      await this.loadConfig()
-      const config = this.fastify.diContainer.resolve('config') as AppConfig
+      
+      // Initialize configuration using our new method
+      await this.initializeConfiguration()
+      
       await this.registerAdminRoles()
       await this.maybeEnableRedis()
       await this.enableWebSockets()
@@ -305,9 +326,9 @@ export class Server {
       this.registerAuthDirective()
       await this.enableCORS()
       this.initializeHealthRoute()
+      
       // Validate configuration on server startup
-      const configService = ConfigService.getInstance(this.fastify)
-      const validation = configService.validate()
+      const validation = this.configService.validate();
       if (!validation.valid) {
         this.fastify.log.error('Configuration validation failed:')
         validation.errors.forEach(error => this.fastify.log.error(`- ${error}`))
@@ -317,7 +338,9 @@ export class Server {
         this.fastify.log.info('Configuration validation successful')
       }
 
-      await this.fastify.listen(config.app.server)
+      // Get server configuration with ConfigService
+      const serverConfig = this.configService.get('app.server');
+      await this.fastify.listen(serverConfig)
       await this.fastify.ready()
     } catch (err) {
       this.fastify.log.error(err)

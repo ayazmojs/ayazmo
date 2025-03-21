@@ -21,7 +21,7 @@ describe('core: testing the redis publisher via Queue', () => {
     })
     server = buildServer(path.join(__dirname, 'emitter', 'redis-queue-ayazmo.config.js'))
     await server.loadDiContainer()
-    await server.loadConfig()
+    await server.initializeConfiguration()
     await server.maybeEnableRedis({
       host: await redisServer.getHost(),
       port: await redisServer.getPort(),

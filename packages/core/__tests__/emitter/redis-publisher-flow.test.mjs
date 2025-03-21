@@ -23,7 +23,7 @@ describe('core: testing the redis publisher via Flow', () => {
     })
     server = buildServer(path.join(__dirname, 'emitter', 'redis-flow-ayazmo.config.js'))
     await server.loadDiContainer()
-    await server.loadConfig()
+    await server.initializeConfiguration()
     await server.maybeEnableRedis({
       host: await redisServer.getHost(),
       port: await redisServer.getPort(),
