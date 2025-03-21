@@ -1,14 +1,5 @@
 # ayazmo
 
-## [Unreleased]
-
-### Added
-- Enhanced configuration system with support for environment variables
-- New environment variable format supporting both underscore and dot notation
-- Support for automatic type conversion of environment variables
-- Added CLI commands for configuration validation and template generation
-- Improved documentation for configuration system
-
 ## 0.6.5
 
 ### Patch Changes
