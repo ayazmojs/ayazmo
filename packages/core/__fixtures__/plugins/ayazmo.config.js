@@ -33,6 +33,14 @@ export default {
       }
     }
   },
+  corePlugins: {
+    'health-check': {
+      route: '/health',
+      handler: async (request, reply, app) => {
+        reply.code(200).send({ content: 'health-check' })
+      }
+    }
+  },
   plugins: [
     {
       name: 'ayazmo-plugin-test',

@@ -40,7 +40,7 @@ describe('core: testing the server', () => {
     })
 
     assert.equal(response.statusCode, 200)
-    assert.equal(JSON.parse(response.payload).status, 'ok')
+    assert.equal(JSON.parse(response.payload).content, 'health-check')
   })
 
   it('should register graphql', async () => {

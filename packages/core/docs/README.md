@@ -5,6 +5,7 @@ This directory contains documentation for the various components and features of
 ## Contents
 
 - [Configuration System](./configuration.md) - Documentation for the configuration system, including environment variables, .env files, and command-line tools.
+- [Core Plugins](./core-plugins.md) - Documentation for Ayazmo's built-in core plugins, including configuration options and customization.
 
 ## Other Resources
 

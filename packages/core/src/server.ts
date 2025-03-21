@@ -17,6 +17,7 @@ import fastifyRedis from '@fastify/redis'
 import { GLOBAL_CONFIG_FILE_NAME, AyazmoError } from '@ayazmo/utils'
 import { initCacheableDecorator } from './decorators/cacheable.js'
 import { ConfigService } from './config/ConfigService.js'
+import { CorePluginManager } from './core-plugins/core-plugin-manager.js'
 
 const SHUTDOWN_TIMEOUT = 5 * 1000
 
@@ -25,6 +26,7 @@ const configDir = path.join(rootDir, GLOBAL_CONFIG_FILE_NAME)
 export class Server {
   private readonly fastify: AyazmoInstance
   private configService!: ConfigService; // Using definite assignment assertion
+  private corePluginManager!: CorePluginManager; // Add reference to CorePluginManager
 
   constructor (options: ServerOptions = {}) {
     const { configPath, ...restOptions } = options
@@ -145,21 +147,15 @@ export class Server {
     })
   }
 
-  public initializeHealthRoute (): void {
-    if (!this.fastify.hasRoute({
-      method: 'GET',
-      url: '/health'
-    })) {
-      this.fastify.get('/health', async (request, reply) => {
-        reply.code(200).send({ status: 'ok' })
-      })
-    }
-  }
-
   private async shutdownServer () {
     const shutdownInitiated = Date.now()
 
     try {
+      // Shut down core plugins first if they exist
+      if (this.corePluginManager) {
+        await this.corePluginManager.shutdownPlugins();
+      }
+
       // Initiate graceful shutdown tasks here, e.g., closing database connections
       diContainer.dispose()
 
@@ -302,6 +298,20 @@ export class Server {
     await loadPlugins(this.fastify)
   }
 
+  /**
+   * Load core plugins using the CorePluginManager
+   */
+  public async loadCorePlugins(): Promise<void> {
+    this.corePluginManager = new CorePluginManager(this.fastify);
+    try {
+      await this.corePluginManager.loadCorePlugins();
+    } catch (error) {
+      console.error('Failed to load core plugins:', error);
+      this.fastify.log.error('Failed to load core plugins:', error);
+      throw error; // Core plugin failures are critical and should stop the app
+    }
+  }
+
   async start (): Promise<void> {
     try {
       this.enableCookies()
@@ -311,8 +321,15 @@ export class Server {
       await this.initializeConfiguration()
       
       await this.registerAdminRoles()
+      
+      // Load core plugins before any other plugins or features
+      await this.loadCorePlugins()
+      
+      // These methods might be converted to core plugins later
       await this.maybeEnableRedis()
       await this.enableWebSockets()
+      
+      // Load regular plugins after core plugins
       await this.loadPlugins()
       
       // Initialize cache decorators after core services are loaded
@@ -325,7 +342,6 @@ export class Server {
       this.enableUserAuthChain()
       this.registerAuthDirective()
       await this.enableCORS()
-      this.initializeHealthRoute()
       
       // Validate configuration on server startup
       const validation = this.configService.validate();
