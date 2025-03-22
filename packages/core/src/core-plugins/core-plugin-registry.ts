@@ -29,6 +29,17 @@ export const CORE_PLUGINS: Record<string, CorePluginMetadata> = {
     defaultConfig: {
       route: '/health'
     }
+  },
+  
+  // Register the websocket core plugin
+  'websocket': {
+    name: 'websocket',
+    description: 'Provides WebSocket support for real-time communication',
+    defaultConfig: {
+      enabled: true,
+      options: {},  // Default empty options for @fastify/websocket
+      enableExampleRoutes: false  // Example routes disabled by default
+    }
   }
 };
 

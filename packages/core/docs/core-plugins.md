@@ -143,6 +143,87 @@ it('should successfully call health route with custom handler', async () => {
 
 The plugin system ensures that your custom handler configuration is correctly passed from your application configuration to the route registration.
 
+### websocket
+
+The websocket plugin provides WebSocket support for real-time communication in your Ayazmo application. This is implemented using the `@fastify/websocket` package and offers a consistent configuration interface.
+
+#### Configuration Options
+
+| Option              | Type              | Default      | Description                                  |
+|---------------------|-------------------|--------------|----------------------------------------------|
+| `options`           | object            | `{}`         | Configuration options for @fastify/websocket |
+| `enabled`           | boolean           | `true`       | Whether the websocket plugin is enabled      |
+| `enableExampleRoutes` | boolean        | `false`      | Enable example WebSocket routes for testing  |
+
+##### WebSocket Options
+
+The `options` object accepts all options supported by the `@fastify/websocket` package:
+
+| Option              | Type              | Description                                       |
+|---------------------|-------------------|---------------------------------------------------|
+| `maxPayload`        | number            | Maximum allowed message size in bytes             |
+| `clientTracking`    | boolean           | Whether to track clients                          |
+| `verifyClient`      | function          | Function to verify client connections             |
+| `perMessageDeflate` | boolean/object    | Enable/disable permessage-deflate compression     |
+
+#### Usage Example
+
+```js
+// ayazmo.config.js
+module.exports = {
+  corePlugins: {
+    'websocket': {
+      options: {
+        maxPayload: 1048576, // 1MB max payload
+        clientTracking: true
+      },
+      // Enable example routes for testing
+      enableExampleRoutes: true
+    }
+  }
+}
+```
+
+#### Creating WebSocket Routes
+
+To create a WebSocket route in your Ayazmo application, add the `websocket: true` property to your route options:
+
+```js
+app.get('/live-updates', { websocket: true }, (connection, req) => {
+  connection.on('message', message => {
+    // Process message
+    const data = JSON.parse(message.toString())
+    // Send response
+    connection.send(JSON.stringify({ status: 'received', data }))
+  })
+  
+  connection.on('close', () => {
+    // Handle disconnection
+  })
+})
+```
+
+#### Testing WebSockets
+
+Ayazmo provides an `injectWS` decorator for testing WebSocket endpoints:
+
+```js
+// Example test for a WebSocket endpoint
+it('should handle WebSocket connections', async () => {
+  const ws = await fastify.injectWS('/live-updates')
+  
+  ws.on('message', data => {
+    const response = JSON.parse(data.toString())
+    assert.equal(response.status, 'received')
+  })
+  
+  ws.send(JSON.stringify({ type: 'request-data' }))
+  
+  // Remember to close the connection when done
+  ws.terminate()
+})
+```
+
 ## Overriding Core Plugins
 
 You can override any core plugin by creating a third-party plugin with a name that follows the pattern `ayazmo-core-[plugin-name]`. For example, to override the health-check plugin, you would create a plugin named `ayazmo-core-health-check`.

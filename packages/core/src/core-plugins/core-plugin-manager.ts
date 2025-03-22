@@ -119,16 +119,44 @@ export class CorePluginManager {
    * @returns Object with paths to plugin components
    */
   private getCorePluginPaths(pluginName: string) {
-    // The key insight: core plugins have an extra 'src' directory in their path
-    const corePluginDir = path.resolve(__dirname, pluginName);
+    // First try looking in the dist directory (for compiled code)
+    const currentPath = __dirname;
+    const isDevelopment = currentPath.includes('/src/');
     
-    // Build paths with the extra 'src' directory
-    const bootstrapPath = path.join(corePluginDir, 'src', 'bootstrap.js');
-    const routesPath = path.join(corePluginDir, 'src', 'routes.js');
+    let distPluginDir;
+    if (isDevelopment) {
+      // In development, transform from src to dist path
+      const distBasePath = currentPath.replace('/src/', '/dist/');
+      distPluginDir = path.join(distBasePath, pluginName);
+    } else {
+      // In production (already in dist), just use the current directory
+      distPluginDir = path.join(currentPath, pluginName);
+    }
+    
+    // Check for compiled JS files
+    const distBootstrapPath = path.join(distPluginDir, 'src', 'bootstrap.js');
+    const distRoutesPath = path.join(distPluginDir, 'src', 'routes.js');
+    
+    const distBootstrapExists = fs.existsSync(distBootstrapPath);
+    const distRoutesExists = fs.existsSync(distRoutesPath);
+    
+    this.app.log.debug(`Looking for core plugin ${pluginName}: bootstrap=${distBootstrapExists ? 'found' : 'not found'}, routes=${distRoutesExists ? 'found' : 'not found'}`);
+    
+    // If bootstrap found in dist, use it
+    if (distBootstrapExists) {
+      return {
+        bootstrap: distBootstrapPath,
+        routes: distRoutesExists ? distRoutesPath : null
+      };
+    }
+    
+    // If we get here, we couldn't find the files in the dist directory
+    // Log a warning
+    this.app.log.warn(`Could not find bootstrap file for core plugin ${pluginName}`);
     
     return {
-      bootstrap: fs.existsSync(bootstrapPath) ? bootstrapPath : null,
-      routes: fs.existsSync(routesPath) ? routesPath : null
+      bootstrap: null,
+      routes: null
     };
   }
 
@@ -156,8 +184,6 @@ export class CorePluginManager {
       if (!pluginPaths.bootstrap) {
         throw new Error(`Bootstrap file not found for core plugin ${pluginName}`);
       }
-      
-      this.app.log.debug(`Loading core plugin bootstrap from: ${pluginPaths.bootstrap}`);
       
       // Load the plugin module
       const pluginModule = await import(pluginPaths.bootstrap);
@@ -211,11 +237,11 @@ export class CorePluginManager {
     // Load routes if they exist
     if (pluginPaths.routes) {
       try {
-        this.app.log.debug(`Loading routes for core plugin ${pluginName} from ${pluginPaths.routes}`);
         const routes = await import(pluginPaths.routes);
         if (routes.default && typeof routes.default === 'function') {
           // Pass the plugin configuration to the routes function
           await routes.default(this.app, config);
+          this.app.log.debug(`Routes registered for core plugin ${pluginName}`);
         }
       } catch (error) {
         this.app.log.error(`Error loading routes for core plugin ${pluginName}: ${error.message}`);

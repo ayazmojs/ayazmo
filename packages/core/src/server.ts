@@ -207,15 +207,6 @@ export class Server {
     }
   }
 
-  public async enableWebSockets (opts?: null | any): Promise<void> {
-    const websocketConfig = this.configService.get('app.websocket');
-    if (websocketConfig || opts) {
-      const websocket = await import('@fastify/websocket')
-      await this.fastify.register(websocket.default, websocketConfig ?? opts)
-      this.fastify.log.info('WebSocket support enabled')
-    }
-  }
-
   public async enableUserAuthChain (): Promise<void> {
     if (!this.fastify.hasDecorator('auth')) {
       this.fastify.log.warn('app auth decorator not found, skipping auth providers')
@@ -327,7 +318,6 @@ export class Server {
       
       // These methods might be converted to core plugins later
       await this.maybeEnableRedis()
-      await this.enableWebSockets()
       
       // Load regular plugins after core plugins
       await this.loadPlugins()

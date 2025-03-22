@@ -4,10 +4,9 @@ import path from 'node:path'
 import {
   constructPaths
 } from '../../dist/plugins/plugin-manager.js'
-import { resolvePluginPaths } from '@ayazmo/utils'
+import { resolvePluginPaths, getTestHost } from '@ayazmo/utils'
 import { pluginConfig } from '../../__fixtures__/config'
 import buildServer, { __dirname } from '../../__fixtures__/build-server.js'
-import { getTestHost } from '../../__fixtures__/helpers/get-test-host.js'
 import WebSocket from 'ws'
 
 const plugins = pluginConfig.plugins
