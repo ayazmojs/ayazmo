@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.6
+
+### Patch Changes
+
+- introduce core plugins, test utils, websocket connection
+
 ## 0.6.5
 
 ### Patch Changes
