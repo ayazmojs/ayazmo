@@ -21,7 +21,7 @@ export default function getRegisteredPlugins(plugins: PluginConfig[]): PluginCon
     else if (plugin.settings?.private === true) {
       return { ...plugin, path: path.join(process.cwd(), 'dist', 'plugins', plugin.name, 'src') }
     } else {
-      return { ...plugin, path: path.join(process.cwd(), 'node_modules', plugin.name) }
+      return { ...plugin, path: path.join(process.cwd(), 'node_modules', plugin.name, 'dist') }
     }
   })
 }

@@ -1,6 +1,6 @@
 {
   "name": "ayazmo",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "Ayazmo CLI to streamline the developers experience. Scaffold a new API, manage migrations and more",
   "exports": {
     ".": "./dist/index.js",
@@ -11,9 +11,9 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@ayazmo/core": "^0.6.7",
-    "@ayazmo/types": "^0.6.7",
-    "@ayazmo/utils": "^0.6.7",
+    "@ayazmo/core": "^0.6.8",
+    "@ayazmo/types": "^0.6.8",
+    "@ayazmo/utils": "^0.6.8",
     "@npmcli/package-json": "^6.0.1",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",

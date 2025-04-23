@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.6.8
+
+### Patch Changes
+
+- fix public plugins path
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.8
+
 ## 0.6.7
 
 ### Patch Changes
