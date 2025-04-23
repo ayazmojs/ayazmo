@@ -1,5 +1,11 @@
 # @ayazmo/types
 
+## 0.6.7
+
+### Patch Changes
+
+- fix config validation and private plugin loading
+
 ## 0.6.6
 
 ### Patch Changes

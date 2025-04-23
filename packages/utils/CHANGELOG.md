@@ -1,5 +1,14 @@
 # @ayazmo/utils
 
+## 0.6.7
+
+### Patch Changes
+
+- fix config validation and private plugin loading
+
+- Updated dependencies []:
+  - @ayazmo/types@0.6.7
+
 ## 0.6.6
 
 ### Patch Changes

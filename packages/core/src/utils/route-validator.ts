@@ -5,7 +5,7 @@ interface RouteValidationResult {
   errors: string[];
 }
 
-export function validateRoute(route: AyazmoRouteOptions): RouteValidationResult {
+export function validateRESTRoute(route: AyazmoRouteOptions): RouteValidationResult {
   const errors: string[] = [];
 
   if (!('method' in route)) {
@@ -18,6 +18,42 @@ export function validateRoute(route: AyazmoRouteOptions): RouteValidationResult 
 
   if (typeof route.handler !== 'function') {
     errors.push('Invalid or missing "handler": Must be a function');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * Validates if a route is a WebSocket route
+ */
+export function validateWebSocketRoute(route: AyazmoRouteOptions): RouteValidationResult {
+  const errors: string[] = [];
+
+  // WebSocket routes should use GET method
+  if (!('method' in route) || (route.method !== 'GET' && route.method !== 'get')) {
+    errors.push('WebSocket routes must use GET method');
+  }
+
+  if (!('url' in route)) {
+    errors.push('Missing required property: "url"');
+  }
+
+  // For WebSocket routes with websocket: true, we need a handler
+  if (route.websocket === true && typeof route.handler !== 'function') {
+    errors.push('Invalid or missing "handler": WebSocket routes with websocket: true must have a handler function');
+  }
+
+  // For routes using full declaration syntax with wsHandler
+  if (route.wsHandler !== undefined && typeof route.wsHandler !== 'function') {
+    errors.push('Invalid "wsHandler": Must be a function');
+  }
+
+  // Either websocket: true or wsHandler must be specified
+  if (route.websocket !== true && route.wsHandler === undefined) {
+    errors.push('WebSocket routes must specify either websocket: true or a wsHandler function');
   }
 
   return {
@@ -51,8 +87,27 @@ export function validateAdminRoute(route: AyazmoRouteOptions): RouteValidationRe
   };
 }
 
+/**
+ * General route validator that detects the route type and applies the appropriate validation
+ */
+export function validateRoute(route: AyazmoRouteOptions): RouteValidationResult {
+  // Determine if this is a WebSocket route
+  if (isWebSocketRoute(route)) {
+    return validateWebSocketRoute(route);
+  } else {
+    return validateRESTRoute(route);
+  }
+}
+
 export function isRouteEnabled(route: PluginRoutes): boolean {
   return route.enabled !== false;
+}
+
+/**
+ * Checks if a route is a WebSocket route
+ */
+export function isWebSocketRoute(route: AyazmoRouteOptions): boolean {
+  return route.websocket === true || route.wsHandler !== undefined;
 }
 
 /**

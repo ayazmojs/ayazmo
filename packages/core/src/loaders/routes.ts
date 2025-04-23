@@ -2,7 +2,7 @@ import { AyazmoRouteOptions, PluginSettings, PluginRoutes } from '@ayazmo/types'
 import { merge } from '@ayazmo/utils'
 import { FastifyInstance } from 'fastify'
 import fs from 'node:fs'
-import { validateRoute, isRouteEnabled } from '../utils/route-validator.js'
+import { validateRoute, isRouteEnabled, isWebSocketRoute } from '../utils/route-validator.js'
 
 export async function loadRoutes (
   app: FastifyInstance,
@@ -40,6 +40,7 @@ export async function loadRoutes (
       routes.forEach((route: AyazmoRouteOptions & PluginRoutes) => {
         const validationResult = validateRoute(route)
         const routeEnabled = isRouteEnabled(route)
+        const isWebSocket = isWebSocketRoute(route)
 
         if (!validationResult.isValid) {
           app.log.error(` - Invalid route detected in ${path}:`)
@@ -66,7 +67,24 @@ export async function loadRoutes (
           const { enabled = true, ...routeOptions } = route // eslint-disable-line @typescript-eslint/no-unused-vars
 
           app.route(merge(routeOptions, hooksResult))
-          app.log.info(` - Registered route ${route.method} ${route.url}`)
+          
+          // Log appropriately based on route type
+          const hasHttpHandler = typeof route.handler === 'function';
+          
+          if (isWebSocket && hasHttpHandler) {
+            // This route handles both HTTP and WebSocket protocols
+            app.log.info(` - Registered dual-protocol route ${route.method} ${route.url} (HTTP + WebSocket)`)
+          } else if (isWebSocket) {
+            // WebSocket-only route
+            if (route.wsHandler) {
+              app.log.info(` - Registered WebSocket route with custom handler ${route.url}`)
+            } else {
+              app.log.info(` - Registered WebSocket route ${route.url}`)
+            }
+          } else {
+            // HTTP-only route
+            app.log.info(` - Registered route ${route.method} ${route.url}`)
+          }
         } catch (error) {
           app.log.error(` - Failed to register route ${route.method} ${route.url}:`)
           app.log.error(`   ${error.message}`)

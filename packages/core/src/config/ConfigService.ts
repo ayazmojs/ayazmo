@@ -3,7 +3,7 @@ import { AyazmoInstance } from '@ayazmo/types'
 import { asValue } from 'awilix'
 import path from 'node:path'
 import fs from 'node:fs'
-import { dotGet, dotSet, validateSchema, validateEnvVars } from '@ayazmo/utils'
+import { dotGet, dotSet, validateSchema, validateEnvVars, getRegisteredPlugins } from '@ayazmo/utils'
 import { merge } from 'lodash-es'
 
 /**
@@ -203,7 +203,8 @@ export class ConfigService {
    * @returns Array of all plugin configurations
    */
   getPlugins(): PluginConfig[] {
-    return this.get('plugins', []);
+    const plugins = this.get('plugins', []);
+    return getRegisteredPlugins(plugins);
   }
 
   /**

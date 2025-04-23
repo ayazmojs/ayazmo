@@ -141,8 +141,38 @@ export const cacheSchema = z.object({
  */
 export const emitterSchema = z.object({
   type: z.enum(['memory', 'redis']).optional(),
-  queues: z.array(z.string()).optional(),
-  workers: z.array(z.string()).optional()
+  
+  // Define queue schema based on examples
+  queues: z.array(
+    z.object({
+      name: z.string(),
+      options: z.object({
+        defaultJobOptions: z.object({
+          removeOnComplete: z.union([z.boolean(), z.number()]),
+          removeOnFail: z.union([z.boolean(), z.number()]),
+          attempts: z.number().int().positive().optional(),
+          backoff: z.object({
+            type: z.string(),
+            delay: z.number()
+          }).optional()
+        }).passthrough().optional()
+      }).passthrough().optional(),
+      publishOn: z.array(z.string())
+    })
+  ).optional(),
+  
+  // Define worker schema based on examples
+  workers: z.array(
+    z.object({
+      queueName: z.string(),
+      options: z.object({
+        name: z.string().optional(),
+        removeOnComplete: z.union([z.boolean(), z.number()]).optional(),
+        removeOnFail: z.union([z.boolean(), z.number()]).optional(),
+        concurrency: z.number().int().positive().optional()
+      }).passthrough() // Allow other BullMQ worker options
+    })
+  ).optional()
 }).optional();
 
 /**

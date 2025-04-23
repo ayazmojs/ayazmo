@@ -1,6 +1,6 @@
 {
   "name": "@ayazmo/types",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "Core interfaces for Ayazmo",
   "exports": "./dist/index.js",
   "author": "Tsvetan Nikolov",
@@ -27,6 +27,7 @@
     "fastify": "4.28.1"
   },
   "devDependencies": {
-    "@fastify/cors": "^9.0.1"
+    "@fastify/cors": "^9.0.1",
+    "@fastify/websocket": "10"
   }
 }

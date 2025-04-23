@@ -16,19 +16,14 @@ import adminAuthChain from '../admin/auth/adminAuthChain.js'
 import { BaseSchemaEntity } from '../interfaces/BaseSchemaEntity.js'
 
 /**
- * Constructs the file paths for various components of a plugin based on the plugin name and base directory.
- *
- * This helper function creates an object with paths pointing to the expected locations of a plugin's
- * services, GraphQL definitions, routes, subscribers, and bootstrap files within
- * a specified base directory. The base directory is typically the root of either the 'plugins' directory
- * for private plugins or 'node_modules' for public plugins.
- *
- * @param {string} pluginName - The name of the plugin for which to construct the paths.
- * @param {string} baseDir - The base directory where the plugin is located.
- * @returns {PluginPaths} An object containing the paths to the plugin's components.
+ * Joins plugin-specific folders and files to a base path without any additional logic.
+ * This function has a single responsibility: constructing the component paths
+ * relative to an already determined base path.
+ * 
+ * @param {string} basePath - The base path to which component paths should be joined.
+ * @returns {PluginPaths} An object containing the component paths.
  */
-export const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
-  const basePath: string = path.join(baseDir, pluginName, 'dist')
+export const joinPluginPaths = (basePath: string): PluginPaths => {
   return {
     services: path.join(basePath, 'services'),
     graphql: path.join(basePath, 'graphql'),
@@ -42,6 +37,21 @@ export const constructPaths = (pluginName: string, baseDir: string): PluginPaths
       routes: path.join(basePath, 'admin', 'routes.js')
     }
   }
+}
+
+/**
+ * Constructs the file paths for various components of a plugin based on the plugin name and base directory.
+ *
+ * This helper function creates the base path by joining the base directory, plugin name, and 'dist',
+ * then uses joinPluginPaths to generate the component paths.
+ *
+ * @param {string} pluginName - The name of the plugin for which to construct the paths.
+ * @param {string} baseDir - The base directory where the plugin is located.
+ * @returns {PluginPaths} An object containing the paths to the plugin's components.
+ */
+export const constructPaths = (pluginName: string, baseDir: string): PluginPaths => {
+  const basePath: string = path.join(baseDir, pluginName, 'dist')
+  return joinPluginPaths(basePath)
 }
 
 /**
@@ -62,7 +72,7 @@ export const getPluginPaths = (plugin: PluginConfig): PluginPaths => {
 
   if (pluginPath) {
     if (pluginPath.includes(pluginName)) {
-      return constructPaths("", pluginPath)
+      return joinPluginPaths(pluginPath)
     }
     return constructPaths(pluginName, pluginPath)
   }

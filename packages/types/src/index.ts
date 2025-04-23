@@ -10,3 +10,6 @@ export { PostgreSqlDriver } from '@mikro-orm/postgresql'
 export { SqliteDriver } from '@mikro-orm/sqlite'
 export * from './services/cache.js'
 export * from './decorators/cache.js'
+
+// Import plugin types to ensure they're available when @ayazmo/types is imported
+import './plugins.js'

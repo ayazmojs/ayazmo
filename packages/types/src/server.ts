@@ -1,6 +1,22 @@
-import { FastifyInstance, RouteOptions, preHandlerHookHandler, FastifyServerOptions } from 'fastify'
+import { 
+  FastifyInstance, 
+  RouteOptions, 
+  preHandlerHookHandler, 
+  FastifyServerOptions, 
+  RawServerBase, 
+  RawServerDefault, 
+  RawRequestDefaultExpression, 
+  RawReplyDefaultExpression,
+  FastifyBaseLogger,
+  FastifyTypeProvider,
+  FastifyTypeProviderDefault
+} from 'fastify'
 import { AwilixContainer } from 'awilix'
-import http from 'http'
+
+// Import fastify plugin type definitions
+// These imports are needed to ensure the types are available
+// when AyazmoInstance is used
+import '@fastify/websocket'
 
 export type AyazmoRouteOptions = RouteOptions
 
@@ -35,7 +51,19 @@ declare module 'fastify' {
   }
 }
 
-export interface AyazmoInstance extends FastifyInstance<http.Server, http.IncomingMessage, http.ServerResponse> {
+// export interface AyazmoInstance extends FastifyInstance<http.Server, http.IncomingMessage, http.ServerResponse> {
+//   diContainer: AwilixContainer
+//   userAuthChain: preHandlerHookHandler
+//   adminAuthChain: preHandlerHookHandler
+// }
+
+export interface AyazmoInstance<
+  HttpServer extends RawServerBase = RawServerDefault,
+  HttpRequest extends RawRequestDefaultExpression<HttpServer> = RawRequestDefaultExpression<HttpServer>,
+  HttpResponse extends RawReplyDefaultExpression<HttpServer> = RawReplyDefaultExpression<HttpServer>,
+  Logger extends FastifyBaseLogger = FastifyBaseLogger,
+  TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault
+> extends FastifyInstance<HttpServer, HttpRequest, HttpResponse, Logger, TypeProvider> {
   diContainer: AwilixContainer
   userAuthChain: preHandlerHookHandler
   adminAuthChain: preHandlerHookHandler
