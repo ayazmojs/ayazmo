@@ -19,10 +19,10 @@
   },
   "gitHead": "17593bb5beba1cc1344201629c6ca59483c226b7",
   "dependencies": {
-    "@mikro-orm/core": "6.4.1",
-    "@mikro-orm/migrations": "6.4.1",
-    "@mikro-orm/postgresql": "6.4.1",
-    "@mikro-orm/sqlite": "6.4.1",
+    "@mikro-orm/core": "6.6.17",
+    "@mikro-orm/migrations": "6.6.17",
+    "@mikro-orm/postgresql": "6.6.17",
+    "@mikro-orm/sqlite": "6.6.17",
     "awilix": "^12.0.3",
     "fastify": "4.28.1"
   },
