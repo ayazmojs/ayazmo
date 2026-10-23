@@ -10,11 +10,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      # use the distro redis instead of letting redis-memory-server compile one on every run
+      REDISMS_DISABLE_POSTINSTALL: 1
+      REDISMS_SYSTEM_BINARY: /usr/bin/redis-server
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'yarn'
+      - run: sudo apt-get update && sudo apt-get install -y redis-server
       - run: yarn install --frozen-lockfile
       - run: yarn test
