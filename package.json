@@ -52,7 +52,11 @@
     ]
   },
   "resolutions": {
-    "tar": "^7.5.21",
-    "lodash": "^4.18.0"
+    "lodash": "^4.18.0",
+    "**/redis-memory-server/tar": "^6.2.1",
+    "**/tiged/tar": "^7.5.21",
+    "**/sqlite3/tar": "^7.5.21",
+    "**/node-gyp/tar": "^7.5.21",
+    "**/cacache/tar": "^7.5.21"
   }
 }
