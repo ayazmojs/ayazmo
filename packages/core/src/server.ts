@@ -1,4 +1,4 @@
-import fastify, { FastifyRequest, FastifyReply } from 'fastify'
+import fastify, { FastifyError, FastifyRequest, FastifyReply } from 'fastify'
 import { FastifyAuthFunction, fastifyAuth } from '@fastify/auth'
 import cors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
@@ -29,8 +29,13 @@ export class Server {
   private corePluginManager!: CorePluginManager; // Add reference to CorePluginManager
 
   constructor (options: ServerOptions = {}) {
-    const { configPath, ...restOptions } = options
-    this.fastify = fastify(restOptions)
+    const { configPath, logger, ...restOptions } = options
+    // Fastify 5 only accepts a config object as `logger`; logger instances go in `loggerInstance`
+    const isLoggerInstance = typeof logger === 'object' && logger !== null && typeof (logger as any).info === 'function'
+    this.fastify = fastify({
+      ...restOptions,
+      ...(isLoggerInstance ? { loggerInstance: logger as any } : { logger })
+    })
     this.fastify.decorate('configPath', configPath ?? configDir)
     this.fastify.decorate('anonymousStrategy', anonymousStrategy)
       .register(fastifyAuth)
@@ -66,7 +71,7 @@ export class Server {
   }
 
   private setDefaultErrorHandler (): void {
-    this.fastify.setErrorHandler((error, request, reply) => {
+    this.fastify.setErrorHandler((error: FastifyError, request, reply) => {
       // Default error handling logic
       if (error.validation != null) {
         reply.status(400).send(error)

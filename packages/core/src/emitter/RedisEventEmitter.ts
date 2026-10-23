@@ -231,7 +231,7 @@ export class AyazmoWorker {
     })
 
     process.on('unhandledRejection', (reason, promise) => {
-      this.app.log.error('Unhandled Rejection at:', promise, 'reason:', reason)
+      this.app.log.error({ promise, reason }, 'Unhandled Rejection')
     })
   }
 
